@@ -1,5 +1,7 @@
 import type { NextRequest } from "next/server"
 
+import { issueToken } from "@/server/token"
+
 type RouteContext = {
   params: Promise<{
     path: string[]
@@ -19,6 +21,13 @@ async function proxy(request: NextRequest, context: RouteContext) {
   headers.delete("host")
   headers.delete("connection")
   headers.delete("content-length")
+  headers.delete("authorization")
+
+  const token = await issueToken()
+
+  if (token) {
+    headers.set("authorization", `Bearer ${token}`)
+  }
 
   const response = await fetch(backendUrl, {
     method: request.method,
