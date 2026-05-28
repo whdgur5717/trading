@@ -1,0 +1,1021 @@
+{
+  "openapi": "3.2.0",
+  "paths": {
+    "/stocks/search": {
+      "get": {
+        "operationId": "StocksController_search",
+        "parameters": [
+          {
+            "name": "q",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minLength": 1,
+              "example": "삼성",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiSuccessDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/StockDto"
+                          }
+                        }
+                      },
+                      "required": ["data"]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Stocks"]
+      }
+    },
+    "/stocks/{code}/current": {
+      "get": {
+        "operationId": "StocksController_current",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "pattern": "^\\d{6}$",
+              "example": "005930",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiSuccessDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/StockCurrentDto"
+                        }
+                      },
+                      "required": ["data"]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Stocks"]
+      }
+    },
+    "/stocks/{code}/history": {
+      "get": {
+        "operationId": "StocksController_history",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "pattern": "^\\d{6}$",
+              "example": "005930",
+              "type": "string"
+            }
+          },
+          {
+            "name": "date",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+              "example": "2026-05-15",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiSuccessDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/StockHistoryDto"
+                        }
+                      },
+                      "required": ["data"]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Stocks"]
+      }
+    },
+    "/returns": {
+      "get": {
+        "operationId": "ReturnsController_calculate",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "pattern": "^\\d{6}$",
+              "example": "005930",
+              "type": "string"
+            }
+          },
+          {
+            "name": "buyDate",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+              "example": "2026-05-15",
+              "type": "string"
+            }
+          },
+          {
+            "name": "quantity",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "maximum": 9007199254740991,
+              "exclusiveMinimum": 0,
+              "example": 10,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiSuccessDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ReturnSummaryDto"
+                        }
+                      },
+                      "required": ["data"]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Returns"]
+      }
+    },
+    "/realtime/stream": {
+      "get": {
+        "operationId": "RealtimeController_stream",
+        "parameters": [
+          {
+            "name": "stockCodes",
+            "required": true,
+            "in": "query",
+            "description": "Comma-separated stock codes",
+            "schema": {
+              "minLength": 1,
+              "maxLength": 128,
+              "example": "005930,000660",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Server-sent events stream",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "event": {
+                            "type": "string",
+                            "enum": ["subscribed"]
+                          },
+                          "id": {
+                            "type": "string"
+                          },
+                          "data": {
+                            "$ref": "#/components/schemas/RealtimeSubscribedDto"
+                          }
+                        },
+                        "required": ["event", "data"]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "event": {
+                            "type": "string",
+                            "enum": ["price"]
+                          },
+                          "id": {
+                            "type": "string"
+                          },
+                          "data": {
+                            "$ref": "#/components/schemas/RealtimePriceDto"
+                          }
+                        },
+                        "required": ["event", "data"]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "event": {
+                            "type": "string",
+                            "enum": ["heartbeat"]
+                          },
+                          "id": {
+                            "type": "string"
+                          },
+                          "data": {
+                            "$ref": "#/components/schemas/RealtimeHeartbeatDto"
+                          }
+                        },
+                        "required": ["event", "data"]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "event": {
+                            "type": "string",
+                            "enum": ["disconnected"]
+                          },
+                          "id": {
+                            "type": "string"
+                          },
+                          "data": {
+                            "$ref": "#/components/schemas/RealtimeDisconnectedDto"
+                          }
+                        },
+                        "required": ["event", "data"]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "event": {
+                            "type": "string",
+                            "enum": ["reconnected"]
+                          },
+                          "id": {
+                            "type": "string"
+                          },
+                          "data": {
+                            "$ref": "#/components/schemas/RealtimeReconnectedDto"
+                          }
+                        },
+                        "required": ["event", "data"]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "event": {
+                            "type": "string",
+                            "enum": ["error"]
+                          },
+                          "id": {
+                            "type": "string"
+                          },
+                          "retry": {
+                            "type": "number"
+                          },
+                          "data": {
+                            "oneOf": [
+                              {
+                                "$ref": "#/components/schemas/RealtimeErrorDto"
+                              },
+                              {
+                                "type": "string"
+                              }
+                            ]
+                          }
+                        },
+                        "required": ["event", "data"]
+                      }
+                    ]
+                  }
+                },
+                "itemSchema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "event": {
+                          "type": "string",
+                          "enum": ["subscribed"]
+                        },
+                        "id": {
+                          "type": "string"
+                        },
+                        "data": {
+                          "$ref": "#/components/schemas/RealtimeSubscribedDto"
+                        }
+                      },
+                      "required": ["event", "data"]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "event": {
+                          "type": "string",
+                          "enum": ["price"]
+                        },
+                        "id": {
+                          "type": "string"
+                        },
+                        "data": {
+                          "$ref": "#/components/schemas/RealtimePriceDto"
+                        }
+                      },
+                      "required": ["event", "data"]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "event": {
+                          "type": "string",
+                          "enum": ["heartbeat"]
+                        },
+                        "id": {
+                          "type": "string"
+                        },
+                        "data": {
+                          "$ref": "#/components/schemas/RealtimeHeartbeatDto"
+                        }
+                      },
+                      "required": ["event", "data"]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "event": {
+                          "type": "string",
+                          "enum": ["disconnected"]
+                        },
+                        "id": {
+                          "type": "string"
+                        },
+                        "data": {
+                          "$ref": "#/components/schemas/RealtimeDisconnectedDto"
+                        }
+                      },
+                      "required": ["event", "data"]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "event": {
+                          "type": "string",
+                          "enum": ["reconnected"]
+                        },
+                        "id": {
+                          "type": "string"
+                        },
+                        "data": {
+                          "$ref": "#/components/schemas/RealtimeReconnectedDto"
+                        }
+                      },
+                      "required": ["event", "data"]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "event": {
+                          "type": "string",
+                          "enum": ["error"]
+                        },
+                        "id": {
+                          "type": "string"
+                        },
+                        "retry": {
+                          "type": "number"
+                        },
+                        "data": {
+                          "oneOf": [
+                            {
+                              "$ref": "#/components/schemas/RealtimeErrorDto"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ]
+                        }
+                      },
+                      "required": ["event", "data"]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Realtime"]
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "HealthController_check",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiSuccessDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/HealthCheckDto"
+                        }
+                      },
+                      "required": ["data"]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Health"]
+      }
+    }
+  },
+  "info": {
+    "title": "Trading API",
+    "description": "",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "schemas": {
+      "StockDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^\\d{6}$",
+            "example": "005930"
+          },
+          "name": {
+            "type": "string",
+            "example": "삼성전자"
+          },
+          "marketName": {
+            "type": "string",
+            "example": "KOSPI"
+          },
+          "kisMarketCode": {
+            "type": "string",
+            "enum": ["J", "NX", "UN"],
+            "example": "J"
+          }
+        },
+        "required": ["code", "name", "marketName", "kisMarketCode"]
+      },
+      "StockCurrentDto": {
+        "type": "object",
+        "properties": {
+          "stock": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "pattern": "^\\d{6}$",
+                "example": "005930"
+              },
+              "name": {
+                "type": "string",
+                "example": "삼성전자"
+              },
+              "marketName": {
+                "type": "string",
+                "example": "KOSPI"
+              },
+              "kisMarketCode": {
+                "type": "string",
+                "enum": ["J", "NX", "UN"],
+                "example": "J"
+              }
+            },
+            "required": ["code", "name", "marketName", "kisMarketCode"]
+          },
+          "marketCode": {
+            "type": "string",
+            "enum": ["J", "NX", "UN"],
+            "example": "J"
+          },
+          "price": {
+            "type": "object",
+            "properties": {
+              "currentPrice": {
+                "type": "number",
+                "example": 78000
+              },
+              "openPrice": {
+                "type": "number",
+                "example": 77500
+              },
+              "highPrice": {
+                "type": "number",
+                "example": 78500
+              },
+              "lowPrice": {
+                "type": "number",
+                "example": 77000
+              },
+              "accumulatedVolume": {
+                "type": "number",
+                "example": 12345678
+              },
+              "previousDayChange": {
+                "type": "number",
+                "example": 500
+              },
+              "previousDayChangeRate": {
+                "type": "number",
+                "example": 0.65
+              }
+            },
+            "required": [
+              "currentPrice",
+              "openPrice",
+              "highPrice",
+              "lowPrice",
+              "accumulatedVolume",
+              "previousDayChange",
+              "previousDayChangeRate"
+            ]
+          }
+        },
+        "required": ["stock", "marketCode", "price"]
+      },
+      "StockHistoryDto": {
+        "type": "object",
+        "properties": {
+          "stock": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "pattern": "^\\d{6}$",
+                "example": "005930"
+              },
+              "name": {
+                "type": "string",
+                "example": "삼성전자"
+              },
+              "marketName": {
+                "type": "string",
+                "example": "KOSPI"
+              },
+              "kisMarketCode": {
+                "type": "string",
+                "enum": ["J", "NX", "UN"],
+                "example": "J"
+              }
+            },
+            "required": ["code", "name", "marketName", "kisMarketCode"]
+          },
+          "requestedDate": {
+            "type": "string",
+            "example": "2026-05-15"
+          },
+          "marketCode": {
+            "type": "string",
+            "enum": ["J", "NX", "UN"],
+            "example": "J"
+          },
+          "isTradingDay": {
+            "type": "boolean",
+            "example": true
+          },
+          "candle": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "date": {
+                    "type": "string",
+                    "example": "20260515"
+                  },
+                  "openPrice": {
+                    "type": "number",
+                    "example": 77500
+                  },
+                  "highPrice": {
+                    "type": "number",
+                    "example": 78500
+                  },
+                  "lowPrice": {
+                    "type": "number",
+                    "example": 77000
+                  },
+                  "closePrice": {
+                    "type": "number",
+                    "example": 78000
+                  },
+                  "accumulatedVolume": {
+                    "type": "number",
+                    "example": 12345678
+                  }
+                },
+                "required": [
+                  "date",
+                  "openPrice",
+                  "highPrice",
+                  "lowPrice",
+                  "closePrice",
+                  "accumulatedVolume"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "stock",
+          "requestedDate",
+          "marketCode",
+          "isTradingDay",
+          "candle"
+        ]
+      },
+      "ReturnSummaryDto": {
+        "type": "object",
+        "properties": {
+          "stock": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "pattern": "^\\d{6}$",
+                "example": "005930"
+              },
+              "name": {
+                "type": "string",
+                "example": "삼성전자"
+              },
+              "marketName": {
+                "type": "string",
+                "example": "KOSPI"
+              },
+              "kisMarketCode": {
+                "type": "string",
+                "enum": ["J", "NX", "UN"],
+                "example": "J"
+              }
+            },
+            "required": ["code", "name", "marketName", "kisMarketCode"]
+          },
+          "buy": {
+            "type": "object",
+            "properties": {
+              "date": {
+                "type": "string",
+                "example": "2026-05-15"
+              },
+              "price": {
+                "type": "number",
+                "example": 78000
+              },
+              "priceType": {
+                "type": "string",
+                "const": "adjusted-close",
+                "example": "adjusted-close"
+              },
+              "quantity": {
+                "type": "number",
+                "example": 10
+              }
+            },
+            "required": ["date", "price", "priceType", "quantity"]
+          },
+          "current": {
+            "type": "object",
+            "properties": {
+              "price": {
+                "type": "number",
+                "example": 80000
+              },
+              "source": {
+                "type": "string",
+                "const": "kis-rest-current-price",
+                "example": "kis-rest-current-price"
+              },
+              "marketCode": {
+                "type": "string",
+                "enum": ["J", "NX", "UN"],
+                "example": "J"
+              }
+            },
+            "required": ["price", "source", "marketCode"]
+          },
+          "result": {
+            "type": "object",
+            "properties": {
+              "buyAmount": {
+                "type": "number",
+                "example": 780000
+              },
+              "currentValue": {
+                "type": "number",
+                "example": 800000
+              },
+              "profit": {
+                "type": "number",
+                "example": 20000
+              },
+              "profitRate": {
+                "type": "number",
+                "example": 2.56
+              }
+            },
+            "required": ["buyAmount", "currentValue", "profit", "profitRate"]
+          }
+        },
+        "required": ["stock", "buy", "current", "result"]
+      },
+      "RealtimeDisconnectedDto": {
+        "type": "object",
+        "properties": {
+          "closeCode": {
+            "type": "number",
+            "example": 1006
+          },
+          "reason": {
+            "type": "string",
+            "example": ""
+          }
+        },
+        "required": ["closeCode", "reason"]
+      },
+      "RealtimeErrorDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "FEED_UNAVAILABLE"
+          },
+          "message": {
+            "type": "string",
+            "example": "Realtime feed connection failed"
+          },
+          "retryAfterMs": {
+            "type": "number",
+            "example": 300000
+          }
+        },
+        "required": ["code", "message"]
+      },
+      "RealtimeHeartbeatDto": {
+        "type": "object",
+        "properties": {
+          "at": {
+            "type": "string",
+            "example": "2026-05-15T01:30:15.000Z"
+          }
+        },
+        "required": ["at"]
+      },
+      "RealtimePriceDto": {
+        "type": "object",
+        "properties": {
+          "stockCode": {
+            "type": "string",
+            "example": "005930"
+          },
+          "trId": {
+            "type": "string",
+            "example": "H0STCNT0"
+          },
+          "price": {
+            "type": "number",
+            "example": 78000
+          },
+          "tradeTime": {
+            "type": "string",
+            "example": "103015"
+          },
+          "businessDate": {
+            "type": "string",
+            "example": "20260515"
+          }
+        },
+        "required": ["stockCode", "trId", "price", "tradeTime", "businessDate"]
+      },
+      "RealtimeReconnectedDto": {
+        "type": "object",
+        "properties": {
+          "stockCodes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": ["005930", "000660"]
+          }
+        },
+        "required": ["stockCodes"]
+      },
+      "RealtimeSubscribedDto": {
+        "type": "object",
+        "properties": {
+          "stockCode": {
+            "type": "string",
+            "example": "005930"
+          }
+        },
+        "required": ["stockCode"]
+      },
+      "HealthCheckDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "ok",
+            "example": "ok"
+          }
+        },
+        "required": ["status"]
+      },
+      "ApiSuccessDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "example": true
+          },
+          "data": {},
+          "meta": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {}
+          }
+        },
+        "required": ["success", "data"]
+      },
+      "ApiErrorDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": false,
+            "example": false
+          },
+          "error": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "number",
+                "enum": [
+                  400, 401, 403, 404, 405, 408, 409, 412, 413, 422, 429, 499,
+                  500, 502, 503, 504
+                ],
+                "example": 400
+              },
+              "code": {
+                "type": "string",
+                "enum": [
+                  "BAD_REQUEST",
+                  "UNAUTHORIZED",
+                  "FORBIDDEN",
+                  "NOT_FOUND",
+                  "METHOD_NOT_SUPPORTED",
+                  "TIMEOUT",
+                  "CONFLICT",
+                  "PRECONDITION_FAILED",
+                  "PAYLOAD_TOO_LARGE",
+                  "UNPROCESSABLE_CONTENT",
+                  "TOO_MANY_REQUESTS",
+                  "CLIENT_CLOSED_REQUEST",
+                  "INTERNAL_SERVER_ERROR",
+                  "BAD_GATEWAY",
+                  "SERVICE_UNAVAILABLE",
+                  "GATEWAY_TIMEOUT"
+                ],
+                "example": "BAD_REQUEST"
+              },
+              "message": {
+                "type": "string",
+                "example": "Validation failed"
+              },
+              "details": {}
+            },
+            "required": ["status", "code", "message"]
+          }
+        },
+        "required": ["success", "error"]
+      }
+    }
+  }
+}

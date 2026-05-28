@@ -1,0 +1,63 @@
+{{#if usesHttp}}{{#if usesSse}}import { api, apiBaseUrl } from "../api"{{else}}import { api } from "../api"{{/if}}{{else}}import { apiBaseUrl } from "../api"{{/if}}
+{{#if schemaImports.length}}
+import {
+{{#each schemaImports}}
+  {{this}},
+{{/each}}
+} from "./schemas"
+{{/if}}
+{{#if schemaExports.length}}
+export {
+{{#each schemaExports}}
+  {{this}},
+{{/each}}
+} from "./schemas"
+{{/if}}
+{{#if typeExports.length}}
+export type {
+{{#each typeExports}}
+  {{this}},
+{{/each}}
+} from "./schemas"
+{{/if}}
+
+{{#each operations}}
+{{#if hasParams}}
+export type {{paramsTypeName}} = {{{paramsTypeExpression}}}
+
+{{/if}}
+{{#if isSse}}
+/**
+{{#each jsDocLines}}
+ * {{{this}}}
+{{/each}}
+ */
+export function {{functionName}}({{#if hasParams}}params: {{paramsTypeName}}{{/if}}): EventSource {
+  const searchParams = new URLSearchParams()
+{{#each sseQueryLines}}
+  {{{this}}}
+{{/each}}
+  const queryString = searchParams.toString()
+
+  return new EventSource(apiBaseUrl + {{{eventSourcePathExpression}}} + (queryString ? `?${queryString}` : ""))
+}
+{{else}}
+/**
+{{#each jsDocLines}}
+ * {{{this}}}
+{{/each}}
+ */
+export async function {{functionName}}({{#if hasParams}}params: {{paramsTypeName}}{{/if}}): Promise<{{responseTypeName}}> {
+{{#if hasResponseBody}}
+  const data = await api
+    .{{method}}<{{responseTypeName}}>({{{pathExpression}}}{{#if kyOptionsExpression}}, {{{kyOptionsExpression}}}{{/if}})
+    .json()
+
+  return {{responseSchemaName}}.parse(data)
+{{else}}
+  await api.{{method}}({{{pathExpression}}}{{#if kyOptionsExpression}}, {{{kyOptionsExpression}}}{{/if}})
+{{/if}}
+}
+{{/if}}
+
+{{/each}}
