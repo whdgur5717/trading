@@ -1,0 +1,20 @@
+[
+  {
+    "code": "005930",
+    "name": "삼성전자",
+    "marketName": "KOSPI",
+    "kisMarketCode": "J"
+  },
+  {
+    "code": "005935",
+    "name": "삼성전자우",
+    "marketName": "KOSPI",
+    "kisMarketCode": "J"
+  },
+  {
+    "code": "000660",
+    "name": "SK하이닉스",
+    "marketName": "KOSPI",
+    "kisMarketCode": "J"
+  }
+]
