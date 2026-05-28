@@ -1,0 +1,6 @@
+{
+  "utils": "@/utils",
+  "components": "@/components",
+  "hooks": "@/hooks",
+  "style": "tailwind"
+}
