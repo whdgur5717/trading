@@ -1,0 +1,7 @@
+packages:
+  - "back"
+  - "front"
+
+ignoredBuiltDependencies:
+  - sharp
+  - unrs-resolver
