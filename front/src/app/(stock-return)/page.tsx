@@ -4,8 +4,8 @@ import { Chip } from "@/components/chip"
 import { useRouter } from "next/navigation"
 import { createSerializer, parseAsInteger, parseAsString } from "nuqs"
 import { useState } from "react"
-import { PurchaseDatePicker } from "./components/PurchaseDatePicker"
-import { StockPicker, type Stock } from "./components/StockPicker"
+import { PurchaseDatePicker } from "./components/purchaseDatePicker"
+import { StockPicker, type Stock } from "./components/stockPicker"
 
 const quickQuantities = [1, 10, 50, 100]
 const serializeResultUrl = createSerializer({
