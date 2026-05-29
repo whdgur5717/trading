@@ -1,5 +1,5 @@
 import { RETURNS_CONTROLLER_CALCULATE } from "@/queries/generated"
-import { ResultCard } from "../components/ResultCard"
+import { ResultCard } from "../components/resultCard"
 import { stockReturnSearchParamsCache } from "./searchParams"
 
 export default async function ResultPage({
