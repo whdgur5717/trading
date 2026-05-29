@@ -2,6 +2,7 @@ import { defineConfig, globalIgnores } from "eslint/config"
 import nextVitals from "eslint-config-next/core-web-vitals"
 import nextTs from "eslint-config-next/typescript"
 import betterTailwindcss from "eslint-plugin-better-tailwindcss"
+import checkFile from "eslint-plugin-check-file"
 
 const eslintConfig = defineConfig([
   ...nextVitals,
@@ -19,6 +20,29 @@ const eslintConfig = defineConfig([
   {
     rules: {
       "no-void": "error",
+    },
+  },
+  {
+    files: ["**/*.{js,jsx,cjs,mjs,ts,tsx}"],
+    plugins: {
+      "check-file": checkFile,
+    },
+    rules: {
+      "check-file/filename-naming-convention": [
+        "error",
+        {
+          "**/*": "!([A-Z]*)",
+        },
+        {
+          ignoreMiddleExtensions: true,
+        },
+      ],
+      "check-file/folder-naming-convention": [
+        "error",
+        {
+          "**/": "!([A-Z]*)",
+        },
+      ],
     },
   },
   {
