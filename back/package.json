@@ -13,7 +13,7 @@
     "start:mock": "NODE_ENV=development nest start --sourceRoot . --entryFile scripts/dev-mock --watch",
     "start:debug": "NODE_ENV=development nest start --debug --watch",
     "start:prod": "NODE_ENV=production node dist/main.js",
-    "lint": "eslint --fix .",
+    "lint": "eslint --fix . --max-warnings 0",
     "test": "vitest run src",
     "test:watch": "vitest src",
     "test:cov": "vitest run src --coverage",
