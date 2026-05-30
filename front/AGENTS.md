@@ -69,6 +69,13 @@ Route UI는 `src/app/`의 해당 route group에 둔다. 공용 UI는
   결과를 기준으로 고친다.
 - className 조합은 `src/utils/cn.ts`의 `cn()`을 사용한다.
 
+## React 19
+
+- 현재 리액트 19버전을 사용하기 때문에, `forwardRef`로 래핑하지 않아도 함수 컴포넌트에서 `ref`를
+  prop으로 전달받을 수 있다.
+- 새 코드에서는 `forwardRef`, `ComponentPropsWithRef`, `ElementRef`,
+  `ComponentRef`를 사용하지 않는다.
+
 ## Commands
 
 - `pnpm --filter front dev`: 개발 서버 실행
