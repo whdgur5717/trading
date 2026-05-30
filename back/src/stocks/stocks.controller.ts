@@ -1,5 +1,7 @@
 import { Controller, Get, Param, Query } from "@nestjs/common"
 import { KisService } from "../kis/kis.service"
+import { SuggestionDto, SuggestionQueryDto } from "./suggestion/suggestion.dto"
+import { SuggestionService } from "./suggestion/suggestion.service"
 import {
   StockCodeParamDto,
   StockCurrentDto,
@@ -14,8 +16,14 @@ import { StocksService } from "./stocks.service"
 export class StocksController {
   constructor(
     private readonly stocksService: StocksService,
+    private readonly suggestionService: SuggestionService,
     private readonly kisService: KisService
   ) {}
+
+  @Get("suggestion")
+  suggestion(@Query() query: SuggestionQueryDto): SuggestionDto {
+    return this.suggestionService.suggest(query.q, query.limit)
+  }
 
   @Get("search")
   search(@Query() query: StockSearchQueryDto): StockDto[] {
