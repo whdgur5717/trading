@@ -18,7 +18,9 @@
     "test:watch": "vitest src",
     "test:cov": "vitest run src --coverage",
     "test:debug": "vitest --inspect-brk --run src",
-    "test:e2e": "vitest run test/e2e --fileParallelism=false"
+    "test:e2e": "vitest run test/e2e --fileParallelism=false",
+    "lint:staged": "eslint --fix --max-warnings 0",
+    "type-check": "tsc --noEmit --incremental false"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

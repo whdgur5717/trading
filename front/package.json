@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint --fix . --max-warnings 0",
-    "format": "prettier --write . --ignore-path ../.prettierignore"
+    "format": "prettier --write . --ignore-path ../.prettierignore",
+    "lint:staged": "eslint --fix --max-warnings 0",
+    "type-check": "tsc --noEmit --incremental false"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.100.9",
