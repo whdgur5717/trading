@@ -18,6 +18,7 @@ type StockPickerProps = {
 const Picker = createPickerField<Stock | null>("StockPicker")
 
 export function StockPicker({ value, onChange }: StockPickerProps) {
+  const [open, setOpen] = useState(false)
   const [query, setQuery] = useState("")
   const [debouncedQuery, setDebouncedQuery] = useState("")
   const [debouncedSetQuery] = useState(() => debounce(setDebouncedQuery, 300))
@@ -31,14 +32,26 @@ export function StockPicker({ value, onChange }: StockPickerProps) {
 
   return (
     <Picker.Root
+      open={open}
       value={value ?? null}
+      onOpenChange={(nextOpen) => {
+        setOpen(nextOpen)
+
+        if (!nextOpen) return
+
+        const nextQuery = value?.name ?? ""
+
+        debouncedSetQuery.cancel()
+        setQuery(nextQuery)
+        setDebouncedQuery(nextQuery)
+      }}
       onValueChange={(stock) => {
         if (!stock) return
 
         onChange(stock)
         debouncedSetQuery.cancel()
-        setQuery("")
-        setDebouncedQuery("")
+        setQuery(stock.name)
+        setDebouncedQuery(stock.name)
       }}
     >
       <div className="relative">
@@ -110,7 +123,7 @@ export function StockPicker({ value, onChange }: StockPickerProps) {
                     value={stock}
                   >
                     {() => (
-                      <button type="button">
+                      <button>
                         <span className="text-body font-bold">
                           {stock.name}
                         </span>
