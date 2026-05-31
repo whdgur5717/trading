@@ -1,19 +1,143 @@
 import { z } from "zod"
 
+export const SuggestionDtoSchema = z.object({
+  items: z.array(
+    z.object({
+      code: z.string().regex(new RegExp("^[A-Z0-9]{1,9}$")),
+      name: z.string(),
+      marketName: z.string(),
+      kisMarketCode: z.enum(["J", "NX", "UN"]),
+      standardCode: z.string().optional(),
+      securityGroupCode: z.string().optional(),
+      rawEtpType: z.union([z.string(), z.null()]).optional(),
+      preferredStockType: z.union([z.string(), z.null()]).optional(),
+      productType: z
+        .enum([
+          "STOCK",
+          "PREFERRED",
+          "ETF",
+          "ETN",
+          "REIT",
+          "BENEFICIARY_CERTIFICATE",
+          "SPAC",
+          "OTHER",
+        ])
+        .optional(),
+      isPreferred: z.boolean().optional(),
+      isEtf: z.boolean().optional(),
+      isEtn: z.boolean().optional(),
+      isSpac: z.boolean().optional(),
+      isReit: z.boolean().optional(),
+      isTradingHalted: z.boolean().optional(),
+      isUnderAdministration: z.boolean().optional(),
+      isLowLiquidity: z.boolean().optional(),
+      marketCap: z
+        .union([z.number().int().min(0).max(9007199254740991), z.null()])
+        .optional(),
+      previousVolume: z
+        .union([z.number().int().min(0).max(9007199254740991), z.null()])
+        .optional(),
+      listedDate: z
+        .union([z.string().regex(new RegExp("^\\d{8}$")), z.null()])
+        .optional(),
+      isKospi100: z.boolean().optional(),
+      isKospi50: z.boolean().optional(),
+      isKrx300: z.boolean().optional(),
+      warningLevel: z.union([z.string(), z.null()]).optional(),
+    })
+  ),
+  hasMore: z.boolean(),
+})
+export type SuggestionDto = z.infer<typeof SuggestionDtoSchema>
+
 export const StockDtoSchema = z.object({
-  code: z.string().regex(new RegExp("^\\d{6}$")),
+  code: z.string().regex(new RegExp("^[A-Z0-9]{1,9}$")),
   name: z.string(),
   marketName: z.string(),
   kisMarketCode: z.enum(["J", "NX", "UN"]),
+  standardCode: z.string().optional(),
+  securityGroupCode: z.string().optional(),
+  rawEtpType: z.union([z.string(), z.null()]).optional(),
+  preferredStockType: z.union([z.string(), z.null()]).optional(),
+  productType: z
+    .enum([
+      "STOCK",
+      "PREFERRED",
+      "ETF",
+      "ETN",
+      "REIT",
+      "BENEFICIARY_CERTIFICATE",
+      "SPAC",
+      "OTHER",
+    ])
+    .optional(),
+  isPreferred: z.boolean().optional(),
+  isEtf: z.boolean().optional(),
+  isEtn: z.boolean().optional(),
+  isSpac: z.boolean().optional(),
+  isReit: z.boolean().optional(),
+  isTradingHalted: z.boolean().optional(),
+  isUnderAdministration: z.boolean().optional(),
+  isLowLiquidity: z.boolean().optional(),
+  marketCap: z
+    .union([z.number().int().min(0).max(9007199254740991), z.null()])
+    .optional(),
+  previousVolume: z
+    .union([z.number().int().min(0).max(9007199254740991), z.null()])
+    .optional(),
+  listedDate: z
+    .union([z.string().regex(new RegExp("^\\d{8}$")), z.null()])
+    .optional(),
+  isKospi100: z.boolean().optional(),
+  isKospi50: z.boolean().optional(),
+  isKrx300: z.boolean().optional(),
+  warningLevel: z.union([z.string(), z.null()]).optional(),
 })
 export type StockDto = z.infer<typeof StockDtoSchema>
 
 export const StockCurrentDtoSchema = z.object({
   stock: z.object({
-    code: z.string().regex(new RegExp("^\\d{6}$")),
+    code: z.string().regex(new RegExp("^[A-Z0-9]{1,9}$")),
     name: z.string(),
     marketName: z.string(),
     kisMarketCode: z.enum(["J", "NX", "UN"]),
+    standardCode: z.string().optional(),
+    securityGroupCode: z.string().optional(),
+    rawEtpType: z.union([z.string(), z.null()]).optional(),
+    preferredStockType: z.union([z.string(), z.null()]).optional(),
+    productType: z
+      .enum([
+        "STOCK",
+        "PREFERRED",
+        "ETF",
+        "ETN",
+        "REIT",
+        "BENEFICIARY_CERTIFICATE",
+        "SPAC",
+        "OTHER",
+      ])
+      .optional(),
+    isPreferred: z.boolean().optional(),
+    isEtf: z.boolean().optional(),
+    isEtn: z.boolean().optional(),
+    isSpac: z.boolean().optional(),
+    isReit: z.boolean().optional(),
+    isTradingHalted: z.boolean().optional(),
+    isUnderAdministration: z.boolean().optional(),
+    isLowLiquidity: z.boolean().optional(),
+    marketCap: z
+      .union([z.number().int().min(0).max(9007199254740991), z.null()])
+      .optional(),
+    previousVolume: z
+      .union([z.number().int().min(0).max(9007199254740991), z.null()])
+      .optional(),
+    listedDate: z
+      .union([z.string().regex(new RegExp("^\\d{8}$")), z.null()])
+      .optional(),
+    isKospi100: z.boolean().optional(),
+    isKospi50: z.boolean().optional(),
+    isKrx300: z.boolean().optional(),
+    warningLevel: z.union([z.string(), z.null()]).optional(),
   }),
   marketCode: z.enum(["J", "NX", "UN"]),
   price: z.object({
@@ -30,10 +154,47 @@ export type StockCurrentDto = z.infer<typeof StockCurrentDtoSchema>
 
 export const StockHistoryDtoSchema = z.object({
   stock: z.object({
-    code: z.string().regex(new RegExp("^\\d{6}$")),
+    code: z.string().regex(new RegExp("^[A-Z0-9]{1,9}$")),
     name: z.string(),
     marketName: z.string(),
     kisMarketCode: z.enum(["J", "NX", "UN"]),
+    standardCode: z.string().optional(),
+    securityGroupCode: z.string().optional(),
+    rawEtpType: z.union([z.string(), z.null()]).optional(),
+    preferredStockType: z.union([z.string(), z.null()]).optional(),
+    productType: z
+      .enum([
+        "STOCK",
+        "PREFERRED",
+        "ETF",
+        "ETN",
+        "REIT",
+        "BENEFICIARY_CERTIFICATE",
+        "SPAC",
+        "OTHER",
+      ])
+      .optional(),
+    isPreferred: z.boolean().optional(),
+    isEtf: z.boolean().optional(),
+    isEtn: z.boolean().optional(),
+    isSpac: z.boolean().optional(),
+    isReit: z.boolean().optional(),
+    isTradingHalted: z.boolean().optional(),
+    isUnderAdministration: z.boolean().optional(),
+    isLowLiquidity: z.boolean().optional(),
+    marketCap: z
+      .union([z.number().int().min(0).max(9007199254740991), z.null()])
+      .optional(),
+    previousVolume: z
+      .union([z.number().int().min(0).max(9007199254740991), z.null()])
+      .optional(),
+    listedDate: z
+      .union([z.string().regex(new RegExp("^\\d{8}$")), z.null()])
+      .optional(),
+    isKospi100: z.boolean().optional(),
+    isKospi50: z.boolean().optional(),
+    isKrx300: z.boolean().optional(),
+    warningLevel: z.union([z.string(), z.null()]).optional(),
   }),
   requestedDate: z.string(),
   marketCode: z.enum(["J", "NX", "UN"]),
@@ -54,10 +215,47 @@ export type StockHistoryDto = z.infer<typeof StockHistoryDtoSchema>
 
 export const ReturnSummaryDtoSchema = z.object({
   stock: z.object({
-    code: z.string().regex(new RegExp("^\\d{6}$")),
+    code: z.string().regex(new RegExp("^[A-Z0-9]{1,9}$")),
     name: z.string(),
     marketName: z.string(),
     kisMarketCode: z.enum(["J", "NX", "UN"]),
+    standardCode: z.string().optional(),
+    securityGroupCode: z.string().optional(),
+    rawEtpType: z.union([z.string(), z.null()]).optional(),
+    preferredStockType: z.union([z.string(), z.null()]).optional(),
+    productType: z
+      .enum([
+        "STOCK",
+        "PREFERRED",
+        "ETF",
+        "ETN",
+        "REIT",
+        "BENEFICIARY_CERTIFICATE",
+        "SPAC",
+        "OTHER",
+      ])
+      .optional(),
+    isPreferred: z.boolean().optional(),
+    isEtf: z.boolean().optional(),
+    isEtn: z.boolean().optional(),
+    isSpac: z.boolean().optional(),
+    isReit: z.boolean().optional(),
+    isTradingHalted: z.boolean().optional(),
+    isUnderAdministration: z.boolean().optional(),
+    isLowLiquidity: z.boolean().optional(),
+    marketCap: z
+      .union([z.number().int().min(0).max(9007199254740991), z.null()])
+      .optional(),
+    previousVolume: z
+      .union([z.number().int().min(0).max(9007199254740991), z.null()])
+      .optional(),
+    listedDate: z
+      .union([z.string().regex(new RegExp("^\\d{8}$")), z.null()])
+      .optional(),
+    isKospi100: z.boolean().optional(),
+    isKospi50: z.boolean().optional(),
+    isKrx300: z.boolean().optional(),
+    warningLevel: z.union([z.string(), z.null()]).optional(),
   }),
   buy: z.object({
     date: z.string(),
@@ -176,6 +374,14 @@ export const ApiErrorDtoSchema = z.object({
   }),
 })
 export type ApiErrorDto = z.infer<typeof ApiErrorDtoSchema>
+
+export const StocksControllerSuggestionResponseSchema =
+  ApiSuccessDtoSchema.omit({ data: true }).extend({
+    data: SuggestionDtoSchema,
+  })
+export type StocksControllerSuggestionResponse = z.infer<
+  typeof StocksControllerSuggestionResponseSchema
+>
 
 export const StocksControllerSearchResponseSchema = ApiSuccessDtoSchema.omit({
   data: true,
