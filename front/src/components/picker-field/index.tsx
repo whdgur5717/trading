@@ -32,17 +32,15 @@ export interface PickerFieldRootRenderProps<TValue> {
   clear: (options?: PickerFieldSelectOptions) => void
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface PickerFieldContextValue<
   TValue,
-> extends PickerFieldRootRenderProps<TValue> {
-  setValue: (value: TValue | undefined) => void
-}
+> extends PickerFieldRootRenderProps<TValue> {}
 
 export interface PickerFieldRootProps<TValue> {
   children?: ReactNode
-  value?: TValue
-  defaultValue?: TValue
-  onValueChange?: (value: TValue | undefined) => void
+  value: TValue | undefined
+  onValueChange: (value: TValue | undefined) => void
   open?: boolean
   defaultOpen?: boolean
   onOpenChange?: (open: boolean) => void
@@ -111,8 +109,7 @@ export function createPickerField<TValue = never>(name = "PickerField") {
 
   const Root = ({
     children,
-    value: valueProp,
-    defaultValue,
+    value,
     onValueChange,
     open: openProp,
     defaultOpen,
@@ -120,12 +117,6 @@ export function createPickerField<TValue = never>(name = "PickerField") {
     disabled = false,
     closeOnSelect = true,
   }: PickerFieldRootProps<TValue>) => {
-    const [value, setValue] = useControllableState<TValue | undefined>({
-      prop: valueProp,
-      defaultProp: defaultValue,
-      onChange: onValueChange,
-    })
-
     const [open, setOpenValue] = useControllableState({
       prop: openProp,
       defaultProp: defaultOpen ?? false,
@@ -149,26 +140,26 @@ export function createPickerField<TValue = never>(name = "PickerField") {
       (nextValue: TValue, options?: PickerFieldSelectOptions) => {
         if (disabled) return
 
-        setValue(nextValue)
+        onValueChange(nextValue)
 
         if (options?.close ?? closeOnSelect) {
           setOpenValue(false)
         }
       },
-      [closeOnSelect, disabled, setOpenValue, setValue]
+      [closeOnSelect, disabled, onValueChange, setOpenValue]
     )
 
     const clear = useCallback(
       (options?: PickerFieldSelectOptions) => {
         if (disabled) return
 
-        setValue(undefined)
+        onValueChange(undefined)
 
         if (options?.close ?? closeOnSelect) {
           setOpenValue(false)
         }
       },
-      [closeOnSelect, disabled, setOpenValue, setValue]
+      [closeOnSelect, disabled, onValueChange, setOpenValue]
     )
 
     const context = useMemo<PickerFieldContextValue<TValue>>(
@@ -178,12 +169,11 @@ export function createPickerField<TValue = never>(name = "PickerField") {
         disabled,
         hasValue: getHasValue(value),
         setOpen,
-        setValue,
         close,
         select,
         clear,
       }),
-      [clear, close, disabled, effectiveOpen, select, setOpen, setValue, value]
+      [clear, close, disabled, effectiveOpen, select, setOpen, value]
     )
 
     return (
