@@ -3,7 +3,9 @@ import type { RealtimePriceEvent } from "../realtime/realtime.schema"
 import type {
   CurrentPrice,
   DailyPriceResult,
+  DomesticMarketDay,
   KisDailyItemChartPriceResponse,
+  KisDomesticHolidayResponse,
   KisInquirePriceResponse,
 } from "./kis.schema"
 
@@ -63,6 +65,57 @@ export function mapDailyItemChartPrice(
       closePrice: toNumber(candle.stck_clpr, "stck_clpr"),
       accumulatedVolume: toNumber(candle.acml_vol, "acml_vol"),
     },
+  }
+}
+
+export function mapLatestDailyClose(
+  response: KisDailyItemChartPriceResponse
+): DailyPriceResult {
+  const candle = response.output2
+    ?.filter((item) => item.stck_bsop_date)
+    .slice()
+    .sort((left, right) =>
+      String(right.stck_bsop_date).localeCompare(String(left.stck_bsop_date))
+    )[0]
+
+  if (!candle) {
+    return {
+      isTradingDay: false,
+      candle: null,
+    }
+  }
+
+  return {
+    isTradingDay: true,
+    candle: {
+      date: candle.stck_bsop_date || "",
+      openPrice: toNumber(candle.stck_oprc, "stck_oprc"),
+      highPrice: toNumber(candle.stck_hgpr, "stck_hgpr"),
+      lowPrice: toNumber(candle.stck_lwpr, "stck_lwpr"),
+      closePrice: toNumber(candle.stck_clpr, "stck_clpr"),
+      accumulatedVolume: toNumber(candle.acml_vol, "acml_vol"),
+    },
+  }
+}
+
+export function mapDomesticHoliday(
+  response: KisDomesticHolidayResponse,
+  date: string
+): DomesticMarketDay {
+  const marketDay = response.output?.find((item) => item.bass_dt === date)
+
+  if (!marketDay) {
+    throw new BadGatewayException(
+      response.msg1 || `KIS holiday response is missing ${date}`
+    )
+  }
+
+  return {
+    date,
+    isBusinessDay: marketDay.bzdy_yn === "Y",
+    isTradingDay: marketDay.tr_day_yn === "Y",
+    isOpenDay: marketDay.opnd_yn === "Y",
+    isSettlementDay: marketDay.sttl_day_yn === "Y",
   }
 }
 
