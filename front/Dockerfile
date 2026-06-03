@@ -12,7 +12,7 @@ FROM base AS deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY front/package.json ./front/package.json
 
-RUN pnpm install --frozen-lockfile --filter front...
+RUN pnpm install --frozen-lockfile --filter front... --ignore-scripts
 
 FROM deps AS build
 
