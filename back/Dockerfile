@@ -12,7 +12,7 @@ FROM base AS deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY back/package.json ./back/package.json
 
-RUN pnpm install --frozen-lockfile --filter back...
+RUN pnpm install --frozen-lockfile --filter back... --ignore-scripts
 
 FROM deps AS build
 
@@ -25,7 +25,7 @@ FROM base AS prod-deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY back/package.json ./back/package.json
 
-RUN pnpm install --prod --frozen-lockfile --filter back...
+RUN pnpm install --prod --frozen-lockfile --filter back... --ignore-scripts
 
 FROM node:24-bookworm-slim AS runner
 
