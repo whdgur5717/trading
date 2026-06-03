@@ -122,9 +122,9 @@
         "tags": ["Stocks"]
       }
     },
-    "/stocks/{code}/current": {
+    "/stocks/{code}": {
       "get": {
-        "operationId": "StocksController_current",
+        "operationId": "StocksController_get",
         "parameters": [
           {
             "name": "code",
@@ -151,7 +151,7 @@
                       "type": "object",
                       "properties": {
                         "data": {
-                          "$ref": "#/components/schemas/StockCurrentDto"
+                          "$ref": "#/components/schemas/StockDto"
                         }
                       },
                       "required": ["data"]
@@ -175,9 +175,115 @@
         "tags": ["Stocks"]
       }
     },
-    "/stocks/{code}/history": {
+    "/prices/{code}/current": {
       "get": {
-        "operationId": "StocksController_history",
+        "operationId": "PricesController_current",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "pattern": "^[A-Z0-9]{1,9}$",
+              "example": "005930",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiSuccessDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/PriceCurrentDto"
+                        }
+                      },
+                      "required": ["data"]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Prices"]
+      }
+    },
+    "/prices/{code}/quote": {
+      "get": {
+        "operationId": "PricesController_quote",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "pattern": "^[A-Z0-9]{1,9}$",
+              "example": "005930",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiSuccessDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/PriceQuoteDto"
+                        }
+                      },
+                      "required": ["data"]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Prices"]
+      }
+    },
+    "/prices/{code}/daily-candle": {
+      "get": {
+        "operationId": "PricesController_dailyCandle",
         "parameters": [
           {
             "name": "code",
@@ -215,7 +321,7 @@
                       "type": "object",
                       "properties": {
                         "data": {
-                          "$ref": "#/components/schemas/StockHistoryDto"
+                          "$ref": "#/components/schemas/PriceDailyCandleDto"
                         }
                       },
                       "required": ["data"]
@@ -236,7 +342,7 @@
             }
           }
         },
-        "tags": ["Stocks"]
+        "tags": ["Prices"]
       }
     },
     "/returns": {
@@ -813,12 +919,12 @@
             "example": "J"
           },
           "standardCode": {
-            "type": "string",
-            "example": "KR7005930003"
+            "example": "KR7005930003",
+            "type": "string"
           },
           "securityGroupCode": {
-            "type": "string",
-            "example": "ST"
+            "example": "ST",
+            "type": "string"
           },
           "rawEtpType": {
             "example": "2",
@@ -843,8 +949,8 @@
             ]
           },
           "productType": {
-            "type": "string",
             "example": "STOCK",
+            "type": "string",
             "enum": [
               "STOCK",
               "PREFERRED",
@@ -857,36 +963,36 @@
             ]
           },
           "isPreferred": {
-            "type": "boolean",
-            "example": false
+            "example": false,
+            "type": "boolean"
           },
           "isEtf": {
-            "type": "boolean",
-            "example": false
+            "example": false,
+            "type": "boolean"
           },
           "isEtn": {
-            "type": "boolean",
-            "example": false
+            "example": false,
+            "type": "boolean"
           },
           "isSpac": {
-            "type": "boolean",
-            "example": false
+            "example": false,
+            "type": "boolean"
           },
           "isReit": {
-            "type": "boolean",
-            "example": false
+            "example": false,
+            "type": "boolean"
           },
           "isTradingHalted": {
-            "type": "boolean",
-            "example": false
+            "example": false,
+            "type": "boolean"
           },
           "isUnderAdministration": {
-            "type": "boolean",
-            "example": false
+            "example": false,
+            "type": "boolean"
           },
           "isLowLiquidity": {
-            "type": "boolean",
-            "example": false
+            "example": false,
+            "type": "boolean"
           },
           "marketCap": {
             "anyOf": [
@@ -925,16 +1031,16 @@
             ]
           },
           "isKospi100": {
-            "type": "boolean",
-            "example": true
+            "example": true,
+            "type": "boolean"
           },
           "isKospi50": {
-            "type": "boolean",
-            "example": true
+            "example": true,
+            "type": "boolean"
           },
           "isKrx300": {
-            "type": "boolean",
-            "example": true
+            "example": true,
+            "type": "boolean"
           },
           "warningLevel": {
             "example": "00",
@@ -950,7 +1056,61 @@
         },
         "required": ["code", "name", "marketName", "kisMarketCode"]
       },
-      "StockCurrentDto": {
+      "PriceCurrentDto": {
+        "type": "object",
+        "properties": {
+          "price": {
+            "type": "number",
+            "example": 80000
+          },
+          "source": {
+            "type": "string",
+            "enum": ["kis-rest-current-price", "kis-rest-daily-itemchartprice"],
+            "example": "kis-rest-current-price"
+          },
+          "marketCode": {
+            "type": "string",
+            "const": "UN",
+            "example": "UN"
+          },
+          "basis": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "current-snapshot",
+                    "example": "current-snapshot"
+                  },
+                  "requestedAt": {
+                    "type": "string",
+                    "example": "2026-06-03T09:00:01+09:00"
+                  }
+                },
+                "required": ["type", "requestedAt"]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "latest-close",
+                    "example": "latest-close"
+                  },
+                  "tradingDate": {
+                    "type": "string",
+                    "example": "20260602"
+                  }
+                },
+                "required": ["type", "tradingDate"]
+              }
+            ]
+          }
+        },
+        "required": ["price", "source", "marketCode", "basis"]
+      },
+      "PriceQuoteDto": {
         "type": "object",
         "properties": {
           "stock": {
@@ -1162,7 +1322,7 @@
         },
         "required": ["stock", "marketCode", "price"]
       },
-      "StockHistoryDto": {
+      "PriceDailyCandleDto": {
         "type": "object",
         "properties": {
           "stock": {
@@ -1584,16 +1744,53 @@
               },
               "source": {
                 "type": "string",
-                "const": "kis-rest-current-price",
+                "enum": [
+                  "kis-rest-current-price",
+                  "kis-rest-daily-itemchartprice"
+                ],
                 "example": "kis-rest-current-price"
               },
               "marketCode": {
                 "type": "string",
-                "enum": ["J", "NX", "UN"],
-                "example": "J"
+                "const": "UN",
+                "example": "UN"
+              },
+              "basis": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "const": "current-snapshot",
+                        "example": "current-snapshot"
+                      },
+                      "requestedAt": {
+                        "type": "string",
+                        "example": "2026-06-03T09:00:01+09:00"
+                      }
+                    },
+                    "required": ["type", "requestedAt"]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "const": "latest-close",
+                        "example": "latest-close"
+                      },
+                      "tradingDate": {
+                        "type": "string",
+                        "example": "20260602"
+                      }
+                    },
+                    "required": ["type", "tradingDate"]
+                  }
+                ]
               }
             },
-            "required": ["price", "source", "marketCode"]
+            "required": ["price", "source", "marketCode", "basis"]
           },
           "result": {
             "type": "object",
