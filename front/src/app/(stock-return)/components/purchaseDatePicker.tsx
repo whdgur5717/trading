@@ -59,12 +59,12 @@ export function PurchaseDatePicker({
           {({ value: selectedDate }) => {
             return (
               <button type="button">
-                <span className="col-span-full text-caption font-extrabold text-muted">
+                <span className="col-span-full type-label text-muted">
                   날짜
                 </span>
                 {selectedDate ? (
                   <>
-                    <strong className="min-w-0 truncate text-title font-bold tracking-normal text-primary">
+                    <strong className="min-w-0 truncate type-title text-ink">
                       {formatPurchaseDate(selectedDate)}
                     </strong>
                     <small className="flex items-end gap-2 pb-0.5 text-label font-bold text-muted">
@@ -74,7 +74,7 @@ export function PurchaseDatePicker({
                   </>
                 ) : (
                   <>
-                    <span className="min-w-0 truncate text-body font-medium tracking-normal text-subtle">
+                    <span className="min-w-0 truncate type-body text-subtle">
                       날짜 선택
                     </span>
                     <small className="flex items-end gap-2 pb-0.5 text-label font-medium text-subtle">
@@ -95,7 +95,7 @@ export function PurchaseDatePicker({
                 {shortcuts.map((shortcut) => (
                   <Picker.Item
                     asChild
-                    className="w-auto justify-center rounded-lg bg-surface-muted px-3 py-2 text-caption font-bold text-secondary hover:bg-primary hover:text-primary-foreground data-selected:bg-primary data-selected:text-primary-foreground"
+                    className="w-auto justify-center rounded-lg bg-surface-muted px-3 py-2 type-label text-muted hover:bg-primary hover:text-primary-foreground data-selected:bg-primary data-selected:text-primary-foreground"
                     disabled={
                       typeof disabled === "function"
                         ? disabled(shortcut.value)
