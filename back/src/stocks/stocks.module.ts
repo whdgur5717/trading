@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common"
 import { KisModule } from "../kis/kis.module"
+import { SuggestionService } from "./suggestion/suggestion.service"
 import { STOCK_MASTER_DATA, stockMasterData } from "./stocks.data"
 import { StocksController } from "./stocks.controller"
 import { StocksService } from "./stocks.service"
@@ -13,6 +14,7 @@ import { StocksService } from "./stocks.service"
       useValue: stockMasterData,
     },
     StocksService,
+    SuggestionService,
   ],
   exports: [StocksService],
 })

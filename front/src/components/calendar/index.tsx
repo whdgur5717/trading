@@ -29,6 +29,8 @@ export interface CalendarContextType {
   value: DateFormat
   weekStart: 0 | 1
   locale: Intl.LocalesArgument
+  minDate?: Date
+  maxDate?: Date
 
   onMonthChange: (amount: number) => void
   onYearChange: (amount: number) => void
@@ -53,6 +55,8 @@ interface CalendarViewProps {
   viewDate?: Date
   defaultViewDate?: Date
   onViewDateChange?: (date: Date) => void
+  minDate?: Date
+  maxDate?: Date
 }
 
 export interface CalendarRootProps
@@ -93,6 +97,8 @@ export const RangeCalendar = forwardRef<HTMLDivElement, CalendarRangeProps>(
       viewDate,
       defaultViewDate,
       onViewDateChange,
+      minDate,
+      maxDate,
       weekStart = 0,
       locale = "en-US",
       ...props
@@ -199,6 +205,8 @@ export const RangeCalendar = forwardRef<HTMLDivElement, CalendarRangeProps>(
         value={dateFormat}
         weekStart={weekStart}
         locale={locale}
+        minDate={minDate}
+        maxDate={maxDate}
         onMonthChange={onMonthChange}
         onYearChange={onYearChange}
         selectedValue={rangeValue}
@@ -225,6 +233,8 @@ export const SingleCalendar = forwardRef<HTMLDivElement, CalendarRootProps>(
       viewDate,
       defaultViewDate,
       onViewDateChange,
+      minDate,
+      maxDate,
       weekStart = 0,
       locale = "en-US",
       ...props
@@ -304,6 +314,8 @@ export const SingleCalendar = forwardRef<HTMLDivElement, CalendarRootProps>(
         onYearChange={onYearChange}
         weekStart={weekStart}
         locale={locale}
+        minDate={minDate}
+        maxDate={maxDate}
         selectedValue={selectedValue ? [selectedValue] : []}
         handleDayClick={(clickedDate: Date) => setSelectedValue(clickedDate)}
       >
@@ -330,18 +342,32 @@ export const Header = ({
   year = "numeric",
   render,
 }: HeaderProps) => {
-  const { value, onMonthChange, locale } = useCalendarContext(contextScopeName)
+  const { value, onMonthChange, locale, minDate, maxDate } =
+    useCalendarContext(contextScopeName)
 
   const monthAndYear = new Intl.DateTimeFormat(locale, {
     month,
     year,
   }).format(new Date(value.year, value.month - 1))
+  const previousMonthTime = parseMonthTimestamp(
+    new Date(value.year, value.month - 2, 1)
+  )
+  const nextMonthTime = parseMonthTimestamp(
+    new Date(value.year, value.month, 1)
+  )
+  const minMonthTime = minDate ? parseMonthTimestamp(minDate) : undefined
+  const maxMonthTime = maxDate ? parseMonthTimestamp(maxDate) : undefined
+  const isPreviousMonthDisabled =
+    minMonthTime !== undefined && previousMonthTime < minMonthTime
+  const isNextMonthDisabled =
+    maxMonthTime !== undefined && nextMonthTime > maxMonthTime
 
   return (
     <div className={cn(styles.header(), className)}>
       <button
         className={styles.navButton()}
         onClick={() => onMonthChange(-1)}
+        disabled={isPreviousMonthDisabled}
         aria-label="Go To Previous month"
       >
         <ChevronLeft />
@@ -354,6 +380,7 @@ export const Header = ({
       <button
         className={styles.navButton()}
         onClick={() => onMonthChange(1)}
+        disabled={isNextMonthDisabled}
         aria-label="Go To Next month"
       >
         <ChevronRight />
@@ -430,8 +457,10 @@ export const Days = ({
   disabled,
   showOutsideDays = true,
 }: DaysProps) => {
-  const { value, handleDayClick, selectedValue } =
+  const { value, handleDayClick, selectedValue, minDate, maxDate } =
     useCalendarContext(contextScopeName)
+  const minDateTime = minDate ? parseDateTimestamp(minDate) : undefined
+  const maxDateTime = maxDate ? parseDateTimestamp(maxDate) : undefined
   const weeks = useMemo(() => {
     const days: Array<{ day: number; isCurrentMonth: boolean }> = []
 
@@ -482,8 +511,11 @@ export const Days = ({
                   ? value.month - 1
                   : value.month + 1
               const date = new Date(value.year, month - 1, day.day)
+              const dateTime = parseDateTimestamp(date)
               const isDisabled =
                 isHidden ||
+                (minDateTime !== undefined && dateTime < minDateTime) ||
+                (maxDateTime !== undefined && dateTime > maxDateTime) ||
                 (typeof disabled === "function" ? disabled(date) : disabled)
               const isSelected = selectedValue.some(
                 (selectedDate) =>
@@ -491,7 +523,7 @@ export const Days = ({
               )
 
               return (
-                <td key={`${weekIndex}-${dayIndex}`}>
+                <td key={`${weekIndex}-${dayIndex}`} className="p-0.5">
                   <DayButton
                     day={day.day}
                     disabled={isDisabled}
@@ -518,6 +550,14 @@ function isSameDay(firstDate: Date, secondDate: Date) {
     firstDate.getMonth() === secondDate.getMonth() &&
     firstDate.getDate() === secondDate.getDate()
   )
+}
+
+function parseDateTimestamp(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime()
+}
+
+function parseMonthTimestamp(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), 1).getTime()
 }
 
 function getWeekdays(

@@ -62,12 +62,19 @@ Route UI는 `src/app/`의 해당 route group에 둔다. 공용 UI는
 ## UI
 
 - Tailwind theme token은 `src/app/globals.css`의 `@theme`에서 정의한다.
-- 색상, spacing, radius, shadow, typography는 theme token을 우선 사용한다.
+- 색상, spacing, radius, typography는 theme token을 우선 사용한다.
 - 임의 hex color, 임의 px 값, 일회성 Tailwind arbitrary value를 먼저 만들지
   않는다.
 - Tailwind 사용 오류와 token 위반은 ESLint가 잡는다. `pnpm --filter front lint`
   결과를 기준으로 고친다.
 - className 조합은 `src/utils/cn.ts`의 `cn()`을 사용한다.
+
+## React 19
+
+- 현재 리액트 19버전을 사용하기 때문에, `forwardRef`로 래핑하지 않아도 함수 컴포넌트에서 `ref`를
+  prop으로 전달받을 수 있다.
+- 새 코드에서는 `forwardRef`, `ComponentPropsWithRef`, `ElementRef`,
+  `ComponentRef`를 사용하지 않는다.
 
 ## Commands
 

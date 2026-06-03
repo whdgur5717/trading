@@ -1,6 +1,71 @@
 {
   "openapi": "3.2.0",
   "paths": {
+    "/stocks/suggestion": {
+      "get": {
+        "operationId": "StocksController_suggestion",
+        "parameters": [
+          {
+            "name": "q",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minLength": 1,
+              "example": "삼ㅈ",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 50,
+              "default": 10,
+              "example": 10,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiSuccessDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/SuggestionDto"
+                        }
+                      },
+                      "required": ["data"]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Stocks"]
+      }
+    },
     "/stocks/search": {
       "get": {
         "operationId": "StocksController_search",
@@ -66,7 +131,7 @@
             "required": true,
             "in": "path",
             "schema": {
-              "pattern": "^\\d{6}$",
+              "pattern": "^[A-Z0-9]{1,9}$",
               "example": "005930",
               "type": "string"
             }
@@ -119,7 +184,7 @@
             "required": true,
             "in": "path",
             "schema": {
-              "pattern": "^\\d{6}$",
+              "pattern": "^[A-Z0-9]{1,9}$",
               "example": "005930",
               "type": "string"
             }
@@ -183,7 +248,7 @@
             "required": true,
             "in": "query",
             "schema": {
-              "pattern": "^\\d{6}$",
+              "pattern": "^[A-Z0-9]{1,9}$",
               "example": "005930",
               "type": "string"
             }
@@ -554,12 +619,184 @@
   "servers": [],
   "components": {
     "schemas": {
+      "SuggestionDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "pattern": "^[A-Z0-9]{1,9}$",
+                  "example": "005930"
+                },
+                "name": {
+                  "type": "string",
+                  "example": "삼성전자"
+                },
+                "marketName": {
+                  "type": "string",
+                  "example": "KOSPI"
+                },
+                "kisMarketCode": {
+                  "type": "string",
+                  "enum": ["J", "NX", "UN"],
+                  "example": "J"
+                },
+                "standardCode": {
+                  "example": "KR7005930003",
+                  "type": "string"
+                },
+                "securityGroupCode": {
+                  "example": "ST",
+                  "type": "string"
+                },
+                "rawEtpType": {
+                  "example": "2",
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "preferredStockType": {
+                  "example": "0",
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "productType": {
+                  "example": "STOCK",
+                  "type": "string",
+                  "enum": [
+                    "STOCK",
+                    "PREFERRED",
+                    "ETF",
+                    "ETN",
+                    "REIT",
+                    "BENEFICIARY_CERTIFICATE",
+                    "SPAC",
+                    "OTHER"
+                  ]
+                },
+                "isPreferred": {
+                  "example": false,
+                  "type": "boolean"
+                },
+                "isEtf": {
+                  "example": false,
+                  "type": "boolean"
+                },
+                "isEtn": {
+                  "example": false,
+                  "type": "boolean"
+                },
+                "isSpac": {
+                  "example": false,
+                  "type": "boolean"
+                },
+                "isReit": {
+                  "example": false,
+                  "type": "boolean"
+                },
+                "isTradingHalted": {
+                  "example": false,
+                  "type": "boolean"
+                },
+                "isUnderAdministration": {
+                  "example": false,
+                  "type": "boolean"
+                },
+                "isLowLiquidity": {
+                  "example": false,
+                  "type": "boolean"
+                },
+                "marketCap": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "previousVolume": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "listedDate": {
+                  "example": "19750611",
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^\\d{8}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "isKospi100": {
+                  "example": true,
+                  "type": "boolean"
+                },
+                "isKospi50": {
+                  "example": true,
+                  "type": "boolean"
+                },
+                "isKrx300": {
+                  "example": true,
+                  "type": "boolean"
+                },
+                "warningLevel": {
+                  "example": "00",
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": ["code", "name", "marketName", "kisMarketCode"]
+            }
+          },
+          "hasMore": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": ["items", "hasMore"]
+      },
       "StockDto": {
         "type": "object",
         "properties": {
           "code": {
             "type": "string",
-            "pattern": "^\\d{6}$",
+            "pattern": "^[A-Z0-9]{1,9}$",
             "example": "005930"
           },
           "name": {
@@ -574,6 +811,141 @@
             "type": "string",
             "enum": ["J", "NX", "UN"],
             "example": "J"
+          },
+          "standardCode": {
+            "type": "string",
+            "example": "KR7005930003"
+          },
+          "securityGroupCode": {
+            "type": "string",
+            "example": "ST"
+          },
+          "rawEtpType": {
+            "example": "2",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "preferredStockType": {
+            "example": "0",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "productType": {
+            "type": "string",
+            "example": "STOCK",
+            "enum": [
+              "STOCK",
+              "PREFERRED",
+              "ETF",
+              "ETN",
+              "REIT",
+              "BENEFICIARY_CERTIFICATE",
+              "SPAC",
+              "OTHER"
+            ]
+          },
+          "isPreferred": {
+            "type": "boolean",
+            "example": false
+          },
+          "isEtf": {
+            "type": "boolean",
+            "example": false
+          },
+          "isEtn": {
+            "type": "boolean",
+            "example": false
+          },
+          "isSpac": {
+            "type": "boolean",
+            "example": false
+          },
+          "isReit": {
+            "type": "boolean",
+            "example": false
+          },
+          "isTradingHalted": {
+            "type": "boolean",
+            "example": false
+          },
+          "isUnderAdministration": {
+            "type": "boolean",
+            "example": false
+          },
+          "isLowLiquidity": {
+            "type": "boolean",
+            "example": false
+          },
+          "marketCap": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "previousVolume": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "listedDate": {
+            "example": "19750611",
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{8}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "isKospi100": {
+            "type": "boolean",
+            "example": true
+          },
+          "isKospi50": {
+            "type": "boolean",
+            "example": true
+          },
+          "isKrx300": {
+            "type": "boolean",
+            "example": true
+          },
+          "warningLevel": {
+            "example": "00",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": ["code", "name", "marketName", "kisMarketCode"]
@@ -586,7 +958,7 @@
             "properties": {
               "code": {
                 "type": "string",
-                "pattern": "^\\d{6}$",
+                "pattern": "^[A-Z0-9]{1,9}$",
                 "example": "005930"
               },
               "name": {
@@ -601,6 +973,141 @@
                 "type": "string",
                 "enum": ["J", "NX", "UN"],
                 "example": "J"
+              },
+              "standardCode": {
+                "example": "KR7005930003",
+                "type": "string"
+              },
+              "securityGroupCode": {
+                "example": "ST",
+                "type": "string"
+              },
+              "rawEtpType": {
+                "example": "2",
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "preferredStockType": {
+                "example": "0",
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "productType": {
+                "example": "STOCK",
+                "type": "string",
+                "enum": [
+                  "STOCK",
+                  "PREFERRED",
+                  "ETF",
+                  "ETN",
+                  "REIT",
+                  "BENEFICIARY_CERTIFICATE",
+                  "SPAC",
+                  "OTHER"
+                ]
+              },
+              "isPreferred": {
+                "example": false,
+                "type": "boolean"
+              },
+              "isEtf": {
+                "example": false,
+                "type": "boolean"
+              },
+              "isEtn": {
+                "example": false,
+                "type": "boolean"
+              },
+              "isSpac": {
+                "example": false,
+                "type": "boolean"
+              },
+              "isReit": {
+                "example": false,
+                "type": "boolean"
+              },
+              "isTradingHalted": {
+                "example": false,
+                "type": "boolean"
+              },
+              "isUnderAdministration": {
+                "example": false,
+                "type": "boolean"
+              },
+              "isLowLiquidity": {
+                "example": false,
+                "type": "boolean"
+              },
+              "marketCap": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "previousVolume": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "listedDate": {
+                "example": "19750611",
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^\\d{8}$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "isKospi100": {
+                "example": true,
+                "type": "boolean"
+              },
+              "isKospi50": {
+                "example": true,
+                "type": "boolean"
+              },
+              "isKrx300": {
+                "example": true,
+                "type": "boolean"
+              },
+              "warningLevel": {
+                "example": "00",
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
             },
             "required": ["code", "name", "marketName", "kisMarketCode"]
@@ -663,7 +1170,7 @@
             "properties": {
               "code": {
                 "type": "string",
-                "pattern": "^\\d{6}$",
+                "pattern": "^[A-Z0-9]{1,9}$",
                 "example": "005930"
               },
               "name": {
@@ -678,6 +1185,141 @@
                 "type": "string",
                 "enum": ["J", "NX", "UN"],
                 "example": "J"
+              },
+              "standardCode": {
+                "example": "KR7005930003",
+                "type": "string"
+              },
+              "securityGroupCode": {
+                "example": "ST",
+                "type": "string"
+              },
+              "rawEtpType": {
+                "example": "2",
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "preferredStockType": {
+                "example": "0",
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "productType": {
+                "example": "STOCK",
+                "type": "string",
+                "enum": [
+                  "STOCK",
+                  "PREFERRED",
+                  "ETF",
+                  "ETN",
+                  "REIT",
+                  "BENEFICIARY_CERTIFICATE",
+                  "SPAC",
+                  "OTHER"
+                ]
+              },
+              "isPreferred": {
+                "example": false,
+                "type": "boolean"
+              },
+              "isEtf": {
+                "example": false,
+                "type": "boolean"
+              },
+              "isEtn": {
+                "example": false,
+                "type": "boolean"
+              },
+              "isSpac": {
+                "example": false,
+                "type": "boolean"
+              },
+              "isReit": {
+                "example": false,
+                "type": "boolean"
+              },
+              "isTradingHalted": {
+                "example": false,
+                "type": "boolean"
+              },
+              "isUnderAdministration": {
+                "example": false,
+                "type": "boolean"
+              },
+              "isLowLiquidity": {
+                "example": false,
+                "type": "boolean"
+              },
+              "marketCap": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "previousVolume": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "listedDate": {
+                "example": "19750611",
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^\\d{8}$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "isKospi100": {
+                "example": true,
+                "type": "boolean"
+              },
+              "isKospi50": {
+                "example": true,
+                "type": "boolean"
+              },
+              "isKrx300": {
+                "example": true,
+                "type": "boolean"
+              },
+              "warningLevel": {
+                "example": "00",
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
             },
             "required": ["code", "name", "marketName", "kisMarketCode"]
@@ -756,7 +1398,7 @@
             "properties": {
               "code": {
                 "type": "string",
-                "pattern": "^\\d{6}$",
+                "pattern": "^[A-Z0-9]{1,9}$",
                 "example": "005930"
               },
               "name": {
@@ -771,6 +1413,141 @@
                 "type": "string",
                 "enum": ["J", "NX", "UN"],
                 "example": "J"
+              },
+              "standardCode": {
+                "example": "KR7005930003",
+                "type": "string"
+              },
+              "securityGroupCode": {
+                "example": "ST",
+                "type": "string"
+              },
+              "rawEtpType": {
+                "example": "2",
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "preferredStockType": {
+                "example": "0",
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "productType": {
+                "example": "STOCK",
+                "type": "string",
+                "enum": [
+                  "STOCK",
+                  "PREFERRED",
+                  "ETF",
+                  "ETN",
+                  "REIT",
+                  "BENEFICIARY_CERTIFICATE",
+                  "SPAC",
+                  "OTHER"
+                ]
+              },
+              "isPreferred": {
+                "example": false,
+                "type": "boolean"
+              },
+              "isEtf": {
+                "example": false,
+                "type": "boolean"
+              },
+              "isEtn": {
+                "example": false,
+                "type": "boolean"
+              },
+              "isSpac": {
+                "example": false,
+                "type": "boolean"
+              },
+              "isReit": {
+                "example": false,
+                "type": "boolean"
+              },
+              "isTradingHalted": {
+                "example": false,
+                "type": "boolean"
+              },
+              "isUnderAdministration": {
+                "example": false,
+                "type": "boolean"
+              },
+              "isLowLiquidity": {
+                "example": false,
+                "type": "boolean"
+              },
+              "marketCap": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "previousVolume": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "listedDate": {
+                "example": "19750611",
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^\\d{8}$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "isKospi100": {
+                "example": true,
+                "type": "boolean"
+              },
+              "isKospi50": {
+                "example": true,
+                "type": "boolean"
+              },
+              "isKrx300": {
+                "example": true,
+                "type": "boolean"
+              },
+              "warningLevel": {
+                "example": "00",
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
             },
             "required": ["code", "name", "marketName", "kisMarketCode"]

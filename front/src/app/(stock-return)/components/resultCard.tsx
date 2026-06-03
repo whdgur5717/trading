@@ -17,24 +17,24 @@ function formatWon(value: number) {
 export function ResultCard({ result }: ResultCardProps) {
   return (
     <section
-      className="grid gap-5 rounded-2xl bg-surface-raised p-panel shadow-panel"
+      className="grid gap-5 rounded-2xl bg-surface-raised p-xl"
       aria-label="계산 결과"
     >
-      <p className="text-body font-semibold text-secondary">
+      <p className="type-body text-muted">
         {formatDate(result.buy.date)}에 {result.stock.name}에
         <br />
         {result.buy.quantity.toLocaleString("ko-KR")}주를 샀다면
       </p>
       <div className="grid gap-1">
-        <span className="text-caption font-extrabold text-muted">지금</span>
-        <strong className="text-display font-extrabold tracking-normal text-primary">
+        <span className="type-label text-muted">지금</span>
+        <strong className="type-display text-ink">
           {formatWon(result.result.currentValue)}
         </strong>
       </div>
-      <div className="flex flex-wrap gap-2 text-body-lg font-extrabold text-muted">
+      <div className="flex flex-wrap gap-2 type-title text-muted">
         <span
           className={cn(
-            result.result.profit >= 0 ? "text-profit" : "text-loss"
+            result.result.profit >= 0 ? "text-success" : "text-loss"
           )}
         >
           {formatWon(result.result.profit)} (
@@ -44,13 +44,13 @@ export function ResultCard({ result }: ResultCardProps) {
       <dl className="grid gap-2">
         <div className="flex items-center justify-between gap-4 rounded-xl bg-surface-muted px-4 py-3">
           <dt className="text-label font-bold text-muted">당시 기준가</dt>
-          <dd className="text-label font-extrabold text-primary">
+          <dd className="text-label font-extrabold text-ink">
             {formatWon(result.buy.price)}
           </dd>
         </div>
         <div className="flex items-center justify-between gap-4 rounded-xl bg-surface-muted px-4 py-3">
           <dt className="text-label font-bold text-muted">현재 기준가</dt>
-          <dd className="text-label font-extrabold text-primary">
+          <dd className="text-label font-extrabold text-ink">
             {formatWon(result.current.price)}
           </dd>
         </div>

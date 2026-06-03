@@ -3,29 +3,26 @@
 import * as Calendar from "@/components/calendar"
 import { createPickerField } from "@/components/picker-field"
 import { ChevronDown } from "lucide-react"
-import { type ComponentProps, useState } from "react"
-
-type CalendarDaysDisabled = ComponentProps<typeof Calendar.Days>["disabled"]
+import type { ComponentProps } from "react"
+import { useState } from "react"
+import { TradingCalendar } from "./tradingCalendar"
 
 export type PurchaseDateShortcut = {
   label: string
-  value: Date
+  value: NonNullable<Calendar.CalendarRootProps["date"]>
 }
 
 type PurchaseDatePickerProps = {
-  value?: Date
+  value?: NonNullable<Calendar.CalendarRootProps["date"]>
   shortcuts?: readonly PurchaseDateShortcut[]
-  disabled?: CalendarDaysDisabled
-  onChange: (date: Date) => void
+  disabled?: ComponentProps<typeof Calendar.Days>["disabled"]
+  onChange: (date: NonNullable<Calendar.CalendarRootProps["date"]>) => void
 }
 
-type CalendarPanelProps = {
-  viewDate: Date
-  disabled?: CalendarDaysDisabled
-  onViewDateChange: (date: Date) => void
-}
-
-const Picker = createPickerField<Date>("PurchaseDatePicker")
+const Picker =
+  createPickerField<NonNullable<Calendar.CalendarRootProps["date"]>>(
+    "PurchaseDatePicker"
+  )
 
 function formatPurchaseDate(date: Date) {
   return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`
@@ -36,39 +33,6 @@ function isSameDate(firstDate: Date, secondDate: Date) {
     firstDate.getFullYear() === secondDate.getFullYear() &&
     firstDate.getMonth() === secondDate.getMonth() &&
     firstDate.getDate() === secondDate.getDate()
-  )
-}
-
-function CalendarPanel({
-  viewDate,
-  disabled,
-  onViewDateChange,
-}: CalendarPanelProps) {
-  const picker = Picker.useContext("PurchaseDatePicker.Calendar")
-
-  return (
-    <Calendar.Root
-      date={picker.value ?? viewDate}
-      locale="ko-KR"
-      type="single"
-      viewDate={viewDate}
-      weekStart={0}
-      onViewDateChange={onViewDateChange}
-      onDateChange={(date) => {
-        if (!date) return
-
-        picker.select(date)
-      }}
-    >
-      <Calendar.Header
-        render={(date) => `${date.getFullYear()}년 ${date.getMonth() + 1}월`}
-      />
-      <div className="px-1 pb-3 text-caption font-extrabold text-muted">
-        거래일만 선택
-      </div>
-      <Calendar.Weekday />
-      <Calendar.Days disabled={disabled} />
-    </Calendar.Root>
   )
 }
 
@@ -95,12 +59,12 @@ export function PurchaseDatePicker({
           {({ value: selectedDate }) => {
             return (
               <button type="button">
-                <span className="col-span-full text-caption font-extrabold text-muted">
+                <span className="col-span-full type-label text-muted">
                   날짜
                 </span>
                 {selectedDate ? (
                   <>
-                    <strong className="min-w-0 truncate text-title font-bold tracking-normal text-primary">
+                    <strong className="min-w-0 truncate type-title text-ink">
                       {formatPurchaseDate(selectedDate)}
                     </strong>
                     <small className="flex items-end gap-2 pb-0.5 text-label font-bold text-muted">
@@ -110,7 +74,7 @@ export function PurchaseDatePicker({
                   </>
                 ) : (
                   <>
-                    <span className="min-w-0 truncate text-body font-medium tracking-normal text-subtle">
+                    <span className="min-w-0 truncate type-body text-subtle">
                       날짜 선택
                     </span>
                     <small className="flex items-end gap-2 pb-0.5 text-label font-medium text-subtle">
@@ -131,7 +95,7 @@ export function PurchaseDatePicker({
                 {shortcuts.map((shortcut) => (
                   <Picker.Item
                     asChild
-                    className="w-auto justify-center rounded-lg bg-surface-muted px-3 py-2 text-caption font-bold text-secondary hover:bg-primary hover:text-primary-foreground data-selected:bg-primary data-selected:text-primary-foreground"
+                    className="w-auto justify-center rounded-lg bg-surface-muted px-3 py-2 type-label text-muted hover:bg-primary hover:text-primary-foreground data-selected:bg-primary data-selected:text-primary-foreground"
                     disabled={
                       typeof disabled === "function"
                         ? disabled(shortcut.value)
@@ -144,18 +108,23 @@ export function PurchaseDatePicker({
                     key={shortcut.label}
                     value={shortcut.value}
                   >
-                    <button type="button">{shortcut.label}</button>
+                    <button>{shortcut.label}</button>
                   </Picker.Item>
                 ))}
               </div>
             )}
 
             <div className="rounded-xl bg-surface-muted/60 p-3">
-              <CalendarPanel
-                disabled={disabled}
-                viewDate={viewDate}
-                onViewDateChange={setViewDate}
-              />
+              <Picker.Value>
+                {(picker) => (
+                  <TradingCalendar
+                    selectedDate={picker.value}
+                    viewDate={viewDate}
+                    onSelectDate={picker.select}
+                    onViewDateChange={setViewDate}
+                  />
+                )}
+              </Picker.Value>
             </div>
           </div>
         </Picker.Content>

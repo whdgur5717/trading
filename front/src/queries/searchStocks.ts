@@ -1,18 +1,19 @@
 import { queryOptions } from "@tanstack/react-query"
 
 import {
-  STOCKS_CONTROLLER_SEARCH,
-  type StocksControllerSearchParams,
+  STOCKS_CONTROLLER_SUGGESTION,
+  type StocksControllerSuggestionParams,
 } from "@/queries/generated"
 
 export const searchStocksQueryOptions = (
-  params: StocksControllerSearchParams
+  params: StocksControllerSuggestionParams
 ) =>
   queryOptions({
-    queryKey: ["stocks", "search", params.q],
+    queryKey: ["stocks", "suggestion", params.q, params.limit],
     queryFn: async () => {
-      const response = await STOCKS_CONTROLLER_SEARCH(params)
+      const response = await STOCKS_CONTROLLER_SUGGESTION(params)
 
-      return response.data
+      return response.data.items
     },
+    staleTime: Infinity,
   })
