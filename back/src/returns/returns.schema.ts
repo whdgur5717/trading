@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { pastOrTodayIsoDateSchema } from "../common/date-validation"
-import { kisMarketCodeSchema } from "../kis/kis.schema"
+import { priceCurrentSchema } from "../prices/prices.schema"
 import { stockCodeSchema, stockSchema } from "../stocks/stock.schema"
 
 export const returnsQuerySchema = z.object({
@@ -16,13 +16,7 @@ export const returnBuySchema = z.object({
   quantity: z.number().meta({ example: 10 }),
 })
 
-export const returnCurrentSchema = z.object({
-  price: z.number().meta({ example: 80000 }),
-  source: z
-    .literal("kis-rest-current-price")
-    .meta({ example: "kis-rest-current-price" }),
-  marketCode: kisMarketCodeSchema,
-})
+export const returnCurrentSchema = priceCurrentSchema
 
 export const returnCalculationSchema = z.object({
   buyAmount: z.number().meta({ example: 780000 }),
