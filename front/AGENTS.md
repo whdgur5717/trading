@@ -62,7 +62,7 @@ Route UI는 `src/app/`의 해당 route group에 둔다. 공용 UI는
 ## UI
 
 - Tailwind theme token은 `src/app/globals.css`의 `@theme`에서 정의한다.
-- 색상, spacing, radius, shadow, typography는 theme token을 우선 사용한다.
+- 색상, spacing, radius, typography는 theme token을 우선 사용한다.
 - 임의 hex color, 임의 px 값, 일회성 Tailwind arbitrary value를 먼저 만들지
   않는다.
 - Tailwind 사용 오류와 token 위반은 ESLint가 잡는다. `pnpm --filter front lint`
