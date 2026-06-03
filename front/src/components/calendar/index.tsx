@@ -523,7 +523,7 @@ export const Days = ({
               )
 
               return (
-                <td key={`${weekIndex}-${dayIndex}`}>
+                <td key={`${weekIndex}-${dayIndex}`} className="p-0.5">
                   <DayButton
                     day={day.day}
                     disabled={isDisabled}
