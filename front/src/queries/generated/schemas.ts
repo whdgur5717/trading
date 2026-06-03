@@ -95,7 +95,24 @@ export const StockDtoSchema = z.object({
 })
 export type StockDto = z.infer<typeof StockDtoSchema>
 
-export const StockCurrentDtoSchema = z.object({
+export const PriceCurrentDtoSchema = z.object({
+  price: z.number(),
+  source: z.enum(["kis-rest-current-price", "kis-rest-daily-itemchartprice"]),
+  marketCode: z.literal("UN"),
+  basis: z.union([
+    z.object({
+      type: z.literal("current-snapshot"),
+      requestedAt: z.string(),
+    }),
+    z.object({
+      type: z.literal("latest-close"),
+      tradingDate: z.string(),
+    }),
+  ]),
+})
+export type PriceCurrentDto = z.infer<typeof PriceCurrentDtoSchema>
+
+export const PriceQuoteDtoSchema = z.object({
   stock: z.object({
     code: z.string().regex(new RegExp("^[A-Z0-9]{1,9}$")),
     name: z.string(),
@@ -150,9 +167,9 @@ export const StockCurrentDtoSchema = z.object({
     previousDayChangeRate: z.number(),
   }),
 })
-export type StockCurrentDto = z.infer<typeof StockCurrentDtoSchema>
+export type PriceQuoteDto = z.infer<typeof PriceQuoteDtoSchema>
 
-export const StockHistoryDtoSchema = z.object({
+export const PriceDailyCandleDtoSchema = z.object({
   stock: z.object({
     code: z.string().regex(new RegExp("^[A-Z0-9]{1,9}$")),
     name: z.string(),
@@ -211,7 +228,7 @@ export const StockHistoryDtoSchema = z.object({
     z.null(),
   ]),
 })
-export type StockHistoryDto = z.infer<typeof StockHistoryDtoSchema>
+export type PriceDailyCandleDto = z.infer<typeof PriceDailyCandleDtoSchema>
 
 export const ReturnSummaryDtoSchema = z.object({
   stock: z.object({
@@ -265,8 +282,18 @@ export const ReturnSummaryDtoSchema = z.object({
   }),
   current: z.object({
     price: z.number(),
-    source: z.literal("kis-rest-current-price"),
-    marketCode: z.enum(["J", "NX", "UN"]),
+    source: z.enum(["kis-rest-current-price", "kis-rest-daily-itemchartprice"]),
+    marketCode: z.literal("UN"),
+    basis: z.union([
+      z.object({
+        type: z.literal("current-snapshot"),
+        requestedAt: z.string(),
+      }),
+      z.object({
+        type: z.literal("latest-close"),
+        tradingDate: z.string(),
+      }),
+    ]),
   }),
   result: z.object({
     buyAmount: z.number(),
@@ -392,22 +419,39 @@ export type StocksControllerSearchResponse = z.infer<
   typeof StocksControllerSearchResponseSchema
 >
 
-export const StocksControllerCurrentResponseSchema = ApiSuccessDtoSchema.omit({
+export const StocksControllerGetResponseSchema = ApiSuccessDtoSchema.omit({
   data: true,
 }).extend({
-  data: StockCurrentDtoSchema,
+  data: StockDtoSchema,
 })
-export type StocksControllerCurrentResponse = z.infer<
-  typeof StocksControllerCurrentResponseSchema
+export type StocksControllerGetResponse = z.infer<
+  typeof StocksControllerGetResponseSchema
 >
 
-export const StocksControllerHistoryResponseSchema = ApiSuccessDtoSchema.omit({
+export const PricesControllerCurrentResponseSchema = ApiSuccessDtoSchema.omit({
   data: true,
 }).extend({
-  data: StockHistoryDtoSchema,
+  data: PriceCurrentDtoSchema,
 })
-export type StocksControllerHistoryResponse = z.infer<
-  typeof StocksControllerHistoryResponseSchema
+export type PricesControllerCurrentResponse = z.infer<
+  typeof PricesControllerCurrentResponseSchema
+>
+
+export const PricesControllerQuoteResponseSchema = ApiSuccessDtoSchema.omit({
+  data: true,
+}).extend({
+  data: PriceQuoteDtoSchema,
+})
+export type PricesControllerQuoteResponse = z.infer<
+  typeof PricesControllerQuoteResponseSchema
+>
+
+export const PricesControllerDailyCandleResponseSchema =
+  ApiSuccessDtoSchema.omit({ data: true }).extend({
+    data: PriceDailyCandleDtoSchema,
+  })
+export type PricesControllerDailyCandleResponse = z.infer<
+  typeof PricesControllerDailyCandleResponseSchema
 >
 
 export const ReturnsControllerCalculateResponseSchema =

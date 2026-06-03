@@ -1,17 +1,17 @@
 import { queryOptions } from "@tanstack/react-query"
 
 import {
-  STOCKS_CONTROLLER_HISTORY,
-  type StocksControllerHistoryParams,
+  PRICES_CONTROLLER_DAILY_CANDLE,
+  type PricesControllerDailyCandleParams,
 } from "@/queries/generated"
 
 export const getStockHistoryQueryOptions = (
-  params: StocksControllerHistoryParams
+  params: PricesControllerDailyCandleParams
 ) =>
   queryOptions({
     queryKey: ["stock", params.code, "history", params.date],
     queryFn: async () => {
-      const response = await STOCKS_CONTROLLER_HISTORY(params)
+      const response = await PRICES_CONTROLLER_DAILY_CANDLE(params)
 
       return response.data
     },

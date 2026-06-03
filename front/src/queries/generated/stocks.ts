@@ -4,10 +4,8 @@ import {
   type StocksControllerSuggestionResponse,
   StocksControllerSearchResponseSchema,
   type StocksControllerSearchResponse,
-  StocksControllerCurrentResponseSchema,
-  type StocksControllerCurrentResponse,
-  StocksControllerHistoryResponseSchema,
-  type StocksControllerHistoryResponse,
+  StocksControllerGetResponseSchema,
+  type StocksControllerGetResponse,
 } from "./schemas"
 
 export type StocksControllerSuggestionParams = {
@@ -65,57 +63,26 @@ export async function STOCKS_CONTROLLER_SEARCH(
   return StocksControllerSearchResponseSchema.parse(data)
 }
 
-export type StocksControllerCurrentParams = {
+export type StocksControllerGetParams = {
   code: string
 }
 
 /**
  * @example
  * ```ts
- * await STOCKS_CONTROLLER_CURRENT({
+ * await STOCKS_CONTROLLER_GET({
  *   code: "005930"
  * })
  * ```
  */
-export async function STOCKS_CONTROLLER_CURRENT(
-  params: StocksControllerCurrentParams
-): Promise<StocksControllerCurrentResponse> {
+export async function STOCKS_CONTROLLER_GET(
+  params: StocksControllerGetParams
+): Promise<StocksControllerGetResponse> {
   const data = await api
-    .get<StocksControllerCurrentResponse>(
-      `stocks/${encodeURIComponent(String(params.code))}/current`
+    .get<StocksControllerGetResponse>(
+      `stocks/${encodeURIComponent(String(params.code))}`
     )
     .json()
 
-  return StocksControllerCurrentResponseSchema.parse(data)
-}
-
-export type StocksControllerHistoryParams = {
-  code: string
-  date: string
-}
-
-/**
- * @example
- * ```ts
- * await STOCKS_CONTROLLER_HISTORY({
- *   code: "005930",
- *   date: "2026-05-15"
- * })
- * ```
- */
-export async function STOCKS_CONTROLLER_HISTORY(
-  params: StocksControllerHistoryParams
-): Promise<StocksControllerHistoryResponse> {
-  const data = await api
-    .get<StocksControllerHistoryResponse>(
-      `stocks/${encodeURIComponent(String(params.code))}/history`,
-      {
-        searchParams: {
-          date: params.date,
-        },
-      }
-    )
-    .json()
-
-  return StocksControllerHistoryResponseSchema.parse(data)
+  return StocksControllerGetResponseSchema.parse(data)
 }
