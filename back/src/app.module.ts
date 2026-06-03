@@ -4,6 +4,7 @@ import { APP_PIPE } from "@nestjs/core"
 import { ZodDtoValidationPipe } from "./common/zod-validation"
 import { validateEnv } from "./config/env.validation"
 import { HealthModule } from "./health/health.module"
+import { PricesModule } from "./prices/prices.module"
 import { RealtimeModule } from "./realtime/realtime.module"
 import { ReturnsModule } from "./returns/returns.module"
 import { StocksModule } from "./stocks/stocks.module"
@@ -16,6 +17,7 @@ import { StocksModule } from "./stocks/stocks.module"
       validate: validateEnv,
     }),
     StocksModule,
+    PricesModule,
     ReturnsModule,
     RealtimeModule,
     HealthModule,
