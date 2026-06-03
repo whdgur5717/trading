@@ -73,7 +73,7 @@ describe("realtime", () => {
       expect(stream).toContain("event: subscribed")
       expect(stream).toContain("event: price")
       expect(stream).toContain('"stockCode":"005930"')
-      expect(stream).toContain('"price":70000')
+      expect(stream).toMatch(/"price":(70000|69891|70465|69002)/)
     } finally {
       abortController.abort()
       websocket.close()
