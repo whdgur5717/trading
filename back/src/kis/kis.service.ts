@@ -8,10 +8,14 @@ import {
   KIS_CURRENT_PRICE_TR_ID,
   KIS_DAILY_ITEM_CHART_PRICE_PATH,
   KIS_DAILY_ITEM_CHART_PRICE_TR_ID,
+  KIS_DOMESTIC_HOLIDAY_PATH,
+  KIS_DOMESTIC_HOLIDAY_TR_ID,
 } from "./kis.constants"
 import {
   mapDailyItemChartPrice,
+  mapDomesticHoliday,
   mapInquirePrice,
+  mapLatestDailyClose,
   parseRealtimeTradeMessage,
 } from "./kis-mappers"
 import {
@@ -24,8 +28,11 @@ import {
 } from "./kis.schema"
 import type {
   CurrentPrice,
+  DailyCandle,
   DailyPriceResult,
+  DomesticMarketDay,
   KisDailyItemChartPriceResponse,
+  KisDomesticHolidayResponse,
   KisInquirePriceResponse,
 } from "./kis.schema"
 
@@ -86,6 +93,51 @@ export class KisService implements MarketPort {
     )
 
     return mapDailyItemChartPrice(response)
+  }
+
+  async getLatestDailyClose(
+    code: string,
+    endDate: string,
+    marketCode = this.getDefaultMarketCode()
+  ): Promise<DailyCandle> {
+    const compactEndDate = endDate.replaceAll("-", "")
+    const compactStartDate = this.subtractDays(compactEndDate, 60)
+    const response = await this.get<KisDailyItemChartPriceResponse>(
+      KIS_DAILY_ITEM_CHART_PRICE_PATH,
+      KIS_DAILY_ITEM_CHART_PRICE_TR_ID,
+      {
+        FID_COND_MRKT_DIV_CODE: marketCode,
+        FID_INPUT_ISCD: code,
+        FID_INPUT_DATE_1: compactStartDate,
+        FID_INPUT_DATE_2: compactEndDate,
+        FID_PERIOD_DIV_CODE: "D",
+        FID_ORG_ADJ_PRC: "0",
+      }
+    )
+    const result = mapLatestDailyClose(response)
+
+    if (!result.candle) {
+      throw new BadGatewayException(
+        `KIS daily close response is missing latest close for ${code}`
+      )
+    }
+
+    return result.candle
+  }
+
+  async getDomesticMarketDay(date: string): Promise<DomesticMarketDay> {
+    const compactDate = date.replaceAll("-", "")
+    const response = await this.get<KisDomesticHolidayResponse>(
+      KIS_DOMESTIC_HOLIDAY_PATH,
+      KIS_DOMESTIC_HOLIDAY_TR_ID,
+      {
+        BASS_DT: compactDate,
+        CTX_AREA_FK: "",
+        CTX_AREA_NK: "",
+      }
+    )
+
+    return mapDomesticHoliday(response, compactDate)
   }
 
   async getApprovalKey(): Promise<string> {
@@ -393,6 +445,27 @@ export class KisService implements MarketPort {
       Number(minute),
       Number(second)
     )
+  }
+
+  private subtractDays(compactDate: string, days: number): string {
+    const match = compactDate.match(/^(\d{4})(\d{2})(\d{2})$/)
+
+    if (!match) {
+      throw new BadGatewayException(`Invalid KIS date: ${compactDate}`)
+    }
+
+    const [, year, month, day] = match
+    const date = new Date(
+      Date.UTC(Number(year), Number(month) - 1, Number(day))
+    )
+
+    date.setUTCDate(date.getUTCDate() - days)
+
+    return [
+      date.getUTCFullYear(),
+      String(date.getUTCMonth() + 1).padStart(2, "0"),
+      String(date.getUTCDate()).padStart(2, "0"),
+    ].join("")
   }
 
   private async readJson(response: Response): Promise<Record<string, unknown>> {

@@ -1,7 +1,8 @@
-import { KisService } from "./kis.service"
 import { BadGatewayException } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
-import { afterEach, describe, expect, it, vi } from "vitest"
+import { Test } from "@nestjs/testing"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+import { KisService } from "./kis.service"
 
 const futureKisExpiry = "2099-01-01 00:00:00"
 
@@ -20,43 +21,23 @@ function createConfig(): ConfigService {
   })
 }
 
-function createCurrentPriceResponse() {
-  return {
-    rt_cd: "0",
-    msg_cd: "MCA00000",
-    msg1: "정상처리 되었습니다.",
-    output: {
-      stck_prpr: "70000",
-      stck_oprc: "69000",
-      stck_hgpr: "71000",
-      stck_lwpr: "68000",
-      acml_vol: "1000",
-      prdy_vrss: "500",
-      prdy_ctrt: "0.72",
-    },
-  }
-}
-
-function createDailyPriceResponse() {
-  return {
-    rt_cd: "0",
-    msg_cd: "MCA00000",
-    msg1: "정상처리 되었습니다.",
-    output2: [
-      {
-        stck_bsop_date: "20260507",
-        stck_oprc: "69000",
-        stck_hgpr: "71000",
-        stck_lwpr: "68000",
-        stck_clpr: "70000",
-        acml_vol: "1000",
-      },
-    ],
-  }
-}
-
-describe("KisService token handling", () => {
+describe("KisService", () => {
   const originalFetch = global.fetch
+  let service: KisService
+
+  beforeEach(async () => {
+    const moduleRef = await Test.createTestingModule({
+      providers: [
+        KisService,
+        {
+          provide: ConfigService,
+          useValue: createConfig(),
+        },
+      ],
+    }).compile()
+
+    service = moduleRef.get(KisService)
+  })
 
   afterEach(() => {
     vi.useRealTimers()
@@ -64,165 +45,328 @@ describe("KisService token handling", () => {
     vi.restoreAllMocks()
   })
 
-  it("deduplicates concurrent access token requests", async () => {
-    const fetchMock = vi.fn<typeof fetch>(async (input) => {
-      const url = input.toString()
+  describe("token cache", () => {
+    it("동시에 가격을 조회해도 KIS token 발급 요청은 한 번만 보낸다", async () => {
+      const fetchMock = vi
+        .fn<typeof fetch>()
+        .mockResolvedValueOnce(
+          createJsonResponse({
+            access_token: "access-token-1",
+            access_token_token_expired: futureKisExpiry,
+            token_type: "Bearer",
+            expires_in: "1",
+          })
+        )
+        .mockResolvedValueOnce(
+          createJsonResponse({
+            rt_cd: "0",
+            msg_cd: "MCA00000",
+            msg1: "정상처리 되었습니다.",
+            output: {
+              stck_prpr: "70000",
+              stck_oprc: "69000",
+              stck_hgpr: "71000",
+              stck_lwpr: "68000",
+              acml_vol: "1000",
+              prdy_vrss: "500",
+              prdy_ctrt: "0.72",
+            },
+          })
+        )
+        .mockResolvedValueOnce(
+          createJsonResponse({
+            rt_cd: "0",
+            msg_cd: "MCA00000",
+            msg1: "정상처리 되었습니다.",
+            output2: [
+              {
+                stck_bsop_date: "20260507",
+                stck_oprc: "69000",
+                stck_hgpr: "71000",
+                stck_lwpr: "68000",
+                stck_clpr: "70000",
+                acml_vol: "1000",
+              },
+            ],
+          })
+        )
+      global.fetch = fetchMock
 
-      if (url.includes("/oauth2/tokenP")) {
-        await new Promise((resolve) => setTimeout(resolve, 10))
-        return createJsonResponse({
-          access_token: "access-token-1",
-          access_token_token_expired: futureKisExpiry,
-          token_type: "Bearer",
-          expires_in: "1",
-        })
-      }
+      await Promise.all([
+        service.getCurrentPrice("005930", "J"),
+        service.getDailyPrice("005930", "2026-05-07", "J"),
+      ])
 
-      if (url.includes("/inquire-price")) {
-        return createJsonResponse(createCurrentPriceResponse())
-      }
-
-      if (url.includes("/inquire-daily-itemchartprice")) {
-        return createJsonResponse(createDailyPriceResponse())
-      }
-
-      throw new Error(`Unexpected fetch: ${url}`)
-    })
-    global.fetch = fetchMock
-
-    const service = new KisService(createConfig())
-
-    await Promise.all([
-      service.getCurrentPrice("005930", "J"),
-      service.getDailyPrice("005930", "2026-05-07", "J"),
-    ])
-
-    expect(
-      fetchMock.mock.calls.filter(([input]) =>
-        input.toString().includes("/oauth2/tokenP")
+      expect(fetchMock).toHaveBeenCalledTimes(3)
+      expect(fetchMock.mock.calls[0][0].toString()).toContain("/oauth2/tokenP")
+      expect(fetchMock.mock.calls[1][0].toString()).toContain("/inquire-price")
+      expect(fetchMock.mock.calls[2][0].toString()).toContain(
+        "/inquire-daily-itemchartprice"
       )
-    ).toHaveLength(1)
-  })
-
-  it("uses access_token_token_expired before expires_in when caching tokens", async () => {
-    const fetchMock = vi.fn<typeof fetch>(async (input) => {
-      const url = input.toString()
-
-      if (url.includes("/oauth2/tokenP")) {
-        return createJsonResponse({
-          access_token: "access-token-1",
-          access_token_token_expired: futureKisExpiry,
-          token_type: "Bearer",
-          expires_in: "1",
-        })
-      }
-
-      if (url.includes("/inquire-price")) {
-        return createJsonResponse(createCurrentPriceResponse())
-      }
-
-      throw new Error(`Unexpected fetch: ${url}`)
     })
-    global.fetch = fetchMock
 
-    const service = new KisService(createConfig())
+    it("유효한 token이 있으면 다음 KIS 요청에 재사용한다", async () => {
+      const fetchMock = vi
+        .fn<typeof fetch>()
+        .mockResolvedValueOnce(
+          createJsonResponse({
+            access_token: "access-token-1",
+            access_token_token_expired: futureKisExpiry,
+            token_type: "Bearer",
+            expires_in: "1",
+          })
+        )
+        .mockResolvedValueOnce(
+          createJsonResponse({
+            rt_cd: "0",
+            msg_cd: "MCA00000",
+            msg1: "정상처리 되었습니다.",
+            output: {
+              stck_prpr: "70000",
+              stck_oprc: "69000",
+              stck_hgpr: "71000",
+              stck_lwpr: "68000",
+              acml_vol: "1000",
+              prdy_vrss: "500",
+              prdy_ctrt: "0.72",
+            },
+          })
+        )
+        .mockResolvedValueOnce(
+          createJsonResponse({
+            rt_cd: "0",
+            msg_cd: "MCA00000",
+            msg1: "정상처리 되었습니다.",
+            output: {
+              stck_prpr: "70000",
+              stck_oprc: "69000",
+              stck_hgpr: "71000",
+              stck_lwpr: "68000",
+              acml_vol: "1000",
+              prdy_vrss: "500",
+              prdy_ctrt: "0.72",
+            },
+          })
+        )
+      global.fetch = fetchMock
 
-    await service.getCurrentPrice("005930", "J")
-    await service.getCurrentPrice("005930", "J")
+      await service.getCurrentPrice("005930", "J")
+      await service.getCurrentPrice("005930", "J")
 
-    expect(
-      fetchMock.mock.calls.filter(([input]) =>
-        input.toString().includes("/oauth2/tokenP")
-      )
-    ).toHaveLength(1)
-  })
+      expect(fetchMock).toHaveBeenCalledTimes(3)
+      expect(fetchMock.mock.calls[0][0].toString()).toContain("/oauth2/tokenP")
+      expect(fetchMock.mock.calls[1][0].toString()).toContain("/inquire-price")
+      expect(fetchMock.mock.calls[2][0].toString()).toContain("/inquire-price")
+    })
 
-  it("clears the cached token and retries once when KIS returns an auth failure", async () => {
-    const fetchMock = vi.fn<typeof fetch>(async (input) => {
-      const url = input.toString()
-
-      if (url.includes("/oauth2/tokenP")) {
-        const tokenCallCount = fetchMock.mock.calls.filter(([calledInput]) =>
-          calledInput.toString().includes("/oauth2/tokenP")
-        ).length
-
-        return createJsonResponse({
-          access_token:
-            tokenCallCount === 1 ? "expired-token" : "refreshed-token",
-          access_token_token_expired: futureKisExpiry,
-          token_type: "Bearer",
-          expires_in: "86400",
-        })
-      }
-
-      if (url.includes("/inquire-price")) {
-        const priceCallCount = fetchMock.mock.calls.filter(([calledInput]) =>
-          calledInput.toString().includes("/inquire-price")
-        ).length
-
-        if (priceCallCount === 1) {
-          return createJsonResponse({
+    it("KIS가 token 만료를 응답하면 token을 갱신하고 같은 요청을 한 번 재시도한다", async () => {
+      const fetchMock = vi
+        .fn<typeof fetch>()
+        .mockResolvedValueOnce(
+          createJsonResponse({
+            access_token: "expired-token",
+            access_token_token_expired: futureKisExpiry,
+            token_type: "Bearer",
+            expires_in: "86400",
+          })
+        )
+        .mockResolvedValueOnce(
+          createJsonResponse({
             rt_cd: "1",
             msg_cd: "EGW00123",
             msg1: "기간이 만료된 token입니다",
           })
-        }
+        )
+        .mockResolvedValueOnce(
+          createJsonResponse({
+            access_token: "refreshed-token",
+            access_token_token_expired: futureKisExpiry,
+            token_type: "Bearer",
+            expires_in: "86400",
+          })
+        )
+        .mockResolvedValueOnce(
+          createJsonResponse({
+            rt_cd: "0",
+            msg_cd: "MCA00000",
+            msg1: "정상처리 되었습니다.",
+            output: {
+              stck_prpr: "70000",
+              stck_oprc: "69000",
+              stck_hgpr: "71000",
+              stck_lwpr: "68000",
+              acml_vol: "1000",
+              prdy_vrss: "500",
+              prdy_ctrt: "0.72",
+            },
+          })
+        )
+      global.fetch = fetchMock
 
-        return createJsonResponse(createCurrentPriceResponse())
-      }
+      await service.getCurrentPrice("005930", "J")
 
-      throw new Error(`Unexpected fetch: ${url}`)
+      expect(fetchMock).toHaveBeenCalledTimes(4)
+      expect(fetchMock.mock.calls[0][0].toString()).toContain("/oauth2/tokenP")
+      expect(fetchMock.mock.calls[1][0].toString()).toContain("/inquire-price")
+      expect(fetchMock.mock.calls[2][0].toString()).toContain("/oauth2/tokenP")
+      expect(fetchMock.mock.calls[3][0].toString()).toContain("/inquire-price")
+      expect(
+        (fetchMock.mock.calls[1][1]?.headers as Record<string, string>)
+          .authorization
+      ).toBe("Bearer expired-token")
+      expect(
+        (fetchMock.mock.calls[3][1]?.headers as Record<string, string>)
+          .authorization
+      ).toBe("Bearer refreshed-token")
     })
-    global.fetch = fetchMock
-
-    const service = new KisService(createConfig())
-
-    await service.getCurrentPrice("005930", "J")
-
-    expect(
-      fetchMock.mock.calls.filter(([input]) =>
-        input.toString().includes("/oauth2/tokenP")
-      )
-    ).toHaveLength(2)
-    expect(
-      fetchMock.mock.calls.filter(([input]) =>
-        input.toString().includes("/inquire-price")
-      )
-    ).toHaveLength(2)
-
-    const priceCalls = fetchMock.mock.calls.filter(([input]) =>
-      input.toString().includes("/inquire-price")
-    )
-    expect(
-      (priceCalls[0][1]?.headers as Record<string, string>).authorization
-    ).toBe("Bearer expired-token")
-    expect(
-      (priceCalls[1][1]?.headers as Record<string, string>).authorization
-    ).toBe("Bearer refreshed-token")
   })
 
-  it("aborts KIS requests after the request timeout", async () => {
-    vi.useFakeTimers()
+  describe("KIS API failure", () => {
+    it("KIS API가 제한 시간 안에 응답하지 않으면 BadGatewayException을 던진다", async () => {
+      vi.useFakeTimers()
 
-    const fetchMock = vi.fn<typeof fetch>(
-      async (_input: RequestInfo | URL, init?: RequestInit) =>
-        new Promise<Response>((_resolve, reject) => {
-          init?.signal?.addEventListener("abort", () => {
-            const error = new Error("aborted")
-            error.name = "AbortError"
-            reject(error)
+      const fetchMock = vi.fn<typeof fetch>(
+        async (_input: RequestInfo | URL, init?: RequestInit) =>
+          new Promise<Response>((_resolve, reject) => {
+            init?.signal?.addEventListener("abort", () => {
+              const error = new Error("aborted")
+              error.name = "AbortError"
+              reject(error)
+            })
           })
-        })
-    )
-    global.fetch = fetchMock
+      )
+      global.fetch = fetchMock
 
-    const service = new KisService(createConfig())
-    const result = service.getCurrentPrice("005930", "J")
-    const expectation =
-      expect(result).rejects.toBeInstanceOf(BadGatewayException)
+      const result = service.getCurrentPrice("005930", "J")
+      const expectation =
+        expect(result).rejects.toBeInstanceOf(BadGatewayException)
 
-    await vi.advanceTimersByTimeAsync(5_000)
+      await vi.advanceTimersByTimeAsync(5_000)
 
-    await expectation
+      await expectation
+    })
+  })
+
+  describe("KIS request", () => {
+    it("현재가 조회는 종목 코드와 market code로 요청한다", async () => {
+      const fetchMock = vi
+        .fn<typeof fetch>()
+        .mockResolvedValueOnce(
+          createJsonResponse({
+            access_token: "access-token-1",
+            access_token_token_expired: futureKisExpiry,
+            token_type: "Bearer",
+            expires_in: "1",
+          })
+        )
+        .mockResolvedValueOnce(
+          createJsonResponse({
+            rt_cd: "0",
+            msg_cd: "MCA00000",
+            msg1: "정상처리 되었습니다.",
+            output: {
+              stck_prpr: "70000",
+              stck_oprc: "69000",
+              stck_hgpr: "71000",
+              stck_lwpr: "68000",
+              acml_vol: "1000",
+              prdy_vrss: "500",
+              prdy_ctrt: "0.72",
+            },
+          })
+        )
+      global.fetch = fetchMock
+
+      await service.getCurrentPrice("005930", "J")
+
+      const priceUrl = new URL(fetchMock.mock.calls[1][0].toString())
+      const headers = fetchMock.mock.calls[1][1]?.headers as Record<
+        string,
+        string
+      >
+
+      expect(priceUrl.searchParams.get("FID_COND_MRKT_DIV_CODE")).toBe("J")
+      expect(priceUrl.searchParams.get("FID_INPUT_ISCD")).toBe("005930")
+      expect(headers.authorization).toBe("Bearer access-token-1")
+      expect(headers.tr_id).toBe("FHKST01010100")
+    })
+
+    it("일봉 조회는 요청한 날짜 하루 범위로 조회한다", async () => {
+      const fetchMock = vi
+        .fn<typeof fetch>()
+        .mockResolvedValueOnce(
+          createJsonResponse({
+            access_token: "access-token-1",
+            access_token_token_expired: futureKisExpiry,
+            token_type: "Bearer",
+            expires_in: "1",
+          })
+        )
+        .mockResolvedValueOnce(
+          createJsonResponse({
+            rt_cd: "0",
+            msg_cd: "MCA00000",
+            msg1: "정상처리 되었습니다.",
+            output2: [
+              {
+                stck_bsop_date: "20260507",
+                stck_oprc: "69000",
+                stck_hgpr: "71000",
+                stck_lwpr: "68000",
+                stck_clpr: "70000",
+                acml_vol: "1000",
+              },
+            ],
+          })
+        )
+      global.fetch = fetchMock
+
+      await service.getDailyPrice("005930", "2026-05-07", "J")
+
+      const dailyUrl = new URL(fetchMock.mock.calls[1][0].toString())
+
+      expect(dailyUrl.searchParams.get("FID_INPUT_DATE_1")).toBe("20260507")
+      expect(dailyUrl.searchParams.get("FID_INPUT_DATE_2")).toBe("20260507")
+      expect(dailyUrl.searchParams.get("FID_PERIOD_DIV_CODE")).toBe("D")
+      expect(dailyUrl.searchParams.get("FID_ORG_ADJ_PRC")).toBe("0")
+    })
+
+    it("영업일 조회는 요청한 날짜를 기준일로 조회한다", async () => {
+      const fetchMock = vi
+        .fn<typeof fetch>()
+        .mockResolvedValueOnce(
+          createJsonResponse({
+            access_token: "access-token-1",
+            access_token_token_expired: futureKisExpiry,
+            token_type: "Bearer",
+            expires_in: "1",
+          })
+        )
+        .mockResolvedValueOnce(
+          createJsonResponse({
+            rt_cd: "0",
+            msg_cd: "MCA00000",
+            msg1: "정상처리 되었습니다.",
+            output: [
+              {
+                bass_dt: "20260603",
+                bzdy_yn: "Y",
+                tr_day_yn: "Y",
+                opnd_yn: "Y",
+                sttl_day_yn: "Y",
+              },
+            ],
+          })
+        )
+      global.fetch = fetchMock
+
+      await service.getDomesticMarketDay("2026-06-03")
+
+      const holidayUrl = new URL(fetchMock.mock.calls[1][0].toString())
+
+      expect(holidayUrl.searchParams.get("BASS_DT")).toBe("20260603")
+      expect(holidayUrl.searchParams.get("CTX_AREA_FK")).toBe("")
+      expect(holidayUrl.searchParams.get("CTX_AREA_NK")).toBe("")
+    })
   })
 })
