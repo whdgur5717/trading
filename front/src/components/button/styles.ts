@@ -7,18 +7,18 @@ export const button = tv({
   ],
   variants: {
     size: {
-      sm: "h-9 px-3 text-caption [&_svg]:size-3.5",
-      md: "h-tap px-4 text-label [&_svg]:size-4",
-      lg: "h-field px-5 text-body [&_svg]:size-5",
+      sm: "h-9 px-3 text-label [&_svg]:size-3.5",
+      md: "h-touch px-4 text-label [&_svg]:size-4",
+      lg: "h-14 px-5 text-body [&_svg]:size-5",
     },
     variant: {
       destructive:
-        "bg-danger text-danger-foreground [&:not(:disabled):hover]:bg-danger-hover",
-      link: "text-primary underline-offset-2 [&:not(:disabled):hover]:underline",
+        "bg-tease text-tease-foreground [&:not(:disabled):active]:bg-tease/80 [&:not(:disabled):hover]:bg-tease/90",
+      link: "text-ink underline-offset-2 [&:not(:disabled):hover]:underline",
       primary:
-        "bg-primary text-primary-foreground [&:not(:disabled):hover]:bg-primary-hover",
+        "bg-primary text-primary-foreground [&:not(:disabled):active]:bg-primary/80 [&:not(:disabled):hover]:bg-primary/90",
       secondary:
-        "bg-secondary text-secondary-foreground [&:not(:disabled):hover]:bg-secondary-hover",
+        "bg-accent text-accent-foreground [&:not(:disabled):active]:bg-accent/80 [&:not(:disabled):hover]:bg-accent/90",
     },
   },
   compoundVariants: [],

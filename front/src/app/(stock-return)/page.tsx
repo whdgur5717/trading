@@ -37,7 +37,7 @@ export default function Home() {
   return (
     <div className="grid w-full max-w-form gap-6">
       <section
-        className="grid gap-5 rounded-2xl bg-surface-raised p-panel shadow-panel"
+        className="grid gap-5 rounded-2xl bg-surface-raised p-xl"
         aria-label="계산 입력"
       >
         <div className="grid gap-4">
@@ -55,12 +55,10 @@ export default function Home() {
             }}
           />
 
-          <label className="grid min-h-field w-full grid-cols-[minmax(0,1fr)_auto] items-end gap-x-3 gap-y-1 rounded-xl bg-surface-muted px-4 py-3 text-primary transition-colors duration-150 ease-standard focus-within:bg-surface-hover">
-            <span className="col-span-full text-caption font-extrabold text-muted">
-              수량
-            </span>
+          <label className="grid min-h-14 w-full grid-cols-[minmax(0,1fr)_auto] items-end gap-x-3 gap-y-1 rounded-xl bg-surface-muted px-4 py-3 text-ink transition-colors duration-150 ease-standard focus-within:bg-surface">
+            <span className="col-span-full type-label text-muted">수량</span>
             <input
-              className="min-w-0 border-0 bg-transparent p-0 font-sans text-title font-bold tracking-normal text-primary outline-none placeholder:text-subtle"
+              className="min-w-0 bg-transparent p-0 type-title text-ink outline-none placeholder:text-subtle"
               inputMode="numeric"
               min={1}
               onChange={(event) => {
@@ -78,7 +76,7 @@ export default function Home() {
           <div className="flex flex-wrap gap-2" aria-label="빠른 수량 선택">
             {quickQuantities.map((value) => (
               <Chip
-                className="min-h-tap cursor-pointer rounded-lg bg-surface-muted px-3 text-label font-bold text-secondary transition-colors duration-150 ease-standard hover:bg-surface-hover data-selected:bg-primary data-selected:text-primary-foreground"
+                className="min-h-touch cursor-pointer rounded-lg bg-surface-muted px-3 type-label text-muted transition-colors duration-150 ease-standard hover:bg-surface data-selected:bg-primary data-selected:text-primary-foreground"
                 key={value}
                 onClick={() => {
                   setQuantity(value)
@@ -92,7 +90,7 @@ export default function Home() {
         </div>
 
         <button
-          className="min-h-tap cursor-pointer rounded-xl bg-primary px-5 py-3 text-body font-bold text-primary-foreground transition-colors duration-150 ease-standard hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled-foreground"
+          className="min-h-touch cursor-pointer rounded-xl bg-primary px-5 py-3 type-body text-primary-foreground transition-colors duration-150 ease-standard hover:bg-primary/90 active:bg-primary/80 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled-foreground"
           disabled={resultUrl === undefined}
           onClick={resultUrl ? () => router.push(resultUrl) : undefined}
           type="button"

@@ -1,5 +1,7 @@
 import { api } from "../api"
 import {
+  StocksControllerSuggestionResponseSchema,
+  type StocksControllerSuggestionResponse,
   StocksControllerSearchResponseSchema,
   type StocksControllerSearchResponse,
   StocksControllerCurrentResponseSchema,
@@ -7,6 +9,35 @@ import {
   StocksControllerHistoryResponseSchema,
   type StocksControllerHistoryResponse,
 } from "./schemas"
+
+export type StocksControllerSuggestionParams = {
+  q: string
+  limit?: number
+}
+
+/**
+ * @example
+ * ```ts
+ * await STOCKS_CONTROLLER_SUGGESTION({
+ *   q: "삼ㅈ",
+ *   limit: 10
+ * })
+ * ```
+ */
+export async function STOCKS_CONTROLLER_SUGGESTION(
+  params: StocksControllerSuggestionParams
+): Promise<StocksControllerSuggestionResponse> {
+  const data = await api
+    .get<StocksControllerSuggestionResponse>("stocks/suggestion", {
+      searchParams: {
+        q: params.q,
+        limit: params.limit,
+      },
+    })
+    .json()
+
+  return StocksControllerSuggestionResponseSchema.parse(data)
+}
 
 export type StocksControllerSearchParams = {
   q: string

@@ -10,7 +10,7 @@
     "format": "prettier --write . --ignore-path ../.prettierignore",
     "start": "NODE_ENV=development nest start",
     "start:dev": "NODE_ENV=development nest start --watch",
-    "start:mock": "NODE_ENV=development nest start --sourceRoot . --entryFile scripts/dev-mock --watch",
+    "start:mock": "NODE_ENV=development nest start --path tsconfig.json --sourceRoot . --entryFile scripts/dev-mock --watch",
     "start:debug": "NODE_ENV=development nest start --debug --watch",
     "start:prod": "NODE_ENV=production node dist/main.js",
     "lint": "eslint --fix . --max-warnings 0",
@@ -18,7 +18,9 @@
     "test:watch": "vitest src",
     "test:cov": "vitest run src --coverage",
     "test:debug": "vitest --inspect-brk --run src",
-    "test:e2e": "vitest run test/e2e --fileParallelism=false"
+    "test:e2e": "vitest run test/e2e --fileParallelism=false",
+    "lint:staged": "eslint --fix --max-warnings 0",
+    "type-check": "tsc --noEmit --incremental false"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -32,7 +34,8 @@
     "rxjs": "^7.8.1",
     "swagger-ui-express": "^5.0.1",
     "ws": "^8.20.0",
-    "zod": "^4.4.3"
+    "zod": "^4.4.3",
+    "es-hangul": "^2.3.8"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.0",

@@ -18,6 +18,7 @@ type StockPickerProps = {
 const Picker = createPickerField<Stock | null>("StockPicker")
 
 export function StockPicker({ value, onChange }: StockPickerProps) {
+  const [open, setOpen] = useState(false)
   const [query, setQuery] = useState("")
   const [debouncedQuery, setDebouncedQuery] = useState("")
   const [debouncedSetQuery] = useState(() => debounce(setDebouncedQuery, 300))
@@ -31,26 +32,36 @@ export function StockPicker({ value, onChange }: StockPickerProps) {
 
   return (
     <Picker.Root
+      open={open}
       value={value ?? null}
+      onOpenChange={(nextOpen) => {
+        setOpen(nextOpen)
+
+        if (!nextOpen) return
+
+        const nextQuery = value?.name ?? ""
+
+        debouncedSetQuery.cancel()
+        setQuery(nextQuery)
+        setDebouncedQuery(nextQuery)
+      }}
       onValueChange={(stock) => {
         if (!stock) return
 
         onChange(stock)
         debouncedSetQuery.cancel()
-        setQuery("")
-        setDebouncedQuery("")
+        setQuery(stock.name)
+        setDebouncedQuery(stock.name)
       }}
     >
       <div className="relative">
         <Picker.Trigger asChild>
           {({ value: selectedStock }) => (
             <button>
-              <span className="col-span-full text-caption font-extrabold text-muted">
-                종목
-              </span>
+              <span className="col-span-full type-label text-muted">종목</span>
               {selectedStock ? (
                 <>
-                  <strong className="min-w-0 truncate text-title font-bold tracking-normal text-primary">
+                  <strong className="min-w-0 truncate type-title text-ink">
                     {selectedStock.name}
                   </strong>
                   <small className="flex items-end gap-2 pb-0.5 text-label font-bold text-muted">
@@ -60,7 +71,7 @@ export function StockPicker({ value, onChange }: StockPickerProps) {
                 </>
               ) : (
                 <>
-                  <span className="min-w-0 truncate text-body font-medium tracking-normal text-subtle">
+                  <span className="min-w-0 truncate type-body text-subtle">
                     종목 선택
                   </span>
                   <small className="flex items-end gap-2 pb-0.5 text-label font-medium text-subtle">
@@ -76,12 +87,10 @@ export function StockPicker({ value, onChange }: StockPickerProps) {
         <Picker.Content align="start" asChild sideOffset={8}>
           <div className="space-y-3">
             <label className="grid gap-2 rounded-lg bg-surface-muted p-3">
-              <span className="text-caption font-extrabold text-muted">
-                종목 검색
-              </span>
+              <span className="type-label text-muted">종목 검색</span>
               <input
                 autoFocus
-                className="w-full bg-transparent p-0 font-sans text-body font-bold text-primary outline-none placeholder:text-subtle"
+                className="w-full bg-transparent p-0 type-body text-ink outline-none placeholder:text-subtle"
                 onChange={(event) => {
                   const nextQuery = trim(event.target.value)
 
@@ -110,11 +119,11 @@ export function StockPicker({ value, onChange }: StockPickerProps) {
                     value={stock}
                   >
                     {() => (
-                      <button type="button">
+                      <button>
                         <span className="text-body font-bold">
                           {stock.name}
                         </span>
-                        <small className="text-caption font-bold text-muted transition-colors duration-150 ease-standard group-hover:text-primary-foreground/60 group-data-selected:text-primary-foreground/60">
+                        <small className="type-label text-muted transition-colors duration-150 ease-standard group-hover:text-primary-foreground/60 group-data-selected:text-primary-foreground/60">
                           {stock.code} · {stock.marketName}
                         </small>
                       </button>

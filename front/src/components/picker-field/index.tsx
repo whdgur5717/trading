@@ -32,17 +32,15 @@ export interface PickerFieldRootRenderProps<TValue> {
   clear: (options?: PickerFieldSelectOptions) => void
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface PickerFieldContextValue<
   TValue,
-> extends PickerFieldRootRenderProps<TValue> {
-  setValue: (value: TValue | undefined) => void
-}
+> extends PickerFieldRootRenderProps<TValue> {}
 
 export interface PickerFieldRootProps<TValue> {
   children?: ReactNode
-  value?: TValue
-  defaultValue?: TValue
-  onValueChange?: (value: TValue | undefined) => void
+  value: TValue | undefined
+  onValueChange: (value: TValue | undefined) => void
   open?: boolean
   defaultOpen?: boolean
   onOpenChange?: (open: boolean) => void
@@ -111,8 +109,7 @@ export function createPickerField<TValue = never>(name = "PickerField") {
 
   const Root = ({
     children,
-    value: valueProp,
-    defaultValue,
+    value,
     onValueChange,
     open: openProp,
     defaultOpen,
@@ -120,12 +117,6 @@ export function createPickerField<TValue = never>(name = "PickerField") {
     disabled = false,
     closeOnSelect = true,
   }: PickerFieldRootProps<TValue>) => {
-    const [value, setValue] = useControllableState<TValue | undefined>({
-      prop: valueProp,
-      defaultProp: defaultValue,
-      onChange: onValueChange,
-    })
-
     const [open, setOpenValue] = useControllableState({
       prop: openProp,
       defaultProp: defaultOpen ?? false,
@@ -149,26 +140,26 @@ export function createPickerField<TValue = never>(name = "PickerField") {
       (nextValue: TValue, options?: PickerFieldSelectOptions) => {
         if (disabled) return
 
-        setValue(nextValue)
+        onValueChange(nextValue)
 
         if (options?.close ?? closeOnSelect) {
           setOpenValue(false)
         }
       },
-      [closeOnSelect, disabled, setOpenValue, setValue]
+      [closeOnSelect, disabled, onValueChange, setOpenValue]
     )
 
     const clear = useCallback(
       (options?: PickerFieldSelectOptions) => {
         if (disabled) return
 
-        setValue(undefined)
+        onValueChange(undefined)
 
         if (options?.close ?? closeOnSelect) {
           setOpenValue(false)
         }
       },
-      [closeOnSelect, disabled, setOpenValue, setValue]
+      [closeOnSelect, disabled, onValueChange, setOpenValue]
     )
 
     const context = useMemo<PickerFieldContextValue<TValue>>(
@@ -178,12 +169,11 @@ export function createPickerField<TValue = never>(name = "PickerField") {
         disabled,
         hasValue: getHasValue(value),
         setOpen,
-        setValue,
         close,
         select,
         clear,
       }),
-      [clear, close, disabled, effectiveOpen, select, setOpen, setValue, value]
+      [clear, close, disabled, effectiveOpen, select, setOpen, value]
     )
 
     return (
@@ -209,7 +199,7 @@ export function createPickerField<TValue = never>(name = "PickerField") {
       <Popover.Trigger
         ref={ref}
         className={cn(
-          "group grid min-h-field w-full cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-end gap-x-3 gap-y-1 rounded-xl bg-surface-muted px-4 py-3 text-left font-sans text-primary transition-colors duration-150 ease-standard outline-none hover:bg-surface-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled-foreground data-disabled:cursor-not-allowed data-disabled:bg-disabled data-disabled:text-disabled-foreground data-[state=open]:bg-surface-hover",
+          "group grid min-h-14 w-full cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-end gap-x-3 gap-y-1 rounded-xl bg-surface-muted px-4 py-3 text-left font-sans text-ink transition-colors duration-150 ease-standard outline-none hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled-foreground data-disabled:cursor-not-allowed data-disabled:bg-disabled data-disabled:text-disabled-foreground data-[state=open]:bg-surface-raised",
           className
         )}
         data-disabled={triggerDisabled ? "" : undefined}
@@ -237,7 +227,7 @@ export function createPickerField<TValue = never>(name = "PickerField") {
       <Popover.Content
         ref={ref}
         className={cn(
-          "z-50 w-(--radix-popover-trigger-width) rounded-2xl bg-surface-raised p-3 text-primary shadow-popover outline-none data-[state=open]:animate-popover-in",
+          "z-50 w-(--radix-popover-trigger-width) rounded-2xl bg-surface-raised p-3 text-ink outline-none data-[state=open]:animate-popover-in",
           className
         )}
         data-slot="picker-field-content"
@@ -292,7 +282,7 @@ export function createPickerField<TValue = never>(name = "PickerField") {
         aria-disabled={itemDisabled || undefined}
         aria-selected={selected}
         className={cn(
-          "group flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left font-sans text-body font-semibold text-primary transition-colors duration-150 ease-standard outline-none hover:bg-primary hover:text-primary-foreground focus-visible:bg-primary focus-visible:text-primary-foreground disabled:cursor-not-allowed disabled:text-disabled-foreground disabled:hover:bg-transparent disabled:hover:text-disabled-foreground data-disabled:cursor-not-allowed data-disabled:text-disabled-foreground data-disabled:hover:bg-transparent data-disabled:hover:text-disabled-foreground data-selected:bg-primary data-selected:text-primary-foreground",
+          "group flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left font-sans text-body font-semibold text-ink transition-colors duration-150 ease-standard outline-none hover:bg-primary hover:text-primary-foreground focus-visible:bg-primary focus-visible:text-primary-foreground disabled:cursor-not-allowed disabled:text-disabled-foreground disabled:hover:bg-transparent disabled:hover:text-disabled-foreground data-disabled:cursor-not-allowed data-disabled:text-disabled-foreground data-disabled:hover:bg-transparent data-disabled:hover:text-disabled-foreground data-selected:bg-primary data-selected:text-primary-foreground",
           className
         )}
         data-disabled={itemDisabled ? "" : undefined}
