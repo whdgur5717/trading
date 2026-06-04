@@ -1,5 +1,7 @@
-import { describe, expect, it } from "vitest"
+import { Test } from "@nestjs/testing"
+import { beforeEach, describe, expect, it } from "vitest"
 import type { Stock } from "../stock.schema"
+import { STOCK_MASTER_DATA } from "../stocks.data"
 import { SuggestionService } from "./suggestion.service"
 
 describe("종목 추천 검색", () => {
@@ -83,7 +85,21 @@ describe("종목 추천 검색", () => {
     },
   ]
 
-  const service = new SuggestionService(stocks)
+  let service: SuggestionService
+
+  beforeEach(async () => {
+    const moduleRef = await Test.createTestingModule({
+      providers: [
+        SuggestionService,
+        {
+          provide: STOCK_MASTER_DATA,
+          useValue: stocks,
+        },
+      ],
+    }).compile()
+
+    service = moduleRef.get(SuggestionService)
+  })
 
   it("'삼성'처럼 회사명을 검색하면 주요 상장사를 관련 ETF보다 먼저 보여준다", () => {
     expect(service.suggest("삼성", 10).items.map((item) => item.name)).toEqual([

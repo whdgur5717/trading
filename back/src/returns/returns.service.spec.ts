@@ -1,59 +1,72 @@
-import { ConfigService } from "@nestjs/config"
-import { KisService } from "../kis/kis.service"
-import { StocksService } from "../stocks/stocks.service"
-import { ReturnsCalculatorService } from "./returns-calculator.service"
+import { Test } from "@nestjs/testing"
+import {
+  PricesServiceMock,
+  PricesTestingModule,
+} from "../prices/testing/prices-testing.module"
+import { PricesService } from "../prices/prices.service"
 import { ReturnsService } from "./returns.service"
-import { describe, expect, it, vi } from "vitest"
+import { beforeEach, describe, expect, it } from "vitest"
 
 describe("ReturnsService", () => {
-  it("calculates returns with historical and current prices", async () => {
-    const stock = {
-      code: "005930",
-      name: "삼성전자",
-      marketName: "KOSPI",
-      kisMarketCode: "J" as const,
-    }
-    const stocksService = new StocksService([stock])
-    const kisService = new KisService(new ConfigService())
-    const getDailyPriceSpy = vi
-      .spyOn(kisService, "getDailyPrice")
-      .mockResolvedValue({
-        isTradingDay: true,
-        candle: {
-          date: "20260507",
-          openPrice: 272000,
-          highPrice: 277000,
-          lowPrice: 260000,
-          closePrice: 271500,
-          accumulatedVolume: 41404687,
-        },
-      })
-    const getCurrentPriceSpy = vi
-      .spyOn(kisService, "getCurrentPrice")
-      .mockResolvedValue({
-        currentPrice: 300000,
-        openPrice: 299000,
-        highPrice: 301000,
-        lowPrice: 298000,
-        accumulatedVolume: 1000,
-        previousDayChange: 1000,
-        previousDayChangeRate: 0.33,
-      })
-    const service = new ReturnsService(
-      stocksService,
-      kisService,
-      new ReturnsCalculatorService()
-    )
+  let service: ReturnsService
+  let pricesService: PricesServiceMock
 
+  beforeEach(async () => {
+    const moduleRef = await Test.createTestingModule({
+      imports: [PricesTestingModule],
+      providers: [ReturnsService],
+    }).compile()
+
+    service = moduleRef.get(ReturnsService)
+    pricesService = moduleRef.get<PricesServiceMock>(PricesService)
+  })
+
+  it("calculates returns with historical buy price and current price", async () => {
+    pricesService.getDailyCandle.mockResolvedValue({
+      stock: {
+        code: "005930",
+        name: "삼성전자",
+        marketName: "KOSPI",
+        kisMarketCode: "J",
+      },
+      requestedDate: "2026-05-07",
+      marketCode: "J",
+      isTradingDay: true,
+      candle: {
+        date: "20260507",
+        openPrice: 272000,
+        highPrice: 277000,
+        lowPrice: 260000,
+        closePrice: 271500,
+        accumulatedVolume: 41404687,
+      },
+    })
+    pricesService.getCurrentPrice.mockResolvedValue({
+      price: 300000,
+      source: "kis-rest-current-price",
+      marketCode: "UN",
+      basis: {
+        type: "current-snapshot",
+        requestedAt: "2026-06-03T09:00:01+09:00",
+      },
+    })
     await expect(
       service.calculate("005930", "2026-05-07", 10)
     ).resolves.toMatchObject({
+      stock: {
+        code: "005930",
+      },
       buy: {
+        date: "2026-05-07",
         price: 271500,
         quantity: 10,
       },
       current: {
         price: 300000,
+        marketCode: "UN",
+        basis: {
+          type: "current-snapshot",
+        },
       },
       result: {
         buyAmount: 2715000,
@@ -63,7 +76,10 @@ describe("ReturnsService", () => {
       },
     })
 
-    expect(getDailyPriceSpy).toHaveBeenCalledWith("005930", "2026-05-07", "J")
-    expect(getCurrentPriceSpy).toHaveBeenCalledTimes(1)
+    expect(pricesService.getDailyCandle).toHaveBeenCalledWith(
+      "005930",
+      "2026-05-07"
+    )
+    expect(pricesService.getCurrentPrice).toHaveBeenCalledWith("005930")
   })
 })
