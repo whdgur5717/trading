@@ -69,6 +69,23 @@ export const kisDailyItemChartPriceResponseSchema = z.object({
     .optional(),
 })
 
+export const kisDomesticHolidayResponseSchema = z.object({
+  rt_cd: z.string().optional(),
+  msg_cd: z.string().optional(),
+  msg1: z.string().optional(),
+  output: z
+    .array(
+      z.object({
+        bass_dt: z.string().optional(),
+        bzdy_yn: z.string().optional(),
+        tr_day_yn: z.string().optional(),
+        opnd_yn: z.string().optional(),
+        sttl_day_yn: z.string().optional(),
+      })
+    )
+    .optional(),
+})
+
 export const dailyCandleSchema = z.object({
   date: z.string().meta({ example: "20260515" }),
   openPrice: z.number().meta({ example: 77500 }),
@@ -83,6 +100,14 @@ export const dailyPriceResultSchema = z.object({
   candle: dailyCandleSchema.nullable(),
 })
 
+export const domesticMarketDaySchema = z.object({
+  date: z.string().meta({ example: "20260603" }),
+  isBusinessDay: z.boolean().meta({ example: true }),
+  isTradingDay: z.boolean().meta({ example: true }),
+  isOpenDay: z.boolean().meta({ example: true }),
+  isSettlementDay: z.boolean().meta({ example: true }),
+})
+
 export type KisMarketCode = z.infer<typeof kisMarketCodeSchema>
 export type KisAccessTokenResponse = z.infer<
   typeof kisAccessTokenResponseSchema
@@ -94,5 +119,9 @@ export type CurrentPrice = z.infer<typeof currentPriceSchema>
 export type KisDailyItemChartPriceResponse = z.infer<
   typeof kisDailyItemChartPriceResponseSchema
 >
+export type KisDomesticHolidayResponse = z.infer<
+  typeof kisDomesticHolidayResponseSchema
+>
 export type DailyCandle = z.infer<typeof dailyCandleSchema>
 export type DailyPriceResult = z.infer<typeof dailyPriceResultSchema>
+export type DomesticMarketDay = z.infer<typeof domesticMarketDaySchema>

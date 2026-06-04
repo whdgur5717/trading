@@ -1,10 +1,5 @@
 import { z } from "zod"
-import { pastOrTodayIsoDateSchema } from "../common/date-validation"
-import {
-  currentPriceSchema,
-  dailyCandleSchema,
-  kisMarketCodeSchema,
-} from "../kis/kis.schema"
+import { kisMarketCodeSchema } from "../kis/kis.schema"
 
 export const stockCodeSchema = z
   .string()
@@ -28,10 +23,6 @@ export const stockSearchQuerySchema = z.object({
 
 export const stockCodeParamSchema = z.object({
   code: stockCodeSchema,
-})
-
-export const stockHistoryQuerySchema = z.object({
-  date: pastOrTodayIsoDateSchema.meta({ example: "2026-05-15" }),
 })
 
 export const stockSchema = z.object({
@@ -66,24 +57,7 @@ export const stockSchema = z.object({
   warningLevel: z.string().nullable().optional().meta({ example: "00" }),
 })
 
-export const stockCurrentSchema = z.object({
-  stock: stockSchema,
-  marketCode: kisMarketCodeSchema,
-  price: currentPriceSchema,
-})
-
-export const stockHistorySchema = z.object({
-  stock: stockSchema,
-  requestedDate: z.string().meta({ example: "2026-05-15" }),
-  marketCode: kisMarketCodeSchema,
-  isTradingDay: z.boolean().meta({ example: true }),
-  candle: dailyCandleSchema.nullable(),
-})
-
 export type StockSearchQuery = z.infer<typeof stockSearchQuerySchema>
 export type StockCodeParam = z.infer<typeof stockCodeParamSchema>
-export type StockHistoryQuery = z.infer<typeof stockHistoryQuerySchema>
 export type StockProductType = z.infer<typeof stockProductTypeSchema>
 export type Stock = z.infer<typeof stockSchema>
-export type StockCurrent = z.infer<typeof stockCurrentSchema>
-export type StockHistory = z.infer<typeof stockHistorySchema>
