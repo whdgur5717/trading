@@ -3,7 +3,7 @@ import {
   apiErrorDetailSchema,
   apiErrorSchema,
   apiSuccessSchema,
-} from "./api.schema"
+} from "./schema"
 
 export class ApiSuccessDto extends createZodDto(apiSuccessSchema) {}
 

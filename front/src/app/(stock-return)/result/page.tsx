@@ -1,5 +1,5 @@
 import { RETURNS_CONTROLLER_CALCULATE } from "@/queries/generated"
-import { ResultCard } from "../components/resultCard"
+import { LiveResultCard } from "../components/liveResultCard"
 import { stockReturnSearchParamsCache } from "./searchParams"
 
 export default async function ResultPage({
@@ -14,9 +14,5 @@ export default async function ResultPage({
     quantity,
   })
 
-  return (
-    <div className="grid w-full max-w-form gap-6">
-      <ResultCard result={response.data} />
-    </div>
-  )
+  return <LiveResultCard result={response.data} />
 }

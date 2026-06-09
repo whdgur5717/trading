@@ -51,13 +51,13 @@ export const currentPriceResponse = {
   msg_cd: "MCA00000",
   msg1: "ok",
   output: {
-    stck_prpr: "70000",
-    stck_oprc: "69000",
-    stck_hgpr: "71000",
-    stck_lwpr: "68000",
+    stck_prpr: "80000",
+    stck_oprc: "79000",
+    stck_hgpr: "81000",
+    stck_lwpr: "78000",
     acml_vol: "12345678",
-    prdy_vrss: "1000",
-    prdy_ctrt: "1.45",
+    prdy_vrss: "10000",
+    prdy_ctrt: "14.29",
   },
 }
 
@@ -73,6 +73,14 @@ export const dailyPriceResponse = {
       stck_lwpr: "68000",
       stck_clpr: "70000",
       acml_vol: "12345678",
+    },
+    {
+      stck_bsop_date: "20260608",
+      stck_oprc: "79000",
+      stck_hgpr: "81000",
+      stck_lwpr: "78000",
+      stck_clpr: "80000",
+      acml_vol: "22345678",
     },
   ],
 }

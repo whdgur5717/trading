@@ -1,5 +1,5 @@
-import { Injectable } from "@nestjs/common"
-import { KisService } from "../kis/kis.service"
+import { Inject, Injectable } from "@nestjs/common"
+import { MARKET_DATA_PORT, type MarketDataPort } from "../market/port/data"
 import { StocksService } from "../stocks/stocks.service"
 import type {
   PriceCurrent,
@@ -7,11 +7,11 @@ import type {
   PriceQuote,
 } from "./prices.schema"
 
-const UNIFIED_MARKET_CODE = "UN"
+const UNIFIED_QUOTATION_MARKET = "CONSOLIDATED"
 const UNIFIED_MARKET_CLOSE_TIME = "200000"
 const KST_TIME_ZONE = "Asia/Seoul"
 
-function toKstClock(date: Date) {
+function kstClock(date: Date) {
   const values = Object.fromEntries(
     new Intl.DateTimeFormat("en-GB", {
       timeZone: KST_TIME_ZONE,
@@ -29,7 +29,7 @@ function toKstClock(date: Date) {
   )
 
   return {
-    date: `${values.year}${values.month}${values.day}`,
+    date: `${values.year}-${values.month}-${values.day}`,
     time: `${values.hour}${values.minute}${values.second}`,
     requestedAt: `${values.year}-${values.month}-${values.day}T${values.hour}:${values.minute}:${values.second}+09:00`,
   }
@@ -39,55 +39,65 @@ function toKstClock(date: Date) {
 export class PricesService {
   constructor(
     private readonly stocksService: StocksService,
-    private readonly kisService: KisService
+    @Inject(MARKET_DATA_PORT) private readonly marketData: MarketDataPort
   ) {}
 
   async getQuote(code: string): Promise<PriceQuote> {
     const stock = this.stocksService.getByCode(code)
-    const price = await this.kisService.getCurrentPrice(
-      code,
-      stock.kisMarketCode
-    )
+    const price = await this.marketData.stockQuote({
+      stockCode: code,
+      quotationMarket: stock.quotationMarket,
+    })
 
     return {
       stock,
-      marketCode: stock.kisMarketCode,
+      quotationMarket: stock.quotationMarket,
       price,
     }
   }
 
   async getDailyCandle(code: string, date: string): Promise<PriceDailyCandle> {
     const stock = this.stocksService.getByCode(code)
-    const result = await this.kisService.getDailyPrice(
-      code,
-      date,
-      stock.kisMarketCode
-    )
+    const [marketDay, candle] = await Promise.all([
+      this.marketData.marketDay({
+        date,
+        quotationMarket: stock.quotationMarket,
+      }),
+      this.marketData.dailyCandle({
+        stockCode: code,
+        date,
+        quotationMarket: stock.quotationMarket,
+      }),
+    ])
 
     return {
       stock,
       requestedDate: date,
-      marketCode: stock.kisMarketCode,
-      ...result,
+      quotationMarket: stock.quotationMarket,
+      isTradingDay: marketDay.isTradingDay,
+      candle,
     }
   }
 
   async getCurrentPrice(code: string, now = new Date()): Promise<PriceCurrent> {
     this.stocksService.getByCode(code)
 
-    const clock = toKstClock(now)
-    const marketDay = await this.kisService.getDomesticMarketDay(clock.date)
+    const clock = kstClock(now)
+    const marketDay = await this.marketData.marketDay({
+      date: clock.date,
+      quotationMarket: UNIFIED_QUOTATION_MARKET,
+    })
 
     if (marketDay.isOpenDay && clock.time < UNIFIED_MARKET_CLOSE_TIME) {
-      const current = await this.kisService.getCurrentPrice(
-        code,
-        UNIFIED_MARKET_CODE
-      )
+      const current = await this.marketData.stockQuote({
+        stockCode: code,
+        quotationMarket: UNIFIED_QUOTATION_MARKET,
+      })
 
       return {
         price: current.currentPrice,
-        source: "kis-rest-current-price",
-        marketCode: UNIFIED_MARKET_CODE,
+        source: "stock-quote",
+        quotationMarket: UNIFIED_QUOTATION_MARKET,
         basis: {
           type: "current-snapshot",
           requestedAt: clock.requestedAt,
@@ -95,16 +105,16 @@ export class PricesService {
       }
     }
 
-    const close = await this.kisService.getLatestDailyClose(
-      code,
-      clock.date,
-      UNIFIED_MARKET_CODE
-    )
+    const close = await this.marketData.lastTradingDayCandle({
+      stockCode: code,
+      asOfDate: clock.date,
+      quotationMarket: UNIFIED_QUOTATION_MARKET,
+    })
 
     return {
       price: close.closePrice,
-      source: "kis-rest-daily-itemchartprice",
-      marketCode: UNIFIED_MARKET_CODE,
+      source: "daily-candle",
+      quotationMarket: UNIFIED_QUOTATION_MARKET,
       basis: {
         type: "latest-close",
         tradingDate: close.date,

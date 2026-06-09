@@ -1,6 +1,7 @@
 "use client"
 
 import { Chip } from "@/components/chip"
+import { Input } from "@/components/input"
 import { useRouter } from "next/navigation"
 import { createSerializer, parseAsInteger, parseAsString } from "nuqs"
 import { useState } from "react"
@@ -55,28 +56,22 @@ export default function Home() {
             }}
           />
 
-          <label className="grid min-h-14 w-full grid-cols-[minmax(0,1fr)_auto] items-end gap-x-3 gap-y-1 rounded-xl bg-surface-muted px-4 py-3 text-ink transition-colors duration-150 ease-standard focus-within:bg-surface">
-            <span className="col-span-full type-label text-muted">수량</span>
-            <input
-              className="min-w-0 bg-transparent p-0 type-title text-ink outline-none placeholder:text-subtle"
-              inputMode="numeric"
-              min={1}
-              onChange={(event) => {
-                setQuantity(Number(event.currentTarget.value))
-              }}
-              step={1}
-              type="number"
-              value={quantity || ""}
-            />
-            <strong className="pb-0.5 text-label font-bold text-muted">
-              주
-            </strong>
-          </label>
+          <Input
+            inputMode="numeric"
+            min={1}
+            onChange={(event) => {
+              setQuantity(Number(event.currentTarget.value))
+            }}
+            placeholder="수량을 입력해주세요"
+            step={1}
+            trailing="주"
+            type="number"
+            value={quantity || ""}
+          />
 
           <div className="flex flex-wrap gap-2" aria-label="빠른 수량 선택">
             {quickQuantities.map((value) => (
               <Chip
-                className="min-h-touch cursor-pointer rounded-lg bg-surface-muted px-3 type-label text-muted transition-colors duration-150 ease-standard hover:bg-surface data-selected:bg-primary data-selected:text-primary-foreground"
                 key={value}
                 onClick={() => {
                   setQuantity(value)

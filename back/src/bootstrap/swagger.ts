@@ -7,8 +7,8 @@ import {
   SwaggerModule,
 } from "@nestjs/swagger"
 import { cleanupOpenApiDoc } from "nestjs-zod"
-import { SKIP_API_RESPONSE } from "../common/api"
-import { ApiErrorDto, ApiSuccessDto } from "../common/api.dto"
+import { SKIP_API_RESPONSE } from "../common/api/response"
+import { ApiErrorDto, ApiSuccessDto } from "../common/api/dto"
 
 export function createSwaggerDocument(
   app: NestExpressApplication

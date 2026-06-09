@@ -25,7 +25,7 @@ describe("stocks", () => {
           code: "005930",
           name: "삼성전자",
           marketName: "KOSPI",
-          kisMarketCode: "J",
+          quotationMarket: "KRX",
         },
       })
     } finally {

@@ -27,13 +27,13 @@ describe("ReturnsService", () => {
         code: "005930",
         name: "삼성전자",
         marketName: "KOSPI",
-        kisMarketCode: "J",
+        quotationMarket: "KRX",
       },
       requestedDate: "2026-05-07",
-      marketCode: "J",
+      quotationMarket: "KRX",
       isTradingDay: true,
       candle: {
-        date: "20260507",
+        date: "2026-05-07",
         openPrice: 272000,
         highPrice: 277000,
         lowPrice: 260000,
@@ -43,8 +43,8 @@ describe("ReturnsService", () => {
     })
     pricesService.getCurrentPrice.mockResolvedValue({
       price: 300000,
-      source: "kis-rest-current-price",
-      marketCode: "UN",
+      source: "stock-quote",
+      quotationMarket: "CONSOLIDATED",
       basis: {
         type: "current-snapshot",
         requestedAt: "2026-06-03T09:00:01+09:00",
@@ -63,7 +63,7 @@ describe("ReturnsService", () => {
       },
       current: {
         price: 300000,
-        marketCode: "UN",
+        quotationMarket: "CONSOLIDATED",
         basis: {
           type: "current-snapshot",
         },

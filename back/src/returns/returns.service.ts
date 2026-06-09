@@ -40,7 +40,7 @@ export class ReturnsService {
       current: {
         price: current.price,
         source: current.source,
-        marketCode: current.marketCode,
+        quotationMarket: current.quotationMarket,
         basis: current.basis,
       },
       result,

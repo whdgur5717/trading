@@ -4,7 +4,11 @@ import { isArrayBuffer, isString } from "es-toolkit"
 import { randomUUID } from "node:crypto"
 import { Observable, Subject, Subscription } from "rxjs"
 import WebSocket from "ws"
-import { MARKET_PORT, type MarketPort } from "./ports/market"
+import {
+  REALTIME_TRADE_FEED_PORT,
+  type FeedCredential,
+  type RealtimeTradeFeedPort,
+} from "../market/port/realtime"
 import type { RealtimePriceEvent } from "./realtime.schema"
 import { RealtimeSubscriptionRegistry } from "./realtime-subscription-registry"
 
@@ -28,9 +32,12 @@ export class RealtimeService implements OnModuleDestroy {
   private failedConnectionAttempts = 0
   private cooldownUntil = 0
   private isShuttingDown = false
-  private authKey: string | null = null
+  private credential: FeedCredential | null = null
 
-  constructor(@Inject(MARKET_PORT) private readonly market: MarketPort) {}
+  constructor(
+    @Inject(REALTIME_TRADE_FEED_PORT)
+    private readonly tradeFeed: RealtimeTradeFeedPort
+  ) {}
 
   stream(stockCodes: string[]): Observable<MessageEvent> {
     return new Observable<MessageEvent>((subscriber) => {
@@ -110,7 +117,7 @@ export class RealtimeService implements OnModuleDestroy {
 
     const ws = this.ws
     this.ws = null
-    this.authKey = null
+    this.credential = null
     this.subscribedStockCodes.clear()
 
     if (!ws) {
@@ -178,13 +185,13 @@ export class RealtimeService implements OnModuleDestroy {
   }
 
   private async openWebSocket(): Promise<void> {
-    const authKey = await this.market.getAuthKey()
-    const ws = new WebSocket(this.market.getUrl())
+    const credential = await this.tradeFeed.authorize()
+    const ws = new WebSocket(this.tradeFeed.endpoint())
     this.ws = ws
 
     ws.on("message", (data) => {
       const raw = this.toMessageText(data)
-      const priceEvent = this.market.parseMessage(raw)
+      const priceEvent = this.tradeFeed.decode(raw)
 
       if (priceEvent) {
         this.priceSubject.next(priceEvent)
@@ -200,7 +207,7 @@ export class RealtimeService implements OnModuleDestroy {
         `Realtime feed WebSocket closed: ${closeCode} ${reason.toString()}`
       )
       this.ws = null
-      this.authKey = null
+      this.credential = null
       this.subscribedStockCodes.clear()
       this.failedConnectionAttempts = 0
       this.statusSubject.next({
@@ -243,7 +250,7 @@ export class RealtimeService implements OnModuleDestroy {
     } catch (error) {
       if (this.ws === ws) {
         this.ws = null
-        this.authKey = null
+        this.credential = null
         this.subscribedStockCodes.clear()
       }
 
@@ -257,7 +264,7 @@ export class RealtimeService implements OnModuleDestroy {
       throw error
     }
 
-    this.authKey = authKey
+    this.credential = credential
   }
 
   private scheduleConnectionAttempt(): void {
@@ -363,7 +370,7 @@ export class RealtimeService implements OnModuleDestroy {
 
     const ws = this.ws
     this.ws = null
-    this.authKey = null
+    this.credential = null
     this.subscribedStockCodes.clear()
 
     if (ws?.readyState === WebSocket.OPEN) {
@@ -431,21 +438,20 @@ export class RealtimeService implements OnModuleDestroy {
       throw new Error("Realtime feed WebSocket is not open")
     }
 
-    const authKey = this.getAuthKey()
-    const message = this.market.createSubscriptionMessage({
-      action,
-      authKey,
-      stockCode,
-    })
+    const credential = this.getCredential()
+    const message =
+      action === "subscribe"
+        ? this.tradeFeed.subscribe({ credential, stockCode })
+        : this.tradeFeed.unsubscribe({ credential, stockCode })
 
     this.ws.send(message)
   }
 
-  private getAuthKey(): string {
-    if (!this.authKey) {
-      throw new Error("Realtime feed auth key is missing")
+  private getCredential(): FeedCredential {
+    if (!this.credential) {
+      throw new Error("Realtime feed credential is missing")
     }
 
-    return this.authKey
+    return this.credential
   }
 }

@@ -2,7 +2,15 @@ import type { AddressInfo } from "node:net"
 import { createApp } from "../support/app"
 import { env } from "../env"
 import { server } from "../support/kis/http"
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest"
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest"
 
 describe("prices", () => {
   beforeAll(() => {
@@ -10,6 +18,7 @@ describe("prices", () => {
   })
 
   afterEach(() => {
+    vi.useRealTimers()
     server.resetHandlers()
   })
 
@@ -38,15 +47,15 @@ describe("prices", () => {
           stock: {
             code: "005930",
           },
-          marketCode: "J",
+          quotationMarket: "KRX",
           price: {
-            currentPrice: 70000,
-            openPrice: 69000,
-            highPrice: 71000,
-            lowPrice: 68000,
+            currentPrice: 80000,
+            openPrice: 79000,
+            highPrice: 81000,
+            lowPrice: 78000,
             accumulatedVolume: 12345678,
-            previousDayChange: 1000,
-            previousDayChangeRate: 1.45,
+            previousDayChange: 10000,
+            previousDayChangeRate: 14.29,
           },
         },
       })
@@ -56,6 +65,8 @@ describe("prices", () => {
   })
 
   it("returns the current price basis through PricesModule", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] })
+    vi.setSystemTime(new Date("2026-06-04T00:00:01.000Z"))
     Object.assign(process.env, env)
 
     const app = await createApp()
@@ -73,8 +84,8 @@ describe("prices", () => {
       expect(body).toMatchObject({
         success: true,
         data: {
-          price: 70000,
-          marketCode: "UN",
+          price: 80000,
+          quotationMarket: "CONSOLIDATED",
         },
       })
       expect(["current-snapshot", "latest-close"]).toContain(
@@ -107,10 +118,10 @@ describe("prices", () => {
             code: "005930",
           },
           requestedDate: "2026-05-17",
-          marketCode: "J",
+          quotationMarket: "KRX",
           isTradingDay: true,
           candle: {
-            date: "20260517",
+            date: "2026-05-17",
             closePrice: 70000,
           },
         },

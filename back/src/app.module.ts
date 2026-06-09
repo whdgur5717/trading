@@ -1,7 +1,7 @@
 import { Module } from "@nestjs/common"
 import { ConfigModule } from "@nestjs/config"
 import { APP_PIPE } from "@nestjs/core"
-import { ZodDtoValidationPipe } from "./common/zod-validation"
+import { ZodDtoValidationPipe } from "./common/validation/zod"
 import { validateEnv } from "./config/env.validation"
 import { HealthModule } from "./health/health.module"
 import { PricesModule } from "./prices/prices.module"

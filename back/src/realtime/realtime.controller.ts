@@ -5,7 +5,7 @@ import {
   ApiProduces,
   getSchemaPath,
 } from "@nestjs/swagger"
-import { SkipApiResponse } from "../common/api"
+import { SkipApiResponse } from "../common/api/response"
 import { StocksService } from "../stocks/stocks.service"
 import {
   RealtimeDisconnectedDto,

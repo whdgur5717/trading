@@ -746,10 +746,10 @@
                   "type": "string",
                   "example": "KOSPI"
                 },
-                "kisMarketCode": {
+                "quotationMarket": {
                   "type": "string",
-                  "enum": ["J", "NX", "UN"],
-                  "example": "J"
+                  "enum": ["KRX", "NXT", "CONSOLIDATED"],
+                  "example": "KRX"
                 },
                 "standardCode": {
                   "example": "KR7005930003",
@@ -887,7 +887,7 @@
                   ]
                 }
               },
-              "required": ["code", "name", "marketName", "kisMarketCode"]
+              "required": ["code", "name", "marketName", "quotationMarket"]
             }
           },
           "hasMore": {
@@ -913,10 +913,10 @@
             "type": "string",
             "example": "KOSPI"
           },
-          "kisMarketCode": {
+          "quotationMarket": {
             "type": "string",
-            "enum": ["J", "NX", "UN"],
-            "example": "J"
+            "enum": ["KRX", "NXT", "CONSOLIDATED"],
+            "example": "KRX"
           },
           "standardCode": {
             "example": "KR7005930003",
@@ -1054,7 +1054,7 @@
             ]
           }
         },
-        "required": ["code", "name", "marketName", "kisMarketCode"]
+        "required": ["code", "name", "marketName", "quotationMarket"]
       },
       "PriceCurrentDto": {
         "type": "object",
@@ -1065,13 +1065,13 @@
           },
           "source": {
             "type": "string",
-            "enum": ["kis-rest-current-price", "kis-rest-daily-itemchartprice"],
-            "example": "kis-rest-current-price"
+            "enum": ["stock-quote", "daily-candle"],
+            "example": "stock-quote"
           },
-          "marketCode": {
+          "quotationMarket": {
             "type": "string",
-            "const": "UN",
-            "example": "UN"
+            "const": "CONSOLIDATED",
+            "example": "CONSOLIDATED"
           },
           "basis": {
             "oneOf": [
@@ -1100,7 +1100,7 @@
                   },
                   "tradingDate": {
                     "type": "string",
-                    "example": "20260602"
+                    "example": "2026-06-02"
                   }
                 },
                 "required": ["type", "tradingDate"]
@@ -1108,7 +1108,7 @@
             ]
           }
         },
-        "required": ["price", "source", "marketCode", "basis"]
+        "required": ["price", "source", "quotationMarket", "basis"]
       },
       "PriceQuoteDto": {
         "type": "object",
@@ -1129,10 +1129,10 @@
                 "type": "string",
                 "example": "KOSPI"
               },
-              "kisMarketCode": {
+              "quotationMarket": {
                 "type": "string",
-                "enum": ["J", "NX", "UN"],
-                "example": "J"
+                "enum": ["KRX", "NXT", "CONSOLIDATED"],
+                "example": "KRX"
               },
               "standardCode": {
                 "example": "KR7005930003",
@@ -1270,42 +1270,55 @@
                 ]
               }
             },
-            "required": ["code", "name", "marketName", "kisMarketCode"]
+            "required": ["code", "name", "marketName", "quotationMarket"]
           },
-          "marketCode": {
+          "quotationMarket": {
             "type": "string",
-            "enum": ["J", "NX", "UN"],
-            "example": "J"
+            "enum": ["KRX", "NXT", "CONSOLIDATED"],
+            "example": "KRX"
           },
           "price": {
             "type": "object",
             "properties": {
               "currentPrice": {
                 "type": "number",
+                "minimum": 0,
+                "description": "Current price",
                 "example": 78000
               },
               "openPrice": {
                 "type": "number",
+                "minimum": 0,
+                "description": "Opening price",
                 "example": 77500
               },
               "highPrice": {
                 "type": "number",
+                "minimum": 0,
+                "description": "High price",
                 "example": 78500
               },
               "lowPrice": {
                 "type": "number",
+                "minimum": 0,
+                "description": "Low price",
                 "example": 77000
               },
               "accumulatedVolume": {
-                "type": "number",
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991,
+                "description": "Accumulated volume",
                 "example": 12345678
               },
               "previousDayChange": {
                 "type": "number",
+                "description": "Previous day price change",
                 "example": 500
               },
               "previousDayChangeRate": {
                 "type": "number",
+                "description": "Previous day change rate",
                 "example": 0.65
               }
             },
@@ -1317,10 +1330,12 @@
               "accumulatedVolume",
               "previousDayChange",
               "previousDayChangeRate"
-            ]
+            ],
+            "additionalProperties": false,
+            "description": "Current stock quote"
           }
         },
-        "required": ["stock", "marketCode", "price"]
+        "required": ["stock", "quotationMarket", "price"]
       },
       "PriceDailyCandleDto": {
         "type": "object",
@@ -1341,10 +1356,10 @@
                 "type": "string",
                 "example": "KOSPI"
               },
-              "kisMarketCode": {
+              "quotationMarket": {
                 "type": "string",
-                "enum": ["J", "NX", "UN"],
-                "example": "J"
+                "enum": ["KRX", "NXT", "CONSOLIDATED"],
+                "example": "KRX"
               },
               "standardCode": {
                 "example": "KR7005930003",
@@ -1482,16 +1497,16 @@
                 ]
               }
             },
-            "required": ["code", "name", "marketName", "kisMarketCode"]
+            "required": ["code", "name", "marketName", "quotationMarket"]
           },
           "requestedDate": {
             "type": "string",
             "example": "2026-05-15"
           },
-          "marketCode": {
+          "quotationMarket": {
             "type": "string",
-            "enum": ["J", "NX", "UN"],
-            "example": "J"
+            "enum": ["KRX", "NXT", "CONSOLIDATED"],
+            "example": "KRX"
           },
           "isTradingDay": {
             "type": "boolean",
@@ -1504,26 +1519,39 @@
                 "properties": {
                   "date": {
                     "type": "string",
-                    "example": "20260515"
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                    "description": "Trading date",
+                    "example": "2026-05-15"
                   },
                   "openPrice": {
                     "type": "number",
+                    "minimum": 0,
+                    "description": "Opening price",
                     "example": 77500
                   },
                   "highPrice": {
                     "type": "number",
+                    "minimum": 0,
+                    "description": "High price",
                     "example": 78500
                   },
                   "lowPrice": {
                     "type": "number",
+                    "minimum": 0,
+                    "description": "Low price",
                     "example": 77000
                   },
                   "closePrice": {
                     "type": "number",
+                    "minimum": 0,
+                    "description": "Closing price",
                     "example": 78000
                   },
                   "accumulatedVolume": {
-                    "type": "number",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991,
+                    "description": "Accumulated volume",
                     "example": 12345678
                   }
                 },
@@ -1534,7 +1562,9 @@
                   "lowPrice",
                   "closePrice",
                   "accumulatedVolume"
-                ]
+                ],
+                "additionalProperties": false,
+                "description": "Daily OHLCV candle"
               },
               {
                 "type": "null"
@@ -1545,7 +1575,7 @@
         "required": [
           "stock",
           "requestedDate",
-          "marketCode",
+          "quotationMarket",
           "isTradingDay",
           "candle"
         ]
@@ -1569,10 +1599,10 @@
                 "type": "string",
                 "example": "KOSPI"
               },
-              "kisMarketCode": {
+              "quotationMarket": {
                 "type": "string",
-                "enum": ["J", "NX", "UN"],
-                "example": "J"
+                "enum": ["KRX", "NXT", "CONSOLIDATED"],
+                "example": "KRX"
               },
               "standardCode": {
                 "example": "KR7005930003",
@@ -1710,7 +1740,7 @@
                 ]
               }
             },
-            "required": ["code", "name", "marketName", "kisMarketCode"]
+            "required": ["code", "name", "marketName", "quotationMarket"]
           },
           "buy": {
             "type": "object",
@@ -1744,16 +1774,13 @@
               },
               "source": {
                 "type": "string",
-                "enum": [
-                  "kis-rest-current-price",
-                  "kis-rest-daily-itemchartprice"
-                ],
-                "example": "kis-rest-current-price"
+                "enum": ["stock-quote", "daily-candle"],
+                "example": "stock-quote"
               },
-              "marketCode": {
+              "quotationMarket": {
                 "type": "string",
-                "const": "UN",
-                "example": "UN"
+                "const": "CONSOLIDATED",
+                "example": "CONSOLIDATED"
               },
               "basis": {
                 "oneOf": [
@@ -1782,7 +1809,7 @@
                       },
                       "tradingDate": {
                         "type": "string",
-                        "example": "20260602"
+                        "example": "2026-06-02"
                       }
                     },
                     "required": ["type", "tradingDate"]
@@ -1790,7 +1817,7 @@
                 ]
               }
             },
-            "required": ["price", "source", "marketCode", "basis"]
+            "required": ["price", "source", "quotationMarket", "basis"]
           },
           "result": {
             "type": "object",

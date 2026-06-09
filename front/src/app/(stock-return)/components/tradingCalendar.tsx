@@ -79,7 +79,6 @@ export function TradingCalendar({
       <Calendar.Header
         render={(date) => `${date.getFullYear()}년 ${date.getMonth() + 1}월`}
       />
-      <div className="px-1 pb-3 type-label text-muted">거래일만 선택</div>
       <Calendar.Weekday />
       <Calendar.Days disabled={isMarketClosedDate} />
     </Calendar.Root>

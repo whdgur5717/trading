@@ -15,8 +15,11 @@ colors:
   accent-foreground: "oklch(1 0 0)"
   tease: "oklch(0.69 0.19 28)"
   tease-foreground: "oklch(1 0 0)"
+  gain: "oklch(0.72 0.12 252)"
+  gain-foreground: "oklch(0.055 0 0)"
   success: "oklch(0.72 0.15 150)"
-  loss: "oklch(0.72 0.12 252)"
+  loss: "oklch(0.69 0.19 28)"
+  loss-foreground: "oklch(1 0 0)"
   warning: "oklch(0.82 0.14 78)"
   disabled: "oklch(0.19 0.012 294)"
   disabled-foreground: "oklch(0.48 0.018 294)"
@@ -110,8 +113,9 @@ The palette is a black product system with sticker-like contrast: near-black can
 
 ### Tertiary
 
-- **Gain Green** (`success`): Positive movement, confirmation, or “벌었을 수도 있음” indicators. Pair with text or icons.
-- **Dip Blue** (`loss`): Negative movement or comparison states. Pair with text or icons.
+- **Gain Blue** (`gain`, `gain-foreground`): Positive result indicators in the share card. Pair with the explicit “수익” label.
+- **Loss Red** (`loss`, `loss-foreground`): Negative result indicators in the share card. Pair with the explicit “손실” label.
+- **Gain Green** (`success`): General success and confirmation states outside the stock result color system.
 - **Caution Yellow** (`warning`): Data caveats, unavailable dates, market holidays, or estimate labels.
 
 ### Neutral

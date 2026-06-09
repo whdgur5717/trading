@@ -4,22 +4,22 @@
 
 ## 요약
 
-| 용도               | KIS API                         | Transport | Method                        | Path / TR ID                                                                       | 코드 진입점                    |
-| ------------------ | ------------------------------- | --------- | ----------------------------- | ---------------------------------------------------------------------------------- | ------------------------------ |
-| REST 접근토큰 발급 | 접근토큰발급                    | REST      | `POST`                        | `/oauth2/tokenP`                                                                   | `KisService.getAccessToken()`  |
-| 웹소켓 접속키 발급 | 웹소켓 접속키 발급              | REST      | `POST`                        | `/oauth2/Approval`                                                                 | `KisService.getApprovalKey()`  |
-| 현재가 조회        | 주식현재가 시세                 | REST      | `GET`                         | `/uapi/domestic-stock/v1/quotations/inquire-price`, `FHKST01010100`                | `KisService.getCurrentPrice()` |
-| 일봉 조회          | 국내주식기간별시세(일/주/월/년) | REST      | `GET`                         | `/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice`, `FHKST03010100` | `KisService.getDailyPrice()`   |
-| 실시간 체결가 구독 | 국내주식 실시간체결가 (KRX)     | WebSocket | subscribe/unsubscribe message | `KIS_WS_URL`, `H0STCNT0`                                                           | `RealtimeService.stream()`     |
+| 용도               | KIS API                         | Transport | Method                        | Path / TR ID                                                                       | 코드 진입점                           |
+| ------------------ | ------------------------------- | --------- | ----------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------- |
+| REST 접근토큰 발급 | 접근토큰발급                    | REST      | `POST`                        | `/oauth2/tokenP`                                                                   | `AuthorizationProvider.accessToken()` |
+| 웹소켓 접속키 발급 | 웹소켓 접속키 발급              | REST      | `POST`                        | `/oauth2/Approval`                                                                 | `AuthorizationProvider.approvalKey()` |
+| 현재가 조회        | 주식현재가 시세                 | REST      | `GET`                         | `/uapi/domestic-stock/v1/quotations/inquire-price`, `FHKST01010100`                | `MarketDataAdaptor.stockQuote()`      |
+| 일봉 조회          | 국내주식기간별시세(일/주/월/년) | REST      | `GET`                         | `/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice`, `FHKST03010100` | `MarketDataAdaptor.dailyCandle()`     |
+| 실시간 체결가 구독 | 국내주식 실시간체결가 (KRX)     | WebSocket | subscribe/unsubscribe message | `KIS_WS_URL`, `H0STCNT0`                                                           | `RealtimeService.stream()`            |
 
-`KIS_REST_BASE_URL`과 `KIS_WS_URL`은 환경변수로 주입된다. 기본 시장코드는 `KIS_MARKET_CODE`이며 기본값은 `J`다. 실시간 TR ID는 `KIS_REALTIME_TR_ID`이며 기본값은 `H0STCNT0`다.
+`KIS_REST_BASE_URL`과 `KIS_WS_URL`은 환경변수로 주입된다. 실시간 TR ID는 `KIS_REALTIME_TR_ID`이며 기본값은 `H0STCNT0`다.
 
 ## 공통 인증/헤더
 
 ### 접근토큰발급
 
 - KIS MCP 매핑: `auth/auth_token`
-- 코드 위치: `back/src/kis/kis.service.ts`
+- 코드 위치: `back/src/market/adaptor/kis/authorization.provider.ts`
 - 요청: `POST ${KIS_REST_BASE_URL}/oauth2/tokenP`
 - Body:
 
@@ -44,7 +44,7 @@
 ### 웹소켓 접속키 발급
 
 - KIS MCP 매핑: `auth/auth_ws_token`
-- 코드 위치: `back/src/kis/kis.service.ts`
+- 코드 위치: `back/src/market/adaptor/kis/authorization.provider.ts`
 - 요청: `POST ${KIS_REST_BASE_URL}/oauth2/Approval`
 - Body:
 
@@ -64,7 +64,7 @@
 
 ### REST 시세 요청 공통 헤더
 
-`KisService.getWithAccessToken()`은 현재가/일봉 REST 요청에 아래 헤더를 붙인다.
+`RequestProvider.get()`은 현재가/일봉 REST 요청에 아래 헤더를 붙인다.
 
 | Header          | 값                                |
 | --------------- | --------------------------------- |
@@ -82,9 +82,9 @@
 - KIS MCP 매핑: `domestic_stock/inquire_price`
 - KIS 분류: `[국내주식] 기본시세 > 주식현재가 시세`
 - 코드 위치:
-  - 상수: `back/src/kis/kis.constants.ts`
-  - 호출: `back/src/kis/kis.service.ts`
-  - 응답 매핑: `back/src/kis/kis-mappers.ts`
+  - protocol: `back/src/market/adaptor/kis/protocol.ts`
+  - 호출: `back/src/market/adaptor/kis/marketData.adaptor.ts`
+  - 응답 schema: `back/src/market/adaptor/kis/schema.ts`
 - 요청:
   - Method: `GET`
   - Path: `/uapi/domestic-stock/v1/quotations/inquire-price`
@@ -109,7 +109,8 @@
 | `prdy_ctrt` | `previousDayChangeRate` |
 
 - 호출 흐름:
-  - `GET /stocks/:code/current`에서 호출한다.
+  - `GET /prices/:code/quote`에서 호출한다.
+  - `GET /prices/:code/current`에서 장중 현재가 기준일 때 호출한다.
   - `ReturnsService.calculate()`에서 현재 수익률 계산용으로 호출한다.
 
 ### 국내주식기간별시세(일/주/월/년)
@@ -117,9 +118,9 @@
 - KIS MCP 매핑: `domestic_stock/inquire_daily_itemchartprice`
 - KIS 분류: `[국내주식] 기본시세 > 국내주식기간별시세(일/주/월/년)`
 - 코드 위치:
-  - 상수: `back/src/kis/kis.constants.ts`
-  - 호출: `back/src/kis/kis.service.ts`
-  - 응답 매핑: `back/src/kis/kis-mappers.ts`
+  - protocol: `back/src/market/adaptor/kis/protocol.ts`
+  - 호출: `back/src/market/adaptor/kis/marketData.adaptor.ts`
+  - 응답 schema: `back/src/market/adaptor/kis/schema.ts`
 - 요청:
   - Method: `GET`
   - Path: `/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice`
@@ -147,7 +148,7 @@
 | `output2[0].acml_vol`       | `candle.accumulatedVolume` |
 
 - 호출 흐름:
-  - `GET /stocks/:code/history?date=YYYY-MM-DD`에서 호출한다.
+  - `GET /prices/:code/daily-candle?date=YYYY-MM-DD`에서 호출한다.
   - `ReturnsService.calculate()`에서 매수일 종가 조회용으로 호출한다.
   - 응답의 `output2[0]`만 사용하므로 현재 구현은 단일 날짜 조회로 쓰고 있다.
 
@@ -159,8 +160,8 @@
 - KIS 분류: `[국내주식] 실시간시세 > 국내주식 실시간체결가(KRX)`
 - 코드 위치:
   - 연결/구독: `back/src/realtime/realtime.service.ts`
-  - KIS 메시지 생성: `back/src/kis/kis.service.ts`
-  - 응답 파싱: `back/src/kis/kis-mappers.ts`
+  - KIS 메시지 생성: `back/src/market/adaptor/kis/realtime.adaptor.ts`
+  - 응답 파싱: `back/src/market/adaptor/kis/schema.ts`
 - 연결:
   - URL: `KIS_WS_URL`
   - 연결 전 `POST /oauth2/Approval`로 `approval_key`를 발급한다.
