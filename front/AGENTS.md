@@ -69,6 +69,15 @@ Route UI는 `src/app/`의 해당 route group에 둔다. 공용 UI는
   결과를 기준으로 고친다.
 - className 조합은 `src/utils/cn.ts`의 `cn()`을 사용한다.
 
+## Accessibility
+
+- 무분별한 ARIA 속성 사용과 검증되지 않은 HTML 태그 사용을 지양한다.
+- 접근성을 위해서 선택한 태그와 ARIA 속성이 브라우저, OS, 보조기술 조합에 따라 실제 동작이 달라져 오히려 UX를 방해할 수 있음을 명심한다.
+- role, state, keyboard interaction, focus management 등 구현 지침이
+  WAI-ARIA APG 등에 문서화된 패턴은 해당 지침의 의도를 설명한 뒤 적용한다.
+- 모든 요소에 기계적으로 `aria-label`을 붙이거나, 의미가 불분명한 시맨틱
+  태그를 접근성 개선처럼 사용하지 않는다.
+
 ## React 19
 
 - 현재 리액트 19버전을 사용하기 때문에, `forwardRef`로 래핑하지 않아도 함수 컴포넌트에서 `ref`를

@@ -29,9 +29,6 @@ back/
 └── scripts/             # OpenAPI/클라이언트 생성, dev mock
 ```
 
-기능별 코드는 같은 폴더 안에서 `*.controller.ts`, `*.service.ts`,
-`*.schema.ts`, `*.dto.ts`, `*.module.ts` 패턴을 따른다.
-
 Feature modules:
 
 - `health/`: health endpoint
