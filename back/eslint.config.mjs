@@ -1,5 +1,6 @@
 // @ts-check
 import eslint from "@eslint/js"
+import noBarrelFiles from "eslint-plugin-no-barrel-files"
 import prettierConfig from "eslint-config-prettier"
 import globals from "globals"
 import tseslint from "typescript-eslint"
@@ -31,6 +32,9 @@ export default tseslint.config(
   },
   {
     files: ["**/*.{ts,tsx}"],
+    plugins: {
+      "no-barrel-files": noBarrelFiles,
+    },
     languageOptions: {
       parserOptions: {
         projectService: true,
@@ -40,6 +44,7 @@ export default tseslint.config(
     rules: {
       "@typescript-eslint/no-floating-promises": "off",
       "@typescript-eslint/no-unsafe-argument": "warn",
+      "no-barrel-files/no-barrel-files": "error",
       "no-void": "error",
     },
   },

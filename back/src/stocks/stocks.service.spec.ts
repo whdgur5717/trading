@@ -17,19 +17,19 @@ describe("StocksService", () => {
               code: "005930",
               name: "삼성전자",
               marketName: "KOSPI",
-              kisMarketCode: "J",
+              quotationMarket: "KRX",
             },
             {
               code: "005935",
               name: "삼성전자우",
               marketName: "KOSPI",
-              kisMarketCode: "J",
+              quotationMarket: "KRX",
             },
             {
               code: "000660",
               name: "SK하이닉스",
               marketName: "KOSPI",
-              kisMarketCode: "J",
+              quotationMarket: "KRX",
             },
           ],
         },
@@ -45,13 +45,13 @@ describe("StocksService", () => {
         code: "005930",
         name: "삼성전자",
         marketName: "KOSPI",
-        kisMarketCode: "J",
+        quotationMarket: "KRX",
       },
       {
         code: "005935",
         name: "삼성전자우",
         marketName: "KOSPI",
-        kisMarketCode: "J",
+        quotationMarket: "KRX",
       },
     ])
 
@@ -60,7 +60,7 @@ describe("StocksService", () => {
         code: "000660",
         name: "SK하이닉스",
         marketName: "KOSPI",
-        kisMarketCode: "J",
+        quotationMarket: "KRX",
       },
     ])
   })
@@ -71,7 +71,7 @@ describe("StocksService", () => {
         code: "005930",
         name: "삼성전자",
         marketName: "KOSPI",
-        kisMarketCode: "J",
+        quotationMarket: "KRX",
       },
     ])
   })

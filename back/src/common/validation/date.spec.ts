@@ -1,7 +1,7 @@
 import {
   createPastOrTodayIsoDateSchema,
   pastOrTodayIsoDateSchema,
-} from "./date-validation"
+} from "./date"
 import { describe, expect, it } from "vitest"
 
 describe("date validation", () => {

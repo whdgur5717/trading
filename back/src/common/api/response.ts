@@ -21,7 +21,7 @@ import {
   type ApiSuccess,
   type ExceptionResponseBody,
   type HttpErrorStatus,
-} from "./api.schema"
+} from "./schema"
 
 export const SKIP_API_RESPONSE = "skipApiResponse"
 

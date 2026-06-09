@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { pastOrTodayIsoDateSchema } from "../common/date-validation"
+import { pastOrTodayIsoDateSchema } from "../common/validation/date"
 import { priceCurrentSchema } from "../prices/prices.schema"
 import { stockCodeSchema, stockSchema } from "../stocks/stock.schema"
 

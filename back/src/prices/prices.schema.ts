@@ -1,11 +1,11 @@
 import { z } from "zod"
-import { pastOrTodayIsoDateSchema } from "../common/date-validation"
+import { pastOrTodayIsoDateSchema } from "../common/validation/date"
+import { dailyCandleSchema, stockQuoteSchema } from "../market/port/data"
 import {
-  currentPriceSchema as kisCurrentPriceSchema,
-  dailyCandleSchema,
-  kisMarketCodeSchema,
-} from "../kis/kis.schema"
-import { stockCodeSchema, stockSchema } from "../stocks/stock.schema"
+  quotationMarketSchema,
+  stockCodeSchema,
+  stockSchema,
+} from "../stocks/stock.schema"
 
 export const priceCodeParamSchema = z.object({
   code: stockCodeSchema,
@@ -17,24 +17,24 @@ export const priceDailyCandleQuerySchema = z.object({
 
 export const priceQuoteSchema = z.object({
   stock: stockSchema,
-  marketCode: kisMarketCodeSchema,
-  price: kisCurrentPriceSchema,
+  quotationMarket: quotationMarketSchema,
+  price: stockQuoteSchema,
 })
 
 export const priceDailyCandleSchema = z.object({
   stock: stockSchema,
   requestedDate: z.string().meta({ example: "2026-05-15" }),
-  marketCode: kisMarketCodeSchema,
+  quotationMarket: quotationMarketSchema,
   isTradingDay: z.boolean().meta({ example: true }),
   candle: dailyCandleSchema.nullable(),
 })
 
 export const priceCurrentSchema = z.object({
   price: z.number().meta({ example: 80000 }),
-  source: z
-    .enum(["kis-rest-current-price", "kis-rest-daily-itemchartprice"])
-    .meta({ example: "kis-rest-current-price" }),
-  marketCode: z.literal("UN").meta({ example: "UN" }),
+  source: z.enum(["stock-quote", "daily-candle"]).meta({
+    example: "stock-quote",
+  }),
+  quotationMarket: z.literal("CONSOLIDATED").meta({ example: "CONSOLIDATED" }),
   basis: z.discriminatedUnion("type", [
     z.object({
       type: z.literal("current-snapshot").meta({ example: "current-snapshot" }),
@@ -42,7 +42,7 @@ export const priceCurrentSchema = z.object({
     }),
     z.object({
       type: z.literal("latest-close").meta({ example: "latest-close" }),
-      tradingDate: z.string().meta({ example: "20260602" }),
+      tradingDate: z.string().meta({ example: "2026-06-02" }),
     }),
   ]),
 })

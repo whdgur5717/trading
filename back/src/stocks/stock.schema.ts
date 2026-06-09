@@ -1,10 +1,13 @@
 import { z } from "zod"
-import { kisMarketCodeSchema } from "../kis/kis.schema"
 
 export const stockCodeSchema = z
   .string()
   .regex(/^[A-Z0-9]{1,9}$/)
   .meta({ example: "005930" })
+
+export const quotationMarketSchema = z
+  .enum(["KRX", "NXT", "CONSOLIDATED"])
+  .meta({ example: "KRX" })
 
 export const stockProductTypeSchema = z.enum([
   "STOCK",
@@ -29,7 +32,7 @@ export const stockSchema = z.object({
   code: stockCodeSchema,
   name: z.string().meta({ example: "삼성전자" }),
   marketName: z.string().meta({ example: "KOSPI" }),
-  kisMarketCode: kisMarketCodeSchema,
+  quotationMarket: quotationMarketSchema,
   standardCode: z.string().optional().meta({ example: "KR7005930003" }),
   securityGroupCode: z.string().optional().meta({ example: "ST" }),
   rawEtpType: z.string().nullable().optional().meta({ example: "2" }),
@@ -60,4 +63,5 @@ export const stockSchema = z.object({
 export type StockSearchQuery = z.infer<typeof stockSearchQuerySchema>
 export type StockCodeParam = z.infer<typeof stockCodeParamSchema>
 export type StockProductType = z.infer<typeof stockProductTypeSchema>
+export type StockQuotationMarket = z.infer<typeof quotationMarketSchema>
 export type Stock = z.infer<typeof stockSchema>

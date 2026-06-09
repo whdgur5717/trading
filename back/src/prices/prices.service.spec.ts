@@ -1,9 +1,9 @@
 import { Test } from "@nestjs/testing"
 import {
-  KisServiceMock,
-  KisTestingModule,
-} from "../kis/testing/kis-testing.module"
-import { KisService } from "../kis/kis.service"
+  MarketDataPortMock,
+  MarketDataTestingModule,
+} from "../market/testing/marketDataTesting.module"
+import { MARKET_DATA_PORT } from "../market/port/data"
 import {
   StocksServiceMock,
   StocksTestingModule,
@@ -14,28 +14,28 @@ import { beforeEach, describe, expect, it } from "vitest"
 
 describe("PricesService", () => {
   let service: PricesService
-  let kisService: KisServiceMock
+  let marketData: MarketDataPortMock
   let stocksService: StocksServiceMock
 
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [KisTestingModule, StocksTestingModule],
+      imports: [MarketDataTestingModule, StocksTestingModule],
       providers: [PricesService],
     }).compile()
 
     service = moduleRef.get(PricesService)
-    kisService = moduleRef.get(KisService)
+    marketData = moduleRef.get(MARKET_DATA_PORT)
     stocksService = moduleRef.get(StocksService)
   })
 
-  it("gets the current price with the stock market code", async () => {
+  it("gets the current price with the stock quotation market", async () => {
     stocksService.getByCode.mockReturnValue({
       code: "005930",
       name: "삼성전자",
       marketName: "KOSPI",
-      kisMarketCode: "J",
+      quotationMarket: "KRX",
     })
-    kisService.getCurrentPrice.mockResolvedValue({
+    marketData.stockQuote.mockResolvedValue({
       currentPrice: 70000,
       openPrice: 69000,
       highPrice: 71000,
@@ -48,39 +48,47 @@ describe("PricesService", () => {
       stock: {
         code: "005930",
       },
-      marketCode: "J",
+      quotationMarket: "KRX",
       price: {
         currentPrice: 70000,
       },
     })
 
     expect(stocksService.getByCode).toHaveBeenCalledWith("005930")
-    expect(kisService.getCurrentPrice).toHaveBeenCalledWith("005930", "J")
+    expect(marketData.stockQuote).toHaveBeenCalledWith({
+      stockCode: "005930",
+      quotationMarket: "KRX",
+    })
   })
 
-  it("gets the historical close with the stock market code", async () => {
+  it("gets the historical close with the stock quotation market", async () => {
     stocksService.getByCode.mockReturnValue({
       code: "005930",
       name: "삼성전자",
       marketName: "KOSPI",
-      kisMarketCode: "J",
+      quotationMarket: "KRX",
     })
-    kisService.getDailyPrice.mockResolvedValue({
+    marketData.marketDay.mockResolvedValue({
+      date: "2026-05-07",
+      quotationMarket: "KRX",
+      isBusinessDay: true,
       isTradingDay: true,
-      candle: {
-        date: "20260507",
-        openPrice: 69000,
-        highPrice: 71000,
-        lowPrice: 68000,
-        closePrice: 70000,
-        accumulatedVolume: 12345678,
-      },
+      isOpenDay: true,
+      isSettlementDay: true,
+    })
+    marketData.dailyCandle.mockResolvedValue({
+      date: "2026-05-07",
+      openPrice: 69000,
+      highPrice: 71000,
+      lowPrice: 68000,
+      closePrice: 70000,
+      accumulatedVolume: 12345678,
     })
     await expect(
       service.getDailyCandle("005930", "2026-05-07")
     ).resolves.toMatchObject({
       requestedDate: "2026-05-07",
-      marketCode: "J",
+      quotationMarket: "KRX",
       isTradingDay: true,
       candle: {
         closePrice: 70000,
@@ -88,11 +96,15 @@ describe("PricesService", () => {
     })
 
     expect(stocksService.getByCode).toHaveBeenCalledWith("005930")
-    expect(kisService.getDailyPrice).toHaveBeenCalledWith(
-      "005930",
-      "2026-05-07",
-      "J"
-    )
+    expect(marketData.marketDay).toHaveBeenCalledWith({
+      date: "2026-05-07",
+      quotationMarket: "KRX",
+    })
+    expect(marketData.dailyCandle).toHaveBeenCalledWith({
+      stockCode: "005930",
+      date: "2026-05-07",
+      quotationMarket: "KRX",
+    })
   })
 
   it("uses the unified current snapshot during an open market day", async () => {
@@ -100,16 +112,17 @@ describe("PricesService", () => {
       code: "005930",
       name: "삼성전자",
       marketName: "KOSPI",
-      kisMarketCode: "J",
+      quotationMarket: "KRX",
     })
-    kisService.getDomesticMarketDay.mockResolvedValue({
-      date: "20260603",
+    marketData.marketDay.mockResolvedValue({
+      date: "2026-06-03",
+      quotationMarket: "CONSOLIDATED",
       isBusinessDay: true,
       isTradingDay: true,
       isOpenDay: true,
       isSettlementDay: true,
     })
-    kisService.getCurrentPrice.mockResolvedValue({
+    marketData.stockQuote.mockResolvedValue({
       currentPrice: 70000,
       openPrice: 69000,
       highPrice: 71000,
@@ -122,8 +135,8 @@ describe("PricesService", () => {
       service.getCurrentPrice("005930", new Date("2026-06-03T00:00:01.000Z"))
     ).resolves.toEqual({
       price: 70000,
-      source: "kis-rest-current-price",
-      marketCode: "UN",
+      source: "stock-quote",
+      quotationMarket: "CONSOLIDATED",
       basis: {
         type: "current-snapshot",
         requestedAt: "2026-06-03T09:00:01+09:00",
@@ -131,9 +144,15 @@ describe("PricesService", () => {
     })
 
     expect(stocksService.getByCode).toHaveBeenCalledWith("005930")
-    expect(kisService.getDomesticMarketDay).toHaveBeenCalledWith("20260603")
-    expect(kisService.getCurrentPrice).toHaveBeenCalledWith("005930", "UN")
-    expect(kisService.getLatestDailyClose).not.toHaveBeenCalled()
+    expect(marketData.marketDay).toHaveBeenCalledWith({
+      date: "2026-06-03",
+      quotationMarket: "CONSOLIDATED",
+    })
+    expect(marketData.stockQuote).toHaveBeenCalledWith({
+      stockCode: "005930",
+      quotationMarket: "CONSOLIDATED",
+    })
+    expect(marketData.lastTradingDayCandle).not.toHaveBeenCalled()
   })
 
   it("uses the latest close when the unified market is closed", async () => {
@@ -141,17 +160,18 @@ describe("PricesService", () => {
       code: "005930",
       name: "삼성전자",
       marketName: "KOSPI",
-      kisMarketCode: "J",
+      quotationMarket: "KRX",
     })
-    kisService.getDomesticMarketDay.mockResolvedValue({
-      date: "20260603",
+    marketData.marketDay.mockResolvedValue({
+      date: "2026-06-03",
+      quotationMarket: "CONSOLIDATED",
       isBusinessDay: true,
       isTradingDay: true,
       isOpenDay: false,
       isSettlementDay: true,
     })
-    kisService.getLatestDailyClose.mockResolvedValue({
-      date: "20260602",
+    marketData.lastTradingDayCandle.mockResolvedValue({
+      date: "2026-06-02",
       openPrice: 69000,
       highPrice: 71000,
       lowPrice: 68000,
@@ -162,21 +182,24 @@ describe("PricesService", () => {
       service.getCurrentPrice("005930", new Date("2026-06-03T11:00:00.000Z"))
     ).resolves.toEqual({
       price: 70500,
-      source: "kis-rest-daily-itemchartprice",
-      marketCode: "UN",
+      source: "daily-candle",
+      quotationMarket: "CONSOLIDATED",
       basis: {
         type: "latest-close",
-        tradingDate: "20260602",
+        tradingDate: "2026-06-02",
       },
     })
 
     expect(stocksService.getByCode).toHaveBeenCalledWith("005930")
-    expect(kisService.getDomesticMarketDay).toHaveBeenCalledWith("20260603")
-    expect(kisService.getLatestDailyClose).toHaveBeenCalledWith(
-      "005930",
-      "20260603",
-      "UN"
-    )
-    expect(kisService.getCurrentPrice).not.toHaveBeenCalled()
+    expect(marketData.marketDay).toHaveBeenCalledWith({
+      date: "2026-06-03",
+      quotationMarket: "CONSOLIDATED",
+    })
+    expect(marketData.lastTradingDayCandle).toHaveBeenCalledWith({
+      stockCode: "005930",
+      asOfDate: "2026-06-03",
+      quotationMarket: "CONSOLIDATED",
+    })
+    expect(marketData.stockQuote).not.toHaveBeenCalled()
   })
 })

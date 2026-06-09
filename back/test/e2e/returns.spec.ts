@@ -2,7 +2,15 @@ import type { AddressInfo } from "node:net"
 import { createApp } from "../support/app"
 import { env } from "../env"
 import { server } from "../support/kis/http"
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest"
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest"
 
 describe("returns", () => {
   beforeAll(() => {
@@ -10,6 +18,7 @@ describe("returns", () => {
   })
 
   afterEach(() => {
+    vi.useRealTimers()
     server.resetHandlers()
   })
 
@@ -18,6 +27,8 @@ describe("returns", () => {
   })
 
   it("builds the result response through PricesModule", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] })
+    vi.setSystemTime(new Date("2026-06-04T00:00:01.000Z"))
     Object.assign(process.env, env)
 
     const app = await createApp()
@@ -44,14 +55,14 @@ describe("returns", () => {
             quantity: 2,
           },
           current: {
-            price: 70000,
-            marketCode: "UN",
+            price: 80000,
+            quotationMarket: "CONSOLIDATED",
           },
           result: {
             buyAmount: 140000,
-            currentValue: 140000,
-            profit: 0,
-            profitRate: 0,
+            currentValue: 160000,
+            profit: 20000,
+            profitRate: 14.29,
           },
         },
       })
