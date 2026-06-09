@@ -28,8 +28,11 @@
   --color-accent-foreground: oklch(1 0 0);
   --color-tease: oklch(0.69 0.19 28);
   --color-tease-foreground: oklch(1 0 0);
+  --color-gain: oklch(0.72 0.12 252);
+  --color-gain-foreground: oklch(0.055 0 0);
   --color-success: oklch(0.72 0.15 150);
-  --color-loss: oklch(0.72 0.12 252);
+  --color-loss: oklch(0.69 0.19 28);
+  --color-loss-foreground: oklch(1 0 0);
   --color-warning: oklch(0.82 0.14 78);
   --color-disabled: oklch(0.19 0.012 294);
   --color-disabled-foreground: oklch(0.48 0.018 294);

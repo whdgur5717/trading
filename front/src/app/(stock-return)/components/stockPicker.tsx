@@ -1,11 +1,12 @@
 "use client"
 
-import { createPickerField } from "@/components/picker-field"
+import * as Autocomplete from "@/components/autocomplete"
+import { Chip } from "@/components/chip"
 import { searchStocksQueryOptions } from "@/queries/searchStocks"
 import type { StockDto as Stock } from "@/queries/generated"
+import { Delay } from "@suspensive/react"
 import { useQuery } from "@tanstack/react-query"
 import { debounce, trim } from "es-toolkit"
-import { ChevronDown } from "lucide-react"
 import { useEffect, useState } from "react"
 
 export type { Stock }
@@ -15,134 +16,242 @@ type StockPickerProps = {
   onChange: (stock: Stock) => void
 }
 
-const Picker = createPickerField<Stock | null>("StockPicker")
+const KOSPI_TOP_STOCKS = [
+  {
+    code: "005930",
+    quotationMarket: "KRX",
+    marketName: "KOSPI",
+    name: "삼성전자",
+  },
+  {
+    code: "035420",
+    quotationMarket: "KRX",
+    marketName: "KOSPI",
+    name: "NAVER",
+  },
+  {
+    code: "035720",
+    quotationMarket: "KRX",
+    marketName: "KOSPI",
+    name: "카카오",
+  },
+  {
+    code: "000660",
+    quotationMarket: "KRX",
+    marketName: "KOSPI",
+    name: "SK하이닉스",
+  },
+  {
+    code: "402340",
+    quotationMarket: "KRX",
+    marketName: "KOSPI",
+    name: "SK스퀘어",
+  },
+  {
+    code: "005380",
+    quotationMarket: "KRX",
+    marketName: "KOSPI",
+    name: "현대차",
+  },
+  {
+    code: "009150",
+    quotationMarket: "KRX",
+    marketName: "KOSPI",
+    name: "삼성전기",
+  },
+  {
+    code: "373220",
+    quotationMarket: "KRX",
+    marketName: "KOSPI",
+    name: "LG에너지솔루션",
+  },
+  {
+    code: "032830",
+    quotationMarket: "KRX",
+    marketName: "KOSPI",
+    name: "삼성생명",
+  },
+  {
+    code: "028260",
+    quotationMarket: "KRX",
+    marketName: "KOSPI",
+    name: "삼성물산",
+  },
+  {
+    code: "329180",
+    quotationMarket: "KRX",
+    marketName: "KOSPI",
+    name: "HD현대중공업",
+  },
+  {
+    code: "105560",
+    quotationMarket: "KRX",
+    marketName: "KOSPI",
+    name: "KB금융",
+  },
+] satisfies Stock[]
 
 export function StockPicker({ value, onChange }: StockPickerProps) {
   const [open, setOpen] = useState(false)
-  const [query, setQuery] = useState("")
-  const [debouncedQuery, setDebouncedQuery] = useState("")
+  const [query, setQuery] = useState(value?.name ?? "")
+  const [debouncedQuery, setDebouncedQuery] = useState(value?.name ?? "")
   const [debouncedSetQuery] = useState(() => debounce(setDebouncedQuery, 300))
 
   useEffect(() => () => debouncedSetQuery.cancel(), [debouncedSetQuery])
 
-  const { data: options = [], isFetching } = useQuery({
+  const {
+    data: options = [],
+    isError,
+    isFetching,
+  } = useQuery({
     ...searchStocksQueryOptions({ q: debouncedQuery }),
     enabled: debouncedQuery.length > 0,
+    throwOnError: false,
+    retry: false,
+    placeholderData: (previousData, previousQuery) => {
+      if (debouncedQuery.length === 0) {
+        return undefined
+      }
+
+      const previousQueryKey = previousQuery?.queryKey
+      const previousQueryText = previousQueryKey?.[2]
+
+      if (typeof previousQueryText !== "string") {
+        return undefined
+      }
+
+      return debouncedQuery.startsWith(previousQueryText) ||
+        previousQueryText.startsWith(debouncedQuery)
+        ? previousData
+        : undefined
+    },
   })
 
   return (
-    <Picker.Root
+    <Autocomplete.Root
+      filter={null}
+      itemToStringValue={(stock) => stock.name}
+      items={options}
+      loopFocus={false}
+      mode="none"
       open={open}
-      value={value ?? null}
       onOpenChange={(nextOpen) => {
         setOpen(nextOpen)
-
-        if (!nextOpen) return
-
-        const nextQuery = value?.name ?? ""
-
-        debouncedSetQuery.cancel()
-        setQuery(nextQuery)
-        setDebouncedQuery(nextQuery)
       }}
-      onValueChange={(stock) => {
-        if (!stock) return
+      onValueChange={(nextValue) => {
+        const nextQuery = trim(nextValue)
 
-        onChange(stock)
-        debouncedSetQuery.cancel()
-        setQuery(stock.name)
-        setDebouncedQuery(stock.name)
+        setQuery(nextValue)
+
+        if (nextQuery.length === 0) {
+          debouncedSetQuery.cancel()
+          setDebouncedQuery("")
+          return
+        }
+
+        debouncedSetQuery(nextQuery)
       }}
+      openOnInputClick
+      value={query}
     >
-      <div className="relative">
-        <Picker.Trigger asChild>
-          {({ value: selectedStock }) => (
-            <button>
-              <span className="col-span-full type-label text-muted">종목</span>
-              {selectedStock ? (
-                <>
-                  <strong className="min-w-0 truncate type-title text-ink">
-                    {selectedStock.name}
-                  </strong>
-                  <small className="flex items-end gap-2 pb-0.5 text-label font-bold text-muted">
-                    {selectedStock.code}
-                    <ChevronDown className="size-4 shrink-0 transition-transform duration-150 ease-standard group-data-[state=open]:rotate-180" />
-                  </small>
-                </>
-              ) : (
-                <>
-                  <span className="min-w-0 truncate type-body text-subtle">
-                    종목 선택
-                  </span>
-                  <small className="flex items-end gap-2 pb-0.5 text-label font-medium text-subtle">
-                    검색
-                    <ChevronDown className="size-4 shrink-0 transition-transform duration-150 ease-standard group-data-[state=open]:rotate-180" />
-                  </small>
-                </>
-              )}
-            </button>
-          )}
-        </Picker.Trigger>
-
-        <Picker.Content align="start" asChild sideOffset={8}>
-          <div className="space-y-3">
-            <label className="grid gap-2 rounded-lg bg-surface-muted p-3">
-              <span className="type-label text-muted">종목 검색</span>
-              <input
-                autoFocus
-                className="w-full bg-transparent p-0 type-body text-ink outline-none placeholder:text-subtle"
-                onChange={(event) => {
-                  const nextQuery = trim(event.target.value)
-
-                  setQuery(event.target.value)
-
-                  if (nextQuery.length === 0) {
-                    debouncedSetQuery.cancel()
-                    setDebouncedQuery("")
-                    return
-                  }
-
-                  debouncedSetQuery(nextQuery)
-                }}
-                placeholder="삼성전자, 하이닉스, 005930"
-                value={query}
-              />
-            </label>
-
-            <div className="grid max-h-72 gap-1 overflow-y-auto">
-              {options.length > 0 ? (
-                options.map((stock) => (
-                  <Picker.Item
-                    asChild
-                    className="grid items-start justify-start gap-1 p-3"
-                    key={stock.code}
-                    value={stock}
-                  >
-                    {() => (
-                      <button>
-                        <span className="text-body font-bold">
-                          {stock.name}
-                        </span>
-                        <small className="type-label text-muted transition-colors duration-150 ease-standard group-hover:text-primary-foreground/60 group-data-selected:text-primary-foreground/60">
-                          {stock.code} · {stock.marketName}
-                        </small>
-                      </button>
-                    )}
-                  </Picker.Item>
-                ))
-              ) : isFetching ? (
-                <p className="px-3 py-4 text-label font-bold text-muted">
-                  검색 중입니다.
-                </p>
-              ) : (
-                <p className="px-3 py-4 text-label font-bold text-muted">
-                  선택할 수 있는 종목이 없습니다.
-                </p>
-              )}
+      <Autocomplete.Search>
+        <Autocomplete.InputGroup>
+          <Autocomplete.Input
+            aria-label="종목"
+            autoComplete="off"
+            placeholder="주식종목이나 종목코드를 입력해주세요"
+          />
+          {value && query === value.name ? (
+            <div className="flex items-end gap-2 pb-0.5">
+              <span className="text-label font-bold text-muted">
+                {value.code}
+              </span>
             </div>
-          </div>
-        </Picker.Content>
-      </div>
-    </Picker.Root>
+          ) : null}
+        </Autocomplete.InputGroup>
+      </Autocomplete.Search>
+
+      <Autocomplete.Content positionerProps={{ align: "start", sideOffset: 8 }}>
+        <div className="flex flex-wrap gap-2 pb-3">
+          {KOSPI_TOP_STOCKS.map((stock) => (
+            <Chip
+              key={stock.code}
+              onClick={() => {
+                onChange(stock)
+                debouncedSetQuery.cancel()
+                setQuery(stock.name)
+                setDebouncedQuery(stock.name)
+                setOpen(false)
+              }}
+              selected={value?.code === stock.code}
+            >
+              {stock.name}
+            </Chip>
+          ))}
+        </div>
+        <Autocomplete.Results>
+          {(() => {
+            switch (true) {
+              case debouncedQuery.length === 0:
+                return null
+              case isError:
+                return (
+                  <Autocomplete.Status className="text-tease">
+                    종목을 불러오지 못했어요 다시 검색해주세요
+                  </Autocomplete.Status>
+                )
+              case options.length > 0:
+                return (
+                  <Autocomplete.List key={debouncedQuery}>
+                    {options.map((stock) => (
+                      <Autocomplete.Item
+                        key={stock.code}
+                        onClick={() => {
+                          onChange(stock)
+                          debouncedSetQuery.cancel()
+                          setQuery(stock.name)
+                          setDebouncedQuery(stock.name)
+                          setOpen(false)
+                        }}
+                        selected={value?.code === stock.code}
+                        value={stock}
+                      >
+                        <Autocomplete.ItemTitle>
+                          {stock.name}
+                        </Autocomplete.ItemTitle>
+                        <Autocomplete.ItemDescription>
+                          {stock.code} · {stock.marketName}
+                        </Autocomplete.ItemDescription>
+                      </Autocomplete.Item>
+                    ))}
+                  </Autocomplete.List>
+                )
+              case isFetching:
+                return (
+                  <Delay
+                    fallback={
+                      <Autocomplete.Status
+                        aria-hidden="true"
+                        className="opacity-0"
+                      >
+                        검색 중입니다
+                      </Autocomplete.Status>
+                    }
+                    ms={200}
+                  >
+                    <Autocomplete.Status>검색 중입니다</Autocomplete.Status>
+                  </Delay>
+                )
+              default:
+                return (
+                  <Autocomplete.Status>
+                    선택할 수 있는 종목이 없습니다
+                  </Autocomplete.Status>
+                )
+            }
+          })()}
+        </Autocomplete.Results>
+      </Autocomplete.Content>
+    </Autocomplete.Root>
   )
 }

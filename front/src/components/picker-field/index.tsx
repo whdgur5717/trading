@@ -227,7 +227,7 @@ export function createPickerField<TValue = never>(name = "PickerField") {
       <Popover.Content
         ref={ref}
         className={cn(
-          "z-50 w-(--radix-popover-trigger-width) rounded-2xl bg-surface-raised p-3 text-ink outline-none data-[state=open]:animate-popover-in",
+          "z-50 w-(--radix-popover-trigger-width) rounded-2xl bg-[oklch(0.245_0.02_294)] p-3 text-ink shadow-[0_18px_44px_oklch(0_0_0/0.34)] outline-none data-[state=open]:animate-popover-in",
           className
         )}
         data-slot="picker-field-content"
