@@ -18,73 +18,73 @@ type StockPickerProps = {
 
 const KOSPI_TOP_STOCKS = [
   {
-    code: "005930",
+    symbol: "005930",
     quotationMarket: "KRX",
     marketName: "KOSPI",
     name: "삼성전자",
   },
   {
-    code: "035420",
+    symbol: "035420",
     quotationMarket: "KRX",
     marketName: "KOSPI",
     name: "NAVER",
   },
   {
-    code: "035720",
+    symbol: "035720",
     quotationMarket: "KRX",
     marketName: "KOSPI",
     name: "카카오",
   },
   {
-    code: "000660",
+    symbol: "000660",
     quotationMarket: "KRX",
     marketName: "KOSPI",
     name: "SK하이닉스",
   },
   {
-    code: "402340",
+    symbol: "402340",
     quotationMarket: "KRX",
     marketName: "KOSPI",
     name: "SK스퀘어",
   },
   {
-    code: "005380",
+    symbol: "005380",
     quotationMarket: "KRX",
     marketName: "KOSPI",
     name: "현대차",
   },
   {
-    code: "009150",
+    symbol: "009150",
     quotationMarket: "KRX",
     marketName: "KOSPI",
     name: "삼성전기",
   },
   {
-    code: "373220",
+    symbol: "373220",
     quotationMarket: "KRX",
     marketName: "KOSPI",
     name: "LG에너지솔루션",
   },
   {
-    code: "032830",
+    symbol: "032830",
     quotationMarket: "KRX",
     marketName: "KOSPI",
     name: "삼성생명",
   },
   {
-    code: "028260",
+    symbol: "028260",
     quotationMarket: "KRX",
     marketName: "KOSPI",
     name: "삼성물산",
   },
   {
-    code: "329180",
+    symbol: "329180",
     quotationMarket: "KRX",
     marketName: "KOSPI",
     name: "HD현대중공업",
   },
   {
-    code: "105560",
+    symbol: "105560",
     quotationMarket: "KRX",
     marketName: "KOSPI",
     name: "KB금융",
@@ -106,8 +106,8 @@ export function StockPicker({ value, onChange }: StockPickerProps) {
   } = useQuery({
     ...searchStocksQueryOptions({ q: debouncedQuery }),
     enabled: debouncedQuery.length > 0,
-    throwOnError: false,
     retry: false,
+    throwOnError: false,
     placeholderData: (previousData, previousQuery) => {
       if (debouncedQuery.length === 0) {
         return undefined
@@ -164,7 +164,7 @@ export function StockPicker({ value, onChange }: StockPickerProps) {
           {value && query === value.name ? (
             <div className="flex items-end gap-2 pb-0.5">
               <span className="text-label font-bold text-muted">
-                {value.code}
+                {value.symbol}
               </span>
             </div>
           ) : null}
@@ -175,7 +175,7 @@ export function StockPicker({ value, onChange }: StockPickerProps) {
         <div className="flex flex-wrap gap-2 pb-3">
           {KOSPI_TOP_STOCKS.map((stock) => (
             <Chip
-              key={stock.code}
+              key={stock.symbol}
               onClick={() => {
                 onChange(stock)
                 debouncedSetQuery.cancel()
@@ -183,7 +183,7 @@ export function StockPicker({ value, onChange }: StockPickerProps) {
                 setDebouncedQuery(stock.name)
                 setOpen(false)
               }}
-              selected={value?.code === stock.code}
+              selected={value?.symbol === stock.symbol}
             >
               {stock.name}
             </Chip>
@@ -197,7 +197,7 @@ export function StockPicker({ value, onChange }: StockPickerProps) {
               case isError:
                 return (
                   <Autocomplete.Status className="text-tease">
-                    종목을 불러오지 못했어요 다시 검색해주세요
+                    다시 입력해주세요
                   </Autocomplete.Status>
                 )
               case options.length > 0:
@@ -205,7 +205,7 @@ export function StockPicker({ value, onChange }: StockPickerProps) {
                   <Autocomplete.List key={debouncedQuery}>
                     {options.map((stock) => (
                       <Autocomplete.Item
-                        key={stock.code}
+                        key={stock.symbol}
                         onClick={() => {
                           onChange(stock)
                           debouncedSetQuery.cancel()
@@ -213,14 +213,14 @@ export function StockPicker({ value, onChange }: StockPickerProps) {
                           setDebouncedQuery(stock.name)
                           setOpen(false)
                         }}
-                        selected={value?.code === stock.code}
+                        selected={value?.symbol === stock.symbol}
                         value={stock}
                       >
                         <Autocomplete.ItemTitle>
                           {stock.name}
                         </Autocomplete.ItemTitle>
                         <Autocomplete.ItemDescription>
-                          {stock.code} · {stock.marketName}
+                          {stock.symbol} · {stock.marketName}
                         </Autocomplete.ItemDescription>
                       </Autocomplete.Item>
                     ))}

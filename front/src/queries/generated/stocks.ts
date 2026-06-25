@@ -1,16 +1,35 @@
-import { api } from "../api"
+import { ApiSchemaError, ApiUnexpectedStatusError, api } from "../api"
+import { ResultAsync, err, ok, type Result } from "neverthrow"
 import {
-  StocksControllerSuggestionResponseSchema,
-  type StocksControllerSuggestionResponse,
-  StocksControllerSearchResponseSchema,
-  type StocksControllerSearchResponse,
-  StocksControllerGetResponseSchema,
-  type StocksControllerGetResponse,
+  StocksControllerSuggestionResponse200Schema,
+  type StocksControllerSuggestionResponse200,
+  StocksControllerSuggestionResponse400Schema,
+  type StocksControllerSuggestionResponse400,
+  StocksControllerSearchResponse200Schema,
+  type StocksControllerSearchResponse200,
+  StocksControllerSearchResponse400Schema,
+  type StocksControllerSearchResponse400,
+  StocksControllerGetResponse200Schema,
+  type StocksControllerGetResponse200,
+  StocksControllerGetResponse400Schema,
+  type StocksControllerGetResponse400,
+  StocksControllerGetResponse404Schema,
+  type StocksControllerGetResponse404,
 } from "./schemas"
 
 export type StocksControllerSuggestionParams = {
   q: string
   limit?: number
+}
+
+export type StocksControllerSuggestionSuccess = {
+  status: 200
+  body: StocksControllerSuggestionResponse200
+}
+
+export type StocksControllerSuggestionFailure = {
+  status: 400
+  body: StocksControllerSuggestionResponse400
 }
 
 /**
@@ -22,67 +41,252 @@ export type StocksControllerSuggestionParams = {
  * })
  * ```
  */
-export async function STOCKS_CONTROLLER_SUGGESTION(
+export function STOCKS_CONTROLLER_SUGGESTION(
   params: StocksControllerSuggestionParams
-): Promise<StocksControllerSuggestionResponse> {
-  const data = await api
-    .get<StocksControllerSuggestionResponse>("stocks/suggestion", {
-      searchParams: {
-        q: params.q,
-        limit: params.limit,
-      },
-    })
-    .json()
+): ResultAsync<
+  StocksControllerSuggestionSuccess,
+  StocksControllerSuggestionFailure
+> {
+  return new ResultAsync(
+    (async (): Promise<
+      Result<
+        StocksControllerSuggestionSuccess,
+        StocksControllerSuggestionFailure
+      >
+    > => {
+      const response = await api.get("stocks/suggestion", {
+        searchParams: {
+          q: params.q,
+          limit: params.limit,
+        },
+      })
+      const body: unknown = await response.json()
 
-  return StocksControllerSuggestionResponseSchema.parse(data)
+      switch (response.status) {
+        case 200: {
+          const result =
+            StocksControllerSuggestionResponse200Schema.safeParse(body)
+
+          if (!result.success) {
+            throw new ApiSchemaError({
+              status: response.status,
+              schemaName: "StocksControllerSuggestionResponse200Schema",
+              body,
+              zodError: result.error,
+            })
+          }
+
+          const value: StocksControllerSuggestionSuccess = {
+            status: 200,
+            body: result.data,
+          }
+
+          return ok(value)
+        }
+        case 400: {
+          const result =
+            StocksControllerSuggestionResponse400Schema.safeParse(body)
+
+          if (!result.success) {
+            throw new ApiSchemaError({
+              status: response.status,
+              schemaName: "StocksControllerSuggestionResponse400Schema",
+              body,
+              zodError: result.error,
+            })
+          }
+
+          const value: StocksControllerSuggestionFailure = {
+            status: 400,
+            body: result.data,
+          }
+
+          return err(value)
+        }
+      }
+
+      throw new ApiUnexpectedStatusError(response.status, body)
+    })()
+  )
 }
 
 export type StocksControllerSearchParams = {
-  q: string
+  query: string
+}
+
+export type StocksControllerSearchSuccess = {
+  status: 200
+  body: StocksControllerSearchResponse200
+}
+
+export type StocksControllerSearchFailure = {
+  status: 400
+  body: StocksControllerSearchResponse400
 }
 
 /**
  * @example
  * ```ts
  * await STOCKS_CONTROLLER_SEARCH({
- *   q: "삼성"
+ *   query: "삼성"
  * })
  * ```
  */
-export async function STOCKS_CONTROLLER_SEARCH(
+export function STOCKS_CONTROLLER_SEARCH(
   params: StocksControllerSearchParams
-): Promise<StocksControllerSearchResponse> {
-  const data = await api
-    .get<StocksControllerSearchResponse>("stocks/search", {
-      searchParams: {
-        q: params.q,
-      },
-    })
-    .json()
+): ResultAsync<StocksControllerSearchSuccess, StocksControllerSearchFailure> {
+  return new ResultAsync(
+    (async (): Promise<
+      Result<StocksControllerSearchSuccess, StocksControllerSearchFailure>
+    > => {
+      const response = await api.get("stocks", {
+        searchParams: {
+          query: params.query,
+        },
+      })
+      const body: unknown = await response.json()
 
-  return StocksControllerSearchResponseSchema.parse(data)
+      switch (response.status) {
+        case 200: {
+          const result = StocksControllerSearchResponse200Schema.safeParse(body)
+
+          if (!result.success) {
+            throw new ApiSchemaError({
+              status: response.status,
+              schemaName: "StocksControllerSearchResponse200Schema",
+              body,
+              zodError: result.error,
+            })
+          }
+
+          const value: StocksControllerSearchSuccess = {
+            status: 200,
+            body: result.data,
+          }
+
+          return ok(value)
+        }
+        case 400: {
+          const result = StocksControllerSearchResponse400Schema.safeParse(body)
+
+          if (!result.success) {
+            throw new ApiSchemaError({
+              status: response.status,
+              schemaName: "StocksControllerSearchResponse400Schema",
+              body,
+              zodError: result.error,
+            })
+          }
+
+          const value: StocksControllerSearchFailure = {
+            status: 400,
+            body: result.data,
+          }
+
+          return err(value)
+        }
+      }
+
+      throw new ApiUnexpectedStatusError(response.status, body)
+    })()
+  )
 }
 
 export type StocksControllerGetParams = {
-  code: string
+  symbol: string
 }
+
+export type StocksControllerGetSuccess = {
+  status: 200
+  body: StocksControllerGetResponse200
+}
+
+export type StocksControllerGetFailure =
+  | { status: 400; body: StocksControllerGetResponse400 }
+  | { status: 404; body: StocksControllerGetResponse404 }
 
 /**
  * @example
  * ```ts
  * await STOCKS_CONTROLLER_GET({
- *   code: "005930"
+ *   symbol: "005930"
  * })
  * ```
  */
-export async function STOCKS_CONTROLLER_GET(
+export function STOCKS_CONTROLLER_GET(
   params: StocksControllerGetParams
-): Promise<StocksControllerGetResponse> {
-  const data = await api
-    .get<StocksControllerGetResponse>(
-      `stocks/${encodeURIComponent(String(params.code))}`
-    )
-    .json()
+): ResultAsync<StocksControllerGetSuccess, StocksControllerGetFailure> {
+  return new ResultAsync(
+    (async (): Promise<
+      Result<StocksControllerGetSuccess, StocksControllerGetFailure>
+    > => {
+      const response = await api.get(
+        `stocks/${encodeURIComponent(String(params.symbol))}`,
+        {}
+      )
+      const body: unknown = await response.json()
 
-  return StocksControllerGetResponseSchema.parse(data)
+      switch (response.status) {
+        case 200: {
+          const result = StocksControllerGetResponse200Schema.safeParse(body)
+
+          if (!result.success) {
+            throw new ApiSchemaError({
+              status: response.status,
+              schemaName: "StocksControllerGetResponse200Schema",
+              body,
+              zodError: result.error,
+            })
+          }
+
+          const value: StocksControllerGetSuccess = {
+            status: 200,
+            body: result.data,
+          }
+
+          return ok(value)
+        }
+        case 400: {
+          const result = StocksControllerGetResponse400Schema.safeParse(body)
+
+          if (!result.success) {
+            throw new ApiSchemaError({
+              status: response.status,
+              schemaName: "StocksControllerGetResponse400Schema",
+              body,
+              zodError: result.error,
+            })
+          }
+
+          const value: StocksControllerGetFailure = {
+            status: 400,
+            body: result.data,
+          }
+
+          return err(value)
+        }
+        case 404: {
+          const result = StocksControllerGetResponse404Schema.safeParse(body)
+
+          if (!result.success) {
+            throw new ApiSchemaError({
+              status: response.status,
+              schemaName: "StocksControllerGetResponse404Schema",
+              body,
+              zodError: result.error,
+            })
+          }
+
+          const value: StocksControllerGetFailure = {
+            status: 404,
+            body: result.data,
+          }
+
+          return err(value)
+        }
+      }
+
+      throw new ApiUnexpectedStatusError(response.status, body)
+    })()
+  )
 }

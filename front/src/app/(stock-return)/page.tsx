@@ -25,7 +25,7 @@ export default function Home() {
   const [selectedDate, setSelectedDate] = useState<Date>()
   const [quantity, setQuantity] = useState(0)
 
-  const stockCode = selectedStock?.code
+  const stockCode = selectedStock?.symbol
   const resultUrl =
     stockCode !== undefined && selectedDate !== undefined && quantity > 0
       ? serializeResultUrl("/result", {

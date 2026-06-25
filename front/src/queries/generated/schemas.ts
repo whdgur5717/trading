@@ -3,7 +3,7 @@ import { z } from "zod"
 export const SuggestionDtoSchema = z.object({
   items: z.array(
     z.object({
-      code: z.string().regex(new RegExp("^[A-Z0-9]{1,9}$")),
+      symbol: z.string().regex(new RegExp("^[A-Z0-9]{1,9}$")),
       name: z.string(),
       marketName: z.string(),
       quotationMarket: z.enum(["KRX", "NXT", "CONSOLIDATED"]),
@@ -51,7 +51,7 @@ export const SuggestionDtoSchema = z.object({
 export type SuggestionDto = z.infer<typeof SuggestionDtoSchema>
 
 export const StockDtoSchema = z.object({
-  code: z.string().regex(new RegExp("^[A-Z0-9]{1,9}$")),
+  symbol: z.string().regex(new RegExp("^[A-Z0-9]{1,9}$")),
   name: z.string(),
   marketName: z.string(),
   quotationMarket: z.enum(["KRX", "NXT", "CONSOLIDATED"]),
@@ -95,144 +95,38 @@ export const StockDtoSchema = z.object({
 })
 export type StockDto = z.infer<typeof StockDtoSchema>
 
-export const PriceCurrentDtoSchema = z.object({
-  price: z.number(),
-  source: z.enum(["stock-quote", "daily-candle"]),
-  quotationMarket: z.literal("CONSOLIDATED"),
-  basis: z.union([
-    z.object({
-      type: z.literal("current-snapshot"),
-      requestedAt: z.string(),
-    }),
-    z.object({
-      type: z.literal("latest-close"),
-      tradingDate: z.string(),
-    }),
-  ]),
+export const PriceDtoSchema = z.object({
+  symbol: z.string().regex(new RegExp("^[A-Z0-9]{1,9}$")),
+  currentPrice: z.string().min(1),
+  openPrice: z.string().min(1),
+  highPrice: z.string().min(1),
+  lowPrice: z.string().min(1),
+  volume: z.string().min(1),
+  changePrice: z.string().min(1),
+  changeRate: z.string().min(1),
 })
-export type PriceCurrentDto = z.infer<typeof PriceCurrentDtoSchema>
+export type PriceDto = z.infer<typeof PriceDtoSchema>
 
-export const PriceQuoteDtoSchema = z.object({
-  stock: z.object({
-    code: z.string().regex(new RegExp("^[A-Z0-9]{1,9}$")),
-    name: z.string(),
-    marketName: z.string(),
-    quotationMarket: z.enum(["KRX", "NXT", "CONSOLIDATED"]),
-    standardCode: z.string().optional(),
-    securityGroupCode: z.string().optional(),
-    rawEtpType: z.union([z.string(), z.null()]).optional(),
-    preferredStockType: z.union([z.string(), z.null()]).optional(),
-    productType: z
-      .enum([
-        "STOCK",
-        "PREFERRED",
-        "ETF",
-        "ETN",
-        "REIT",
-        "BENEFICIARY_CERTIFICATE",
-        "SPAC",
-        "OTHER",
-      ])
-      .optional(),
-    isPreferred: z.boolean().optional(),
-    isEtf: z.boolean().optional(),
-    isEtn: z.boolean().optional(),
-    isSpac: z.boolean().optional(),
-    isReit: z.boolean().optional(),
-    isTradingHalted: z.boolean().optional(),
-    isUnderAdministration: z.boolean().optional(),
-    isLowLiquidity: z.boolean().optional(),
-    marketCap: z
-      .union([z.number().int().min(0).max(9007199254740991), z.null()])
-      .optional(),
-    previousVolume: z
-      .union([z.number().int().min(0).max(9007199254740991), z.null()])
-      .optional(),
-    listedDate: z
-      .union([z.string().regex(new RegExp("^\\d{8}$")), z.null()])
-      .optional(),
-    isKospi100: z.boolean().optional(),
-    isKospi50: z.boolean().optional(),
-    isKrx300: z.boolean().optional(),
-    warningLevel: z.union([z.string(), z.null()]).optional(),
-  }),
-  quotationMarket: z.enum(["KRX", "NXT", "CONSOLIDATED"]),
-  price: z.object({
-    currentPrice: z.number().min(0),
-    openPrice: z.number().min(0),
-    highPrice: z.number().min(0),
-    lowPrice: z.number().min(0),
-    accumulatedVolume: z.number().int().min(0).max(9007199254740991),
-    previousDayChange: z.number(),
-    previousDayChangeRate: z.number(),
-  }),
-})
-export type PriceQuoteDto = z.infer<typeof PriceQuoteDtoSchema>
-
-export const PriceDailyCandleDtoSchema = z.object({
-  stock: z.object({
-    code: z.string().regex(new RegExp("^[A-Z0-9]{1,9}$")),
-    name: z.string(),
-    marketName: z.string(),
-    quotationMarket: z.enum(["KRX", "NXT", "CONSOLIDATED"]),
-    standardCode: z.string().optional(),
-    securityGroupCode: z.string().optional(),
-    rawEtpType: z.union([z.string(), z.null()]).optional(),
-    preferredStockType: z.union([z.string(), z.null()]).optional(),
-    productType: z
-      .enum([
-        "STOCK",
-        "PREFERRED",
-        "ETF",
-        "ETN",
-        "REIT",
-        "BENEFICIARY_CERTIFICATE",
-        "SPAC",
-        "OTHER",
-      ])
-      .optional(),
-    isPreferred: z.boolean().optional(),
-    isEtf: z.boolean().optional(),
-    isEtn: z.boolean().optional(),
-    isSpac: z.boolean().optional(),
-    isReit: z.boolean().optional(),
-    isTradingHalted: z.boolean().optional(),
-    isUnderAdministration: z.boolean().optional(),
-    isLowLiquidity: z.boolean().optional(),
-    marketCap: z
-      .union([z.number().int().min(0).max(9007199254740991), z.null()])
-      .optional(),
-    previousVolume: z
-      .union([z.number().int().min(0).max(9007199254740991), z.null()])
-      .optional(),
-    listedDate: z
-      .union([z.string().regex(new RegExp("^\\d{8}$")), z.null()])
-      .optional(),
-    isKospi100: z.boolean().optional(),
-    isKospi50: z.boolean().optional(),
-    isKrx300: z.boolean().optional(),
-    warningLevel: z.union([z.string(), z.null()]).optional(),
-  }),
-  requestedDate: z.string(),
-  quotationMarket: z.enum(["KRX", "NXT", "CONSOLIDATED"]),
-  isTradingDay: z.boolean(),
-  candle: z.union([
+export const CandlesDtoSchema = z.object({
+  symbol: z.string().regex(new RegExp("^[A-Z0-9]{1,9}$")),
+  interval: z.literal("1d"),
+  candles: z.array(
     z.object({
-      date: z.string().regex(new RegExp("^\\d{4}-\\d{2}-\\d{2}$")),
-      openPrice: z.number().min(0),
-      highPrice: z.number().min(0),
-      lowPrice: z.number().min(0),
-      closePrice: z.number().min(0),
-      accumulatedVolume: z.number().int().min(0).max(9007199254740991),
-    }),
-    z.null(),
-  ]),
+      timestamp: z.string(),
+      openPrice: z.string().min(1),
+      highPrice: z.string().min(1),
+      lowPrice: z.string().min(1),
+      closePrice: z.string().min(1),
+      volume: z.string().min(1),
+    })
+  ),
+  nextBefore: z.union([z.string(), z.null()]),
 })
-export type PriceDailyCandleDto = z.infer<typeof PriceDailyCandleDtoSchema>
+export type CandlesDto = z.infer<typeof CandlesDtoSchema>
 
 export const ReturnSummaryDtoSchema = z.object({
   stock: z.object({
-    code: z.string().regex(new RegExp("^[A-Z0-9]{1,9}$")),
+    symbol: z.string().regex(new RegExp("^[A-Z0-9]{1,9}$")),
     name: z.string(),
     marketName: z.string(),
     quotationMarket: z.enum(["KRX", "NXT", "CONSOLIDATED"]),
@@ -276,24 +170,11 @@ export const ReturnSummaryDtoSchema = z.object({
   }),
   buy: z.object({
     date: z.string(),
-    price: z.number(),
-    priceType: z.literal("adjusted-close"),
+    price: z.string(),
     quantity: z.number(),
   }),
   current: z.object({
-    price: z.number(),
-    source: z.enum(["stock-quote", "daily-candle"]),
-    quotationMarket: z.literal("CONSOLIDATED"),
-    basis: z.union([
-      z.object({
-        type: z.literal("current-snapshot"),
-        requestedAt: z.string(),
-      }),
-      z.object({
-        type: z.literal("latest-close"),
-        tradingDate: z.string(),
-      }),
-    ]),
+    currentPrice: z.string().min(1),
   }),
   result: z.object({
     buyAmount: z.number(),
@@ -325,7 +206,7 @@ export const RealtimeHeartbeatDtoSchema = z.object({
 export type RealtimeHeartbeatDto = z.infer<typeof RealtimeHeartbeatDtoSchema>
 
 export const RealtimePriceDtoSchema = z.object({
-  stockCode: z.string(),
+  symbol: z.string(),
   trId: z.string(),
   price: z.number(),
   tradeTime: z.string(),
@@ -334,132 +215,262 @@ export const RealtimePriceDtoSchema = z.object({
 export type RealtimePriceDto = z.infer<typeof RealtimePriceDtoSchema>
 
 export const RealtimeReconnectedDtoSchema = z.object({
-  stockCodes: z.array(z.string()),
+  symbols: z.array(z.string()),
 })
 export type RealtimeReconnectedDto = z.infer<
   typeof RealtimeReconnectedDtoSchema
 >
 
 export const RealtimeSubscribedDtoSchema = z.object({
-  stockCode: z.string(),
+  symbol: z.string(),
 })
 export type RealtimeSubscribedDto = z.infer<typeof RealtimeSubscribedDtoSchema>
+
+export const JobjuScoreDtoSchema = z.object({
+  stock: z.object({
+    symbol: z.string().regex(new RegExp("^[A-Z0-9]{1,9}$")),
+    name: z.string(),
+    marketName: z.string(),
+  }),
+  asOfDate: z.string().regex(new RegExp("^\\d{4}-\\d{2}-\\d{2}$")),
+  sampleDays: z.number().int().max(9007199254740991).gt(0),
+  score: z.number().int().min(0).max(100),
+  grade: z.enum(["normal", "notice", "suspect", "high", "danger"]),
+  label: z.string(),
+  summary: z.string(),
+  signals: z.array(
+    z.object({
+      type: z.enum([
+        "price-volatility",
+        "liquidity",
+        "market-size",
+        "market-sensitivity",
+        "status-flags",
+        "financial-disclosure",
+      ]),
+      label: z.string(),
+      score: z.number().int().min(0).max(9007199254740991),
+      maxScore: z.number().int().max(9007199254740991).gt(0),
+      description: z.string(),
+    })
+  ),
+})
+export type JobjuScoreDto = z.infer<typeof JobjuScoreDtoSchema>
 
 export const HealthCheckDtoSchema = z.object({
   status: z.literal("ok"),
 })
 export type HealthCheckDto = z.infer<typeof HealthCheckDtoSchema>
 
-export const ApiSuccessDtoSchema = z.object({
+export const StocksControllerSuggestionResponse200Schema = z.object({
   success: z.literal(true),
-  data: z.unknown(),
-  meta: z.record(z.string(), z.unknown()).optional(),
+  data: SuggestionDtoSchema,
 })
-export type ApiSuccessDto = z.infer<typeof ApiSuccessDtoSchema>
+export type StocksControllerSuggestionResponse200 = z.infer<
+  typeof StocksControllerSuggestionResponse200Schema
+>
 
-export const ApiErrorDtoSchema = z.object({
+export const StocksControllerSuggestionResponse400Schema = z.object({
   success: z.literal(false),
   error: z.object({
-    status: z.union([
-      z.literal(400),
-      z.literal(401),
-      z.literal(403),
-      z.literal(404),
-      z.literal(405),
-      z.literal(408),
-      z.literal(409),
-      z.literal(412),
-      z.literal(413),
-      z.literal(422),
-      z.literal(429),
-      z.literal(499),
-      z.literal(500),
-      z.literal(502),
-      z.literal(503),
-      z.literal(504),
-    ]),
-    code: z.enum([
-      "BAD_REQUEST",
-      "UNAUTHORIZED",
-      "FORBIDDEN",
-      "NOT_FOUND",
-      "METHOD_NOT_SUPPORTED",
-      "TIMEOUT",
-      "CONFLICT",
-      "PRECONDITION_FAILED",
-      "PAYLOAD_TOO_LARGE",
-      "UNPROCESSABLE_CONTENT",
-      "TOO_MANY_REQUESTS",
-      "CLIENT_CLOSED_REQUEST",
-      "INTERNAL_SERVER_ERROR",
-      "BAD_GATEWAY",
-      "SERVICE_UNAVAILABLE",
-      "GATEWAY_TIMEOUT",
-    ]),
+    status: z.literal(400),
+    code: z.literal("invalid-request"),
     message: z.string(),
     details: z.unknown().optional(),
   }),
 })
-export type ApiErrorDto = z.infer<typeof ApiErrorDtoSchema>
-
-export const StocksControllerSuggestionResponseSchema =
-  ApiSuccessDtoSchema.omit({ data: true }).extend({
-    data: SuggestionDtoSchema,
-  })
-export type StocksControllerSuggestionResponse = z.infer<
-  typeof StocksControllerSuggestionResponseSchema
+export type StocksControllerSuggestionResponse400 = z.infer<
+  typeof StocksControllerSuggestionResponse400Schema
 >
 
-export const StocksControllerSearchResponseSchema = ApiSuccessDtoSchema.omit({
-  data: true,
-}).extend({
+export const StocksControllerSearchResponse200Schema = z.object({
+  success: z.literal(true),
   data: z.array(StockDtoSchema),
 })
-export type StocksControllerSearchResponse = z.infer<
-  typeof StocksControllerSearchResponseSchema
+export type StocksControllerSearchResponse200 = z.infer<
+  typeof StocksControllerSearchResponse200Schema
 >
 
-export const StocksControllerGetResponseSchema = ApiSuccessDtoSchema.omit({
-  data: true,
-}).extend({
+export const StocksControllerSearchResponse400Schema = z.object({
+  success: z.literal(false),
+  error: z.object({
+    status: z.literal(400),
+    code: z.literal("invalid-request"),
+    message: z.string(),
+    details: z.unknown().optional(),
+  }),
+})
+export type StocksControllerSearchResponse400 = z.infer<
+  typeof StocksControllerSearchResponse400Schema
+>
+
+export const StocksControllerGetResponse200Schema = z.object({
+  success: z.literal(true),
   data: StockDtoSchema,
 })
-export type StocksControllerGetResponse = z.infer<
-  typeof StocksControllerGetResponseSchema
+export type StocksControllerGetResponse200 = z.infer<
+  typeof StocksControllerGetResponse200Schema
 >
 
-export const PricesControllerCurrentResponseSchema = ApiSuccessDtoSchema.omit({
-  data: true,
-}).extend({
-  data: PriceCurrentDtoSchema,
+export const StocksControllerGetResponse400Schema = z.object({
+  success: z.literal(false),
+  error: z.object({
+    status: z.literal(400),
+    code: z.literal("invalid-request"),
+    message: z.string(),
+    details: z.unknown().optional(),
+  }),
 })
-export type PricesControllerCurrentResponse = z.infer<
-  typeof PricesControllerCurrentResponseSchema
+export type StocksControllerGetResponse400 = z.infer<
+  typeof StocksControllerGetResponse400Schema
 >
 
-export const PricesControllerQuoteResponseSchema = ApiSuccessDtoSchema.omit({
-  data: true,
-}).extend({
-  data: PriceQuoteDtoSchema,
+export const StocksControllerGetResponse404Schema = z.object({
+  success: z.literal(false),
+  error: z.object({
+    status: z.literal(404),
+    code: z.literal("unsupported-stock"),
+    message: z.string(),
+    details: z.unknown().optional(),
+  }),
 })
-export type PricesControllerQuoteResponse = z.infer<
-  typeof PricesControllerQuoteResponseSchema
+export type StocksControllerGetResponse404 = z.infer<
+  typeof StocksControllerGetResponse404Schema
 >
 
-export const PricesControllerDailyCandleResponseSchema =
-  ApiSuccessDtoSchema.omit({ data: true }).extend({
-    data: PriceDailyCandleDtoSchema,
-  })
-export type PricesControllerDailyCandleResponse = z.infer<
-  typeof PricesControllerDailyCandleResponseSchema
+export const PricesControllerPriceResponse200Schema = z.object({
+  success: z.literal(true),
+  data: PriceDtoSchema,
+})
+export type PricesControllerPriceResponse200 = z.infer<
+  typeof PricesControllerPriceResponse200Schema
 >
 
-export const ReturnsControllerCalculateResponseSchema =
-  ApiSuccessDtoSchema.omit({ data: true }).extend({
-    data: ReturnSummaryDtoSchema,
-  })
-export type ReturnsControllerCalculateResponse = z.infer<
-  typeof ReturnsControllerCalculateResponseSchema
+export const PricesControllerPriceResponse400Schema = z.object({
+  success: z.literal(false),
+  error: z.object({
+    status: z.literal(400),
+    code: z.literal("invalid-request"),
+    message: z.string(),
+    details: z.unknown().optional(),
+  }),
+})
+export type PricesControllerPriceResponse400 = z.infer<
+  typeof PricesControllerPriceResponse400Schema
+>
+
+export const PricesControllerPriceResponse404Schema = z.union([
+  z.object({
+    success: z.literal(false),
+    error: z.object({
+      status: z.literal(404),
+      code: z.literal("unsupported-stock"),
+      message: z.string(),
+      details: z.unknown().optional(),
+    }),
+  }),
+  z.object({
+    success: z.literal(false),
+    error: z.object({
+      status: z.literal(404),
+      code: z.literal("market-data-not-found"),
+      message: z.string(),
+      details: z.unknown().optional(),
+    }),
+  }),
+])
+export type PricesControllerPriceResponse404 = z.infer<
+  typeof PricesControllerPriceResponse404Schema
+>
+
+export const CandlesControllerCandlesResponse200Schema = z.object({
+  success: z.literal(true),
+  data: CandlesDtoSchema,
+})
+export type CandlesControllerCandlesResponse200 = z.infer<
+  typeof CandlesControllerCandlesResponse200Schema
+>
+
+export const CandlesControllerCandlesResponse400Schema = z.object({
+  success: z.literal(false),
+  error: z.object({
+    status: z.literal(400),
+    code: z.literal("invalid-request"),
+    message: z.string(),
+    details: z.unknown().optional(),
+  }),
+})
+export type CandlesControllerCandlesResponse400 = z.infer<
+  typeof CandlesControllerCandlesResponse400Schema
+>
+
+export const CandlesControllerCandlesResponse404Schema = z.union([
+  z.object({
+    success: z.literal(false),
+    error: z.object({
+      status: z.literal(404),
+      code: z.literal("unsupported-stock"),
+      message: z.string(),
+      details: z.unknown().optional(),
+    }),
+  }),
+  z.object({
+    success: z.literal(false),
+    error: z.object({
+      status: z.literal(404),
+      code: z.literal("market-data-not-found"),
+      message: z.string(),
+      details: z.unknown().optional(),
+    }),
+  }),
+])
+export type CandlesControllerCandlesResponse404 = z.infer<
+  typeof CandlesControllerCandlesResponse404Schema
+>
+
+export const ReturnsControllerCalculateResponse200Schema = z.object({
+  success: z.literal(true),
+  data: ReturnSummaryDtoSchema,
+})
+export type ReturnsControllerCalculateResponse200 = z.infer<
+  typeof ReturnsControllerCalculateResponse200Schema
+>
+
+export const ReturnsControllerCalculateResponse400Schema = z.object({
+  success: z.literal(false),
+  error: z.object({
+    status: z.literal(400),
+    code: z.literal("invalid-request"),
+    message: z.string(),
+    details: z.unknown().optional(),
+  }),
+})
+export type ReturnsControllerCalculateResponse400 = z.infer<
+  typeof ReturnsControllerCalculateResponse400Schema
+>
+
+export const ReturnsControllerCalculateResponse404Schema = z.union([
+  z.object({
+    success: z.literal(false),
+    error: z.object({
+      status: z.literal(404),
+      code: z.literal("unsupported-stock"),
+      message: z.string(),
+      details: z.unknown().optional(),
+    }),
+  }),
+  z.object({
+    success: z.literal(false),
+    error: z.object({
+      status: z.literal(404),
+      code: z.literal("market-data-not-found"),
+      message: z.string(),
+      details: z.unknown().optional(),
+    }),
+  }),
+])
+export type ReturnsControllerCalculateResponse404 = z.infer<
+  typeof ReturnsControllerCalculateResponse404Schema
 >
 
 export const RealtimeControllerStreamEventSchema = z.union([
@@ -492,18 +503,245 @@ export const RealtimeControllerStreamEventSchema = z.union([
     event: z.literal("error"),
     id: z.string().optional(),
     retry: z.number().optional(),
-    data: z.union([RealtimeErrorDtoSchema, z.string()]),
+    data: z.union([
+      z.object({
+        status: z.literal(400),
+        code: z.literal("invalid-request"),
+        message: z.string(),
+        details: z.unknown().optional(),
+      }),
+      z.object({
+        status: z.literal(404),
+        code: z.literal("unsupported-stock"),
+        message: z.string(),
+        details: z.unknown().optional(),
+      }),
+      RealtimeErrorDtoSchema,
+      z.string(),
+    ]),
   }),
 ])
 export type RealtimeControllerStreamEvent = z.infer<
   typeof RealtimeControllerStreamEventSchema
 >
 
-export const HealthControllerCheckResponseSchema = ApiSuccessDtoSchema.omit({
-  data: true,
-}).extend({
+export const RealtimeControllerStreamResponse400Schema = z.object({
+  success: z.literal(false),
+  error: z.object({
+    status: z.literal(400),
+    code: z.literal("invalid-request"),
+    message: z.string(),
+    details: z.unknown().optional(),
+  }),
+})
+export type RealtimeControllerStreamResponse400 = z.infer<
+  typeof RealtimeControllerStreamResponse400Schema
+>
+
+export const JobjuControllerScoreResponse200Schema = z.object({
+  success: z.literal(true),
+  data: JobjuScoreDtoSchema,
+})
+export type JobjuControllerScoreResponse200 = z.infer<
+  typeof JobjuControllerScoreResponse200Schema
+>
+
+export const JobjuControllerScoreResponse400Schema = z.object({
+  success: z.literal(false),
+  error: z.object({
+    status: z.literal(400),
+    code: z.literal("invalid-request"),
+    message: z.string(),
+    details: z.unknown().optional(),
+  }),
+})
+export type JobjuControllerScoreResponse400 = z.infer<
+  typeof JobjuControllerScoreResponse400Schema
+>
+
+export const JobjuControllerScoreResponse404Schema = z.object({
+  success: z.literal(false),
+  error: z.object({
+    status: z.literal(404),
+    code: z.literal("unsupported-stock"),
+    message: z.string(),
+    details: z.unknown().optional(),
+  }),
+})
+export type JobjuControllerScoreResponse404 = z.infer<
+  typeof JobjuControllerScoreResponse404Schema
+>
+
+export const JobjuControllerScoreResponse422Schema = z.union([
+  z.object({
+    success: z.literal(false),
+    error: z.object({
+      status: z.literal(422),
+      code: z.literal("jobju-unsupported-product"),
+      message: z.string(),
+      details: z.unknown().optional(),
+    }),
+  }),
+  z.object({
+    success: z.literal(false),
+    error: z.object({
+      status: z.literal(422),
+      code: z.literal("jobju-invalid-market"),
+      message: z.string(),
+      details: z.unknown().optional(),
+    }),
+  }),
+])
+export type JobjuControllerScoreResponse422 = z.infer<
+  typeof JobjuControllerScoreResponse422Schema
+>
+
+export const HealthControllerCheckResponse200Schema = z.object({
+  success: z.literal(true),
   data: HealthCheckDtoSchema,
 })
-export type HealthControllerCheckResponse = z.infer<
-  typeof HealthControllerCheckResponseSchema
+export type HealthControllerCheckResponse200 = z.infer<
+  typeof HealthControllerCheckResponse200Schema
 >
+
+export const HealthControllerCheckResponse400Schema = z.object({
+  success: z.literal(false),
+  error: z.object({
+    status: z.literal(400),
+    code: z.literal("invalid-request"),
+    message: z.string(),
+    details: z.unknown().optional(),
+  }),
+})
+export type HealthControllerCheckResponse400 = z.infer<
+  typeof HealthControllerCheckResponse400Schema
+>
+
+export const ApiErrorDtoSchema = z.union([
+  z.object({
+    success: z.literal(false),
+    error: z.object({
+      status: z.literal(400),
+      code: z.literal("invalid-request"),
+      message: z.string(),
+      details: z.unknown().optional(),
+    }),
+  }),
+  z.object({
+    success: z.literal(false),
+    error: z.object({
+      status: z.literal(500),
+      code: z.literal("internal-error"),
+      message: z.string(),
+      details: z.unknown().optional(),
+    }),
+  }),
+  z.object({
+    success: z.literal(false),
+    error: z.object({
+      status: z.literal(404),
+      code: z.literal("unsupported-stock"),
+      message: z.string(),
+      details: z.unknown().optional(),
+    }),
+  }),
+  z.union([
+    z.object({
+      success: z.literal(false),
+      error: z.object({
+        status: z.literal(404),
+        code: z.literal("unsupported-stock"),
+        message: z.string(),
+        details: z.unknown().optional(),
+      }),
+    }),
+    z.object({
+      success: z.literal(false),
+      error: z.object({
+        status: z.literal(404),
+        code: z.literal("market-data-not-found"),
+        message: z.string(),
+        details: z.unknown().optional(),
+      }),
+    }),
+  ]),
+  z.union([
+    z.object({
+      success: z.literal(false),
+      error: z.object({
+        status: z.literal(502),
+        code: z.literal("market-data-unavailable"),
+        message: z.string(),
+        details: z.unknown().optional(),
+      }),
+    }),
+    z.object({
+      success: z.literal(false),
+      error: z.object({
+        status: z.literal(502),
+        code: z.literal("market-data-auth-unavailable"),
+        message: z.string(),
+        details: z.unknown().optional(),
+      }),
+    }),
+    z.object({
+      success: z.literal(false),
+      error: z.object({
+        status: z.literal(502),
+        code: z.literal("market-data-invalid-response"),
+        message: z.string(),
+        details: z.unknown().optional(),
+      }),
+    }),
+  ]),
+  z.object({
+    success: z.literal(false),
+    error: z.object({
+      status: z.literal(504),
+      code: z.literal("market-data-timeout"),
+      message: z.string(),
+      details: z.unknown().optional(),
+    }),
+  }),
+  z.union([
+    z.object({
+      success: z.literal(false),
+      error: z.object({
+        status: z.literal(422),
+        code: z.literal("jobju-unsupported-product"),
+        message: z.string(),
+        details: z.unknown().optional(),
+      }),
+    }),
+    z.object({
+      success: z.literal(false),
+      error: z.object({
+        status: z.literal(422),
+        code: z.literal("jobju-invalid-market"),
+        message: z.string(),
+        details: z.unknown().optional(),
+      }),
+    }),
+  ]),
+  z.union([
+    z.object({
+      success: z.literal(false),
+      error: z.object({
+        status: z.literal(502),
+        code: z.literal("jobju-score-unavailable"),
+        message: z.string(),
+        details: z.unknown().optional(),
+      }),
+    }),
+    z.object({
+      success: z.literal(false),
+      error: z.object({
+        status: z.literal(502),
+        code: z.literal("jobju-financial-data-unavailable"),
+        message: z.string(),
+        details: z.unknown().optional(),
+      }),
+    }),
+  ]),
+])
+export type ApiErrorDto = z.infer<typeof ApiErrorDtoSchema>

@@ -1,175 +1,266 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useEffect, useRef, useState } from "react"
 
-type EventStreamStatus = "idle" | "connecting" | "open" | "stale" | "error"
+import {
+  REALTIME_CONTROLLER_STREAM,
+  RealtimeControllerStreamEventSchema,
+  type RealtimeControllerStreamEvent,
+  type RealtimePriceDto,
+} from "@/queries/generated"
 
-type EventStreamError = {
-  message: string
-  retryAfterMs?: number
-}
+export type EventStreamStatus =
+  | "idle"
+  | "connecting"
+  | "open"
+  | "reconnecting"
+  | "stale"
+  | "error"
+
+type RealtimeErrorEvent = Extract<
+  RealtimeControllerStreamEvent,
+  { event: "error" }
+>
+
+export type EventStreamError = RealtimeErrorEvent["data"] | { message: string }
 
 type EventStreamMeta = {
-  lastDataAt: number | null
+  lastEvent: RealtimeControllerStreamEvent | null
   lastEventAt: number | null
-  retryAfterMs: number | null
+  lastPriceAt: number | null
 }
 
-type EventStreamOptions<TData> = {
-  enabled: boolean
-  events: Record<string, (data: unknown) => TData | null>
-  readError?: (data: unknown) => EventStreamError | null
-  staleMs?: number
-  url: string
+type EventStreamState = {
+  symbol: string
+  status: EventStreamStatus
+  error: EventStreamError | null
+  readyState: number | null
+  meta: EventStreamMeta
 }
+
+const realtimeEventNames = [
+  "subscribed",
+  "price",
+  "heartbeat",
+  "disconnected",
+  "reconnected",
+  "error",
+] as const
+
+const staleMs = 30_000
 
 const emptyMeta: EventStreamMeta = {
-  lastDataAt: null,
+  lastEvent: null,
   lastEventAt: null,
-  retryAfterMs: null,
+  lastPriceAt: null,
 }
 
-function errorFromUnknown(error: unknown): EventStreamError {
-  return {
-    message: error instanceof Error ? error.message : "Event stream failed",
-  }
-}
-
-export function useEventStream<TData>({
-  enabled,
-  events,
-  readError,
-  staleMs = 30_000,
-  url,
-}: EventStreamOptions<TData>) {
-  const [status, setStatus] = useState<EventStreamStatus>(
-    enabled ? "connecting" : "idle"
-  )
-  const [data, setData] = useState<TData | null>(null)
-  const [error, setError] = useState<EventStreamError | null>(null)
-  const [meta, setMeta] = useState<EventStreamMeta>(emptyMeta)
+export function useEventStream(symbol: string) {
+  const queryClient = useQueryClient()
+  const lastEventAtRef = useRef<number | null>(null)
+  const [stream, setStream] = useState<EventStreamState>({
+    symbol,
+    status: symbol ? "connecting" : "idle",
+    error: null,
+    readyState: null,
+    meta: emptyMeta,
+  })
+  const [connectionVersion, setConnectionVersion] = useState(0)
+  const priceQuery = useQuery<RealtimePriceDto | null>({
+    queryKey: ["realtime", "stock-price", symbol],
+    queryFn: () => null,
+    enabled: false,
+    initialData: null,
+  })
 
   useEffect(() => {
-    if (!enabled) {
+    let closedIntentionally = false
+    lastEventAtRef.current = null
+
+    if (!symbol) {
       return
     }
 
-    const source = new EventSource(url)
-    const handlers: Array<[string, EventListener]> = []
+    const eventSource = REALTIME_CONTROLLER_STREAM({ symbols: symbol })
 
-    source.onopen = () => {
-      setStatus("open")
-      setError(null)
+    eventSource.onopen = () => {
+      setStream({
+        symbol,
+        status: "open",
+        error: null,
+        readyState: eventSource.readyState,
+        meta: emptyMeta,
+      })
     }
 
-    source.onerror = (event) => {
-      if (event instanceof MessageEvent && typeof event.data === "string") {
+    eventSource.onerror = (event) => {
+      if (event instanceof MessageEvent) {
         return
       }
 
-      setStatus("error")
-      setError({ message: "Event stream disconnected" })
+      if (closedIntentionally) {
+        return
+      }
+
+      setStream((current) => ({
+        ...current,
+        symbol,
+        status:
+          eventSource.readyState === EventSource.CONNECTING
+            ? "reconnecting"
+            : "error",
+        error:
+          eventSource.readyState === EventSource.CONNECTING
+            ? null
+            : { message: "Realtime stream disconnected" },
+        readyState: eventSource.readyState,
+      }))
     }
 
-    for (const [name, read] of Object.entries(events)) {
-      const handler = ((event: MessageEvent) => {
+    for (const eventName of realtimeEventNames) {
+      eventSource.addEventListener(eventName, (event) => {
+        if (closedIntentionally) {
+          return
+        }
+
         const now = Date.now()
 
         try {
-          const payload = JSON.parse(event.data) as unknown
-          const nextData = read(payload)
-
-          setStatus("open")
-          setError(null)
-          setMeta((current) => ({
-            ...current,
-            lastDataAt: nextData === null ? current.lastDataAt : now,
-            lastEventAt: now,
-          }))
-
-          if (nextData !== null) {
-            setData(nextData)
-          }
-        } catch (eventError) {
-          setStatus("error")
-          setError(errorFromUnknown(eventError))
-          setMeta((current) => ({
-            ...current,
-            lastEventAt: now,
-          }))
-        }
-      }) as EventListener
-
-      source.addEventListener(name, handler)
-      handlers.push([name, handler])
-    }
-
-    if (readError) {
-      const handler = ((event: MessageEvent) => {
-        const now = Date.now()
-
-        try {
-          const payload = JSON.parse(event.data) as unknown
-          const nextError = readError(payload) ?? {
-            message: "Event stream failed",
+          if (eventName === "error" && !(event instanceof MessageEvent)) {
+            return
           }
 
-          setStatus("error")
-          setError(nextError)
-          setMeta((current) => ({
-            ...current,
-            lastEventAt: now,
-            retryAfterMs: nextError.retryAfterMs ?? null,
-          }))
-          source.close()
-        } catch (eventError) {
-          setStatus("error")
-          setError(errorFromUnknown(eventError))
-          setMeta((current) => ({
-            ...current,
-            lastEventAt: now,
-          }))
-          source.close()
-        }
-      }) as EventListener
+          const messageEvent = event as MessageEvent<string>
+          const data = JSON.parse(messageEvent.data) as unknown
 
-      source.addEventListener("error", handler)
-      handlers.push(["error", handler])
-    }
+          const realtimeEvent = RealtimeControllerStreamEventSchema.parse({
+            event: eventName,
+            data,
+          })
 
-    const staleTimer = setInterval(
-      () => {
-        setMeta((current) => {
-          if (
-            current.lastEventAt !== null &&
-            Date.now() - current.lastEventAt > staleMs
-          ) {
-            setStatus((currentStatus) =>
-              currentStatus === "open" ? "stale" : currentStatus
+          lastEventAtRef.current = now
+
+          if (realtimeEvent.event === "error") {
+            closedIntentionally = true
+            eventSource.close()
+            setStream((current) => ({
+              symbol,
+              status: "error",
+              error: realtimeEvent.data,
+              readyState: EventSource.CLOSED,
+              meta: {
+                ...current.meta,
+                lastEvent: realtimeEvent,
+                lastEventAt: now,
+              },
+            }))
+            return
+          }
+
+          if (realtimeEvent.event === "price") {
+            queryClient.setQueryData(
+              ["realtime", "stock-price", symbol],
+              realtimeEvent.data
             )
           }
 
-          return current
-        })
-      },
-      Math.min(staleMs, 5_000)
-    )
+          setStream((current) => ({
+            symbol,
+            status:
+              realtimeEvent.event === "disconnected" ||
+              (realtimeEvent.event === "heartbeat" &&
+                current.status === "reconnecting")
+                ? "reconnecting"
+                : "open",
+            error: null,
+            readyState: eventSource.readyState,
+            meta: {
+              ...current.meta,
+              lastEvent: realtimeEvent,
+              lastEventAt: now,
+              lastPriceAt:
+                realtimeEvent.event === "price"
+                  ? now
+                  : current.meta.lastPriceAt,
+            },
+          }))
+        } catch (eventError) {
+          closedIntentionally = true
+          eventSource.close()
+          setStream((current) => ({
+            symbol,
+            status: "error",
+            error: {
+              message:
+                eventError instanceof Error
+                  ? eventError.message
+                  : "Realtime stream failed",
+            },
+            readyState: EventSource.CLOSED,
+            meta: current.meta,
+          }))
+        }
+      })
+    }
+
+    const staleTimer = setInterval(() => {
+      const lastEventAt = lastEventAtRef.current
+
+      if (lastEventAt !== null && Date.now() - lastEventAt > staleMs) {
+        setStream((current) =>
+          current.symbol === symbol && current.status === "open"
+            ? { ...current, status: "stale" }
+            : current
+        )
+      }
+    }, 5_000)
 
     return () => {
+      closedIntentionally = true
       clearInterval(staleTimer)
-
-      for (const [name, handler] of handlers) {
-        source.removeEventListener(name, handler)
-      }
-
-      source.close()
+      eventSource.close()
     }
-  }, [enabled, events, readError, staleMs, url])
+  }, [connectionVersion, queryClient, symbol])
+
+  const snapshot: EventStreamState =
+    stream.symbol === symbol
+      ? stream
+      : {
+          symbol,
+          status: symbol ? "connecting" : "idle",
+          error: null,
+          readyState: null,
+          meta: emptyMeta,
+        }
+  const isFetching =
+    snapshot.status === "connecting" || snapshot.status === "reconnecting"
 
   return {
-    data,
-    error,
-    meta,
-    status,
+    data: priceQuery.data,
+    error: snapshot.error,
+    isConnecting: snapshot.status === "connecting",
+    isError: snapshot.status === "error",
+    isFetching,
+    isIdle: snapshot.status === "idle",
+    isLoading: snapshot.status === "connecting" && priceQuery.data === null,
+    isOpen: snapshot.status === "open",
+    isReconnecting: snapshot.status === "reconnecting",
+    isStale: snapshot.status === "stale",
+    lastEvent: snapshot.meta.lastEvent,
+    lastEventAt: snapshot.meta.lastEventAt,
+    lastPriceAt: snapshot.meta.lastPriceAt,
+    readyState: snapshot.readyState,
+    reconnect: () => {
+      setStream({
+        symbol,
+        status: symbol ? "connecting" : "idle",
+        error: null,
+        readyState: null,
+        meta: emptyMeta,
+      })
+      setConnectionVersion((current) => current + 1)
+    },
+    status: snapshot.status,
   }
 }

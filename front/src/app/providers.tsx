@@ -6,11 +6,11 @@ import {
   QueryClientProvider,
 } from "@tanstack/react-query"
 
-function makeQueryClient() {
+export function makeQueryClient() {
   return new QueryClient({
     defaultOptions: {
       queries: {
-        throwOnError: true,
+        throwOnError: (error) => error instanceof Error,
       },
     },
   })
