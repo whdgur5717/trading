@@ -1,10 +1,7 @@
 import { Reflector } from "@nestjs/core"
 import type { NestExpressApplication } from "@nestjs/platform-express"
-import {
-  ApiExceptionFilter,
-  ApiResponseInterceptor,
-} from "../common/api/response"
-import { ExternalServiceErrorFilter } from "../common/filter/externalServiceError"
+import { ApiFilter } from "../common/api/filter"
+import { ApiResponseInterceptor } from "../common/api/response"
 
 const LOCAL_WEB_ORIGIN_PATTERN = /^http:\/\/(localhost|127\.0\.0\.1):\d+$/
 
@@ -17,8 +14,5 @@ export function configureApp(app: NestExpressApplication): void {
     },
   })
   app.useGlobalInterceptors(new ApiResponseInterceptor(app.get(Reflector)))
-  app.useGlobalFilters(
-    new ExternalServiceErrorFilter(),
-    new ApiExceptionFilter()
-  )
+  app.useGlobalFilters(new ApiFilter())
 }
