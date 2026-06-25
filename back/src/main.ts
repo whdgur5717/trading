@@ -3,14 +3,18 @@ import { NestFactory } from "@nestjs/core"
 import { NestExpressApplication } from "@nestjs/platform-express"
 import { AppModule } from "./app.module"
 import { configureApp } from "./bootstrap/app-bootstrap"
-import { configureSwagger } from "./bootstrap/swagger"
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule)
   const config = app.get(ConfigService)
 
   configureApp(app)
-  configureSwagger(app)
+
+  if (process.env.NODE_ENV !== "production") {
+    const { configureSwagger } = await import("./bootstrap/swagger.js")
+
+    configureSwagger(app)
+  }
 
   const port = config.getOrThrow<number>("PORT")
   const host = config.getOrThrow<string>("HOST")
