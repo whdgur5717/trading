@@ -1,0 +1,3 @@
+interface:
+  display_name: "Project Operating System"
+  short_description: "Keep project context, decisions, tasks, and verification records up to date"

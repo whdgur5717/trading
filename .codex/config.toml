@@ -1,0 +1,15 @@
+project_doc_max_bytes = 65536
+
+[features]
+hooks = true
+memories = true
+multi_agent = true
+
+[memories]
+generate_memories = true
+use_memories = true
+disable_on_external_context = false
+
+[agents]
+max_threads = 4
+max_depth = 1
