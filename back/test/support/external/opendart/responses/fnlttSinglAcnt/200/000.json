@@ -1,0 +1,78 @@
+{
+  "status": "000",
+  "message": "정상",
+  "list": [
+    {
+      "bsns_year": "2025",
+      "reprt_code": "11011",
+      "corp_code": "00126380",
+      "sj_div": "BS",
+      "account_id": "ifrs-full_Assets",
+      "account_nm": "자산총계",
+      "thstrm_amount": "455,000,000,000,000",
+      "frmtrm_amount": "455,000,000,000,000",
+      "bfefrmtrm_amount": "455,000,000,000,000",
+      "currency": "KRW"
+    },
+    {
+      "bsns_year": "2025",
+      "reprt_code": "11011",
+      "corp_code": "00126380",
+      "sj_div": "BS",
+      "account_id": "ifrs-full_Liabilities",
+      "account_nm": "부채총계",
+      "thstrm_amount": "95,000,000,000,000",
+      "frmtrm_amount": "95,000,000,000,000",
+      "bfefrmtrm_amount": "95,000,000,000,000",
+      "currency": "KRW"
+    },
+    {
+      "bsns_year": "2025",
+      "reprt_code": "11011",
+      "corp_code": "00126380",
+      "sj_div": "BS",
+      "account_id": "ifrs-full_Equity",
+      "account_nm": "자본총계",
+      "thstrm_amount": "360,000,000,000,000",
+      "frmtrm_amount": "360,000,000,000,000",
+      "bfefrmtrm_amount": "360,000,000,000,000",
+      "currency": "KRW"
+    },
+    {
+      "bsns_year": "2025",
+      "reprt_code": "11011",
+      "corp_code": "00126380",
+      "sj_div": "BS",
+      "account_id": "ifrs-full_IssuedCapital",
+      "account_nm": "자본금",
+      "thstrm_amount": "897,514,000,000",
+      "frmtrm_amount": "897,514,000,000",
+      "bfefrmtrm_amount": "897,514,000,000",
+      "currency": "KRW"
+    },
+    {
+      "bsns_year": "2025",
+      "reprt_code": "11011",
+      "corp_code": "00126380",
+      "sj_div": "IS",
+      "account_id": "dart_OperatingIncomeLoss",
+      "account_nm": "영업이익",
+      "thstrm_amount": "67,000,000,000,000",
+      "frmtrm_amount": "67,000,000,000,000",
+      "bfefrmtrm_amount": "67,000,000,000,000",
+      "currency": "KRW"
+    },
+    {
+      "bsns_year": "2025",
+      "reprt_code": "11011",
+      "corp_code": "00126380",
+      "sj_div": "IS",
+      "account_id": "ifrs-full_ProfitLoss",
+      "account_nm": "당기순이익",
+      "thstrm_amount": "52,000,000,000,000",
+      "frmtrm_amount": "52,000,000,000,000",
+      "bfefrmtrm_amount": "52,000,000,000,000",
+      "currency": "KRW"
+    }
+  ]
+}

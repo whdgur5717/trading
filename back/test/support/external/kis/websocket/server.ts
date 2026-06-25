@@ -1,29 +1,13 @@
 import { EventEmitter, once } from "node:events"
 import type { AddressInfo } from "node:net"
-import { WebSocket, WebSocketServer, createWebSocketStream } from "ws"
+import { createWebSocketStream, WebSocket, WebSocketServer } from "ws"
 import { realtimeAckOutput, realtimeTradeMessages } from "./samples"
-
-interface KisWebSocketRequest {
-  header?: {
-    tr_type?: string
-  }
-  body?: {
-    input?: {
-      tr_id?: string
-      tr_key?: string
-    }
-  }
-}
 
 const SUBSCRIBE = "1"
 const UNSUBSCRIBE = "2"
 const REALTIME_PUSH_INTERVAL_MS = 1_000
 
-function ack(params: {
-  message: "SUBSCRIBE SUCCESS" | "UNSUBSCRIBE SUCCESS"
-  trId: string
-  trKey: string
-}): string {
+function ack(params: { trId: string; trKey: string; message: string }): string {
   return JSON.stringify({
     header: {
       tr_id: params.trId,
@@ -47,7 +31,6 @@ export class Server {
     port: 0,
   })
   private readonly listening = once(this.server, "listening")
-
   private readonly sockets = new Set<WebSocket>()
   private readonly subscriptions = new Map<
     WebSocket,
@@ -59,7 +42,11 @@ export class Server {
   }
 
   get url(): string {
-    const address = this.server.address() as AddressInfo
+    const address = this.server.address() as AddressInfo | null
+
+    if (!address) {
+      throw new Error("KIS WebSocket mock server is not listening")
+    }
 
     return `ws://127.0.0.1:${address.port}`
   }
@@ -68,12 +55,12 @@ export class Server {
     await this.listening
   }
 
-  async receive(): Promise<string> {
+  async receive(): Promise<string | undefined> {
     if (this.messages.length === 0) {
       await once(this.messageEvents, "message")
     }
 
-    return this.messages.shift()!
+    return this.messages.shift()
   }
 
   send(message: string): void {
@@ -102,7 +89,6 @@ export class Server {
   private readonly handleConnection = (socket: WebSocket): void => {
     this.sockets.add(socket)
     this.subscriptions.set(socket, new Map())
-
     const stream = createWebSocketStream(socket)
     stream.setEncoding("utf8")
     stream.on("data", (message: string) => {
@@ -120,8 +106,10 @@ export class Server {
   ): void => {
     this.messages.push(message)
     this.messageEvents.emit("message")
-
-    const request = JSON.parse(message) as KisWebSocketRequest
+    const request = JSON.parse(message) as {
+      header?: { tr_type?: string }
+      body?: { input?: { tr_id?: string; tr_key?: string } }
+    }
     const trType = request.header?.tr_type
     const trId = request.body?.input?.tr_id
     const trKey = request.body?.input?.tr_key
