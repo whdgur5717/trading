@@ -1,6 +1,8 @@
 import "./globals.css"
+import { DevelopmentTools } from "./development-tools"
 import { Providers } from "./providers"
 import localFont from "next/font/local"
+import { NuqsAdapter } from "nuqs/adapters/next/app"
 
 const pretendard = localFont({
   src: "../../public/fonts/pretendard/PretendardVariable.woff2",
@@ -17,7 +19,12 @@ export default function RootLayout({
   return (
     <html className={pretendard.variable} lang="ko">
       <body>
-        <Providers>{children}</Providers>
+        <NuqsAdapter>
+          <Providers>
+            {children}
+            <DevelopmentTools />
+          </Providers>
+        </NuqsAdapter>
       </body>
     </html>
   )
