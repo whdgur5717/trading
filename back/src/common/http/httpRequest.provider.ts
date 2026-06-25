@@ -31,6 +31,7 @@ export class HttpRequestProvider {
       },
       params: options.query,
       data: options.body,
+      validateStatus: () => true,
     }
     const response = await firstValueFrom(
       this.httpService.request<unknown>(config)

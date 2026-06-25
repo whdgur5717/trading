@@ -1,16 +1,16 @@
 import { z } from "zod"
 
 export const streamQuerySchema = z.object({
-  stockCodes: z
+  symbols: z
     .string()
     .min(1)
     .max(128)
-    .describe("Comma-separated stock codes")
+    .describe("Comma-separated stock symbols")
     .meta({ example: "005930,000660" }),
 })
 
 export const realtimePriceSchema = z.object({
-  stockCode: z.string().meta({ example: "005930" }),
+  symbol: z.string().meta({ example: "005930" }),
   trId: z.string().meta({ example: "H0STCNT0" }),
   price: z.number().meta({ example: 78000 }),
   tradeTime: z.string().meta({ example: "103015" }),
@@ -18,7 +18,7 @@ export const realtimePriceSchema = z.object({
 })
 
 export const realtimeSubscribedSchema = z.object({
-  stockCode: z.string().meta({ example: "005930" }),
+  symbol: z.string().meta({ example: "005930" }),
 })
 
 export const realtimeHeartbeatSchema = z.object({
@@ -37,7 +37,7 @@ export const realtimeDisconnectedSchema = z.object({
 })
 
 export const realtimeReconnectedSchema = z.object({
-  stockCodes: z.array(z.string()).meta({ example: ["005930", "000660"] }),
+  symbols: z.array(z.string()).meta({ example: ["005930", "000660"] }),
 })
 
 export type StreamQuery = z.infer<typeof streamQuerySchema>

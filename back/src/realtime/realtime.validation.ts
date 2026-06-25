@@ -1,32 +1,40 @@
-import { BadRequestException } from "@nestjs/common"
+import { err, ok, type Result } from "neverthrow"
+import type { ApplicationError } from "../common/error/error"
 
 const MAX_REALTIME_STOCK_CODES = 10
 const STOCK_CODE_PATTERN = /^\d{6}$/
 
-export function normalizeRealtimeStockCodes(stockCodes: string): string[] {
-  const segments = stockCodes.split(",").map((stockCode) => stockCode.trim())
+export function parseRealtimeSymbols(
+  symbols: string
+): Result<string[], ApplicationError<"invalid-request">> {
+  const segments = symbols.split(",").map((symbol) => symbol.trim())
 
-  if (segments.some((stockCode) => stockCode.length === 0)) {
-    throw new BadRequestException(
-      "stockCodes must be comma-separated stock codes"
-    )
+  if (segments.some((symbol) => symbol.length === 0)) {
+    return err({
+      type: "invalid-request",
+      message: "symbols must be comma-separated stock symbols",
+    })
   }
 
-  const invalidStockCode = segments.find(
-    (stockCode) => !STOCK_CODE_PATTERN.test(stockCode)
+  const invalidSymbol = segments.find(
+    (symbol) => !STOCK_CODE_PATTERN.test(symbol)
   )
 
-  if (invalidStockCode) {
-    throw new BadRequestException(`Invalid stock code: ${invalidStockCode}`)
+  if (invalidSymbol) {
+    return err({
+      type: "invalid-request",
+      message: `Invalid stock symbol: ${invalidSymbol}`,
+    })
   }
 
-  const normalizedStockCodes = Array.from(new Set(segments))
+  const stockCodes = Array.from(new Set(segments))
 
-  if (normalizedStockCodes.length > MAX_REALTIME_STOCK_CODES) {
-    throw new BadRequestException(
-      `stockCodes must include ${MAX_REALTIME_STOCK_CODES} or fewer stock codes`
-    )
+  if (stockCodes.length > MAX_REALTIME_STOCK_CODES) {
+    return err({
+      type: "invalid-request",
+      message: `symbols must include ${MAX_REALTIME_STOCK_CODES} or fewer stock symbols`,
+    })
   }
 
-  return normalizedStockCodes
+  return ok(stockCodes)
 }

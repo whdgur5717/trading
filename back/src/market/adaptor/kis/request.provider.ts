@@ -1,14 +1,15 @@
 import { Injectable } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
 import { isAxiosError } from "axios"
+import { err, type Result } from "neverthrow"
 import type { z } from "zod"
-import { ExternalServiceError } from "../../../common/error/externalServiceError"
 import {
   HttpRequestProvider,
   type HttpResponse,
 } from "../../../common/http/httpRequest.provider"
 import { AuthorizationProvider } from "./authorization.provider"
-import { dataFromResponse, errorFromResponse } from "./response"
+import type { KisMarketDataFailure } from "./error"
+import { dataFromResponse } from "./response"
 
 @Injectable()
 export class RequestProvider {
@@ -25,24 +26,37 @@ export class RequestProvider {
     },
     query: Record<string, string>,
     schema: TSchema
-  ): Promise<z.output<TSchema>> {
+  ): Promise<Result<z.output<TSchema>, KisMarketDataFailure>> {
     const accessToken = await this.authorizationProvider.accessToken()
 
-    try {
-      return await this.getWithAccessToken(api, query, accessToken, schema)
-    } catch (error) {
-      if (
-        !(error instanceof ExternalServiceError) ||
-        !this.isAccessTokenFailure(error)
-      ) {
-        throw error
-      }
+    if (accessToken.isErr()) {
+      return err(accessToken.error)
+    }
+
+    const first = await this.getWithAccessToken(
+      api,
+      query,
+      accessToken.value,
+      schema
+    )
+
+    if (first.isOk() || first.error.code !== "auth-unavailable") {
+      return first
     }
 
     this.authorizationProvider.resetAccessToken()
     const refreshedAccessToken = await this.authorizationProvider.accessToken()
 
-    return this.getWithAccessToken(api, query, refreshedAccessToken, schema)
+    if (refreshedAccessToken.isErr()) {
+      return err(refreshedAccessToken.error)
+    }
+
+    return this.getWithAccessToken(
+      api,
+      query,
+      refreshedAccessToken.value,
+      schema
+    )
   }
 
   private async getWithAccessToken<TSchema extends z.ZodType>(
@@ -53,7 +67,7 @@ export class RequestProvider {
     query: Record<string, string>,
     accessToken: string,
     schema: TSchema
-  ): Promise<z.output<TSchema>> {
+  ): Promise<Result<z.output<TSchema>, KisMarketDataFailure>> {
     let response: HttpResponse
 
     try {
@@ -70,38 +84,32 @@ export class RequestProvider {
         query,
       })
     } catch (error) {
-      throw new ExternalServiceError(
-        error instanceof Error ? error.message : "KIS request failed",
-        {
+      const code = isAxiosError(error) ? error.code : undefined
+      const message =
+        error instanceof Error ? error.message : "KIS request failed"
+
+      if (code === "ECONNABORTED" || code === "ETIMEDOUT") {
+        return err({
           service: "kis",
-          kind: "transport",
+          code: "timeout",
+          message,
           endpoint: api.path,
-          code: isAxiosError(error) ? error.code : undefined,
+          upstreamCode: code,
           cause: error,
-        }
-      )
+        })
+      }
+
+      return err({
+        service: "kis",
+        code: "unavailable",
+        message,
+        endpoint: api.path,
+        upstreamCode: code,
+        cause: error,
+      })
     }
 
-    const failure = errorFromResponse(response, api.path)
-
-    if (failure) {
-      throw failure
-    }
-
-    return dataFromResponse(response, api.path, schema)
-  }
-
-  private isAccessTokenFailure(error: ExternalServiceError): boolean {
-    if (error.status === 401 || error.status === 403) {
-      return true
-    }
-
-    if (error.kind !== "business") {
-      return false
-    }
-
-    const message = `${error.code ?? ""} ${error.message}`.toLowerCase()
-    return /token|auth|인증|토큰|만료|expired|unauthorized/.test(message)
+    return dataFromResponse(response, api.path, schema, "market-data")
   }
 
   private get restBaseUrl(): string {

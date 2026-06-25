@@ -1,8 +1,8 @@
 import { z } from "zod"
 import {
-  dailyCandleSchema as portDailyCandleSchema,
+  candleSchema as portCandleSchema,
   marketDaySchema as portMarketDaySchema,
-  stockQuoteSchema as portStockQuoteSchema,
+  priceSchema as portPriceSchema,
   type QuotationMarket,
 } from "../../port/data"
 import { feedFrameSchema, tradeTickSchema } from "../../port/realtime"
@@ -54,9 +54,9 @@ const candleSchema = z
     highPrice: candle.stck_hgpr,
     lowPrice: candle.stck_lwpr,
     closePrice: candle.stck_clpr,
-    accumulatedVolume: candle.acml_vol,
+    volume: candle.acml_vol,
   }))
-  .pipe(portDailyCandleSchema)
+  .pipe(portCandleSchema)
 
 const marketDayRowSchema = z.object({
   bass_dt: compactDateSchema,
@@ -66,7 +66,7 @@ const marketDayRowSchema = z.object({
   sttl_day_yn: z.enum(["Y", "N"]),
 })
 
-export const stockQuoteSchema = z
+export const priceSchema = z
   .object({
     output: z.object({
       stck_prpr: numberTextSchema,
@@ -83,31 +83,22 @@ export const stockQuoteSchema = z
     openPrice: output.stck_oprc,
     highPrice: output.stck_hgpr,
     lowPrice: output.stck_lwpr,
-    accumulatedVolume: output.acml_vol,
-    previousDayChange: output.prdy_vrss,
-    previousDayChangeRate: output.prdy_ctrt,
+    volume: output.acml_vol,
+    changePrice: output.prdy_vrss,
+    changeRate: output.prdy_ctrt,
   }))
-  .pipe(portStockQuoteSchema)
+  .pipe(portPriceSchema)
 
-export const dailyCandleSchema = z
+export const candlesSchema = z
   .object({
     output2: z.array(candleSchema).optional(),
   })
-  .transform(({ output2 }) => output2?.[0] ?? null)
-  .pipe(portDailyCandleSchema.nullable())
-
-export const lastTradingDayCandleSchema = z
-  .object({
-    output2: z.array(candleSchema).optional(),
-  })
-  .transform(({ output2 }) => {
-    return (
-      output2
-        ?.slice()
-        .sort((left, right) => right.date.localeCompare(left.date))[0] ?? null
-    )
-  })
-  .pipe(portDailyCandleSchema.nullable())
+  .transform(({ output2 }) =>
+    (output2 ?? [])
+      .slice()
+      .sort((left, right) => right.date.localeCompare(left.date))
+  )
+  .pipe(z.array(portCandleSchema))
 
 export function marketDaySchema(quotationMarket: QuotationMarket) {
   return z

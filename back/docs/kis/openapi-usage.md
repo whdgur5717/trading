@@ -8,8 +8,8 @@
 | ------------------ | ------------------------------- | --------- | ----------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------- |
 | REST 접근토큰 발급 | 접근토큰발급                    | REST      | `POST`                        | `/oauth2/tokenP`                                                                   | `AuthorizationProvider.accessToken()` |
 | 웹소켓 접속키 발급 | 웹소켓 접속키 발급              | REST      | `POST`                        | `/oauth2/Approval`                                                                 | `AuthorizationProvider.approvalKey()` |
-| 현재가 조회        | 주식현재가 시세                 | REST      | `GET`                         | `/uapi/domestic-stock/v1/quotations/inquire-price`, `FHKST01010100`                | `MarketDataAdaptor.stockQuote()`      |
-| 일봉 조회          | 국내주식기간별시세(일/주/월/년) | REST      | `GET`                         | `/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice`, `FHKST03010100` | `MarketDataAdaptor.dailyCandle()`     |
+| 현재가 조회        | 주식현재가 시세                 | REST      | `GET`                         | `/uapi/domestic-stock/v1/quotations/inquire-price`, `FHKST01010100`                | `MarketDataAdaptor.price()`           |
+| 일봉 조회          | 국내주식기간별시세(일/주/월/년) | REST      | `GET`                         | `/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice`, `FHKST03010100` | `MarketDataAdaptor.candles()`         |
 | 실시간 체결가 구독 | 국내주식 실시간체결가 (KRX)     | WebSocket | subscribe/unsubscribe message | `KIS_WS_URL`, `H0STCNT0`                                                           | `RealtimeService.stream()`            |
 
 `KIS_REST_BASE_URL`과 `KIS_WS_URL`은 환경변수로 주입된다. 실시간 TR ID는 `KIS_REALTIME_TR_ID`이며 기본값은 `H0STCNT0`다.

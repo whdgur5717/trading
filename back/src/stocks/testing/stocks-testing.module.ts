@@ -3,7 +3,7 @@ import { vi } from "vitest"
 import { StocksService } from "../stocks.service"
 
 export class StocksServiceMock {
-  getByCode = vi.fn<StocksService["getByCode"]>()
+  getBySymbol = vi.fn<StocksService["getBySymbol"]>()
   search = vi.fn<StocksService["search"]>()
 }
 

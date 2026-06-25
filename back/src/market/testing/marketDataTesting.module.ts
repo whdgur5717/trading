@@ -3,9 +3,8 @@ import { vi } from "vitest"
 import { MARKET_DATA_PORT, type MarketDataPort } from "../port/data"
 
 export class MarketDataPortMock {
-  stockQuote = vi.fn<MarketDataPort["stockQuote"]>()
-  dailyCandle = vi.fn<MarketDataPort["dailyCandle"]>()
-  lastTradingDayCandle = vi.fn<MarketDataPort["lastTradingDayCandle"]>()
+  price = vi.fn<MarketDataPort["price"]>()
+  candles = vi.fn<MarketDataPort["candles"]>()
   marketDay = vi.fn<MarketDataPort["marketDay"]>()
 }
 

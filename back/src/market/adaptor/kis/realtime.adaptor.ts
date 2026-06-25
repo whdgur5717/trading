@@ -1,5 +1,7 @@
 import { Injectable } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
+import { err, ok, type Result } from "neverthrow"
+import type { MarketDataProviderError } from "../../market-data.error"
 import {
   feedCredentialSchema,
   feedEndpointSchema,
@@ -11,6 +13,7 @@ import {
   type RealtimeTradeFeedPort,
 } from "../../port/realtime"
 import { AuthorizationProvider } from "./authorization.provider"
+import { toMarketDataError } from "./error"
 import { tradeFrameSchema, tradeTickFrameSchema } from "./schema"
 
 @Injectable()
@@ -26,12 +29,17 @@ export class RealtimeAdaptor implements RealtimeTradeFeedPort {
     )
   }
 
-  async authorize(): Promise<FeedCredential> {
+  async authorize(): Promise<Result<FeedCredential, MarketDataProviderError>> {
     const approval = await this.authorizationProvider.approvalKey()
+    if (approval.isErr()) {
+      return err(toMarketDataError(approval.error))
+    }
 
-    return feedCredentialSchema.parse({
-      value: approval.approval_key,
-    })
+    return ok(
+      feedCredentialSchema.parse({
+        value: approval.value.approval_key,
+      })
+    )
   }
 
   subscribe(subscription: TradeSubscription): FeedFrame {

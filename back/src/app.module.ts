@@ -1,13 +1,7 @@
 import { Module } from "@nestjs/common"
 import { ConfigModule } from "@nestjs/config"
-import { APP_PIPE } from "@nestjs/core"
-import { ZodDtoValidationPipe } from "./common/validation/zod"
+import { AppCoreModule } from "./app-core.module"
 import { validateEnv } from "./config/env.validation"
-import { HealthModule } from "./health/health.module"
-import { PricesModule } from "./prices/prices.module"
-import { RealtimeModule } from "./realtime/realtime.module"
-import { ReturnsModule } from "./returns/returns.module"
-import { StocksModule } from "./stocks/stocks.module"
 
 @Module({
   imports: [
@@ -16,18 +10,7 @@ import { StocksModule } from "./stocks/stocks.module"
       envFilePath: [`.env.${process.env.NODE_ENV}`],
       validate: validateEnv,
     }),
-    StocksModule,
-    PricesModule,
-    ReturnsModule,
-    RealtimeModule,
-    HealthModule,
-  ],
-  controllers: [],
-  providers: [
-    {
-      provide: APP_PIPE,
-      useClass: ZodDtoValidationPipe,
-    },
+    AppCoreModule,
   ],
 })
 export class AppModule {}

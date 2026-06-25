@@ -1,12 +1,12 @@
 import { createZodDto } from "nestjs-zod"
 import {
-  stockCodeParamSchema,
   stockSchema,
   stockSearchQuerySchema,
+  stockSymbolParamSchema,
 } from "./stock.schema"
 
 export class StockSearchQueryDto extends createZodDto(stockSearchQuerySchema) {}
 
-export class StockCodeParamDto extends createZodDto(stockCodeParamSchema) {}
+export class StockSymbolParamDto extends createZodDto(stockSymbolParamSchema) {}
 
 export class StockDto extends createZodDto(stockSchema) {}
