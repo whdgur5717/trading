@@ -1,9 +1,11 @@
+import type { Result } from "neverthrow"
 import { z } from "zod"
+import type { MarketDataProviderError } from "../market-data.error"
 
-export const stockCodeSchema = z
+export const stockSymbolSchema = z
   .string()
   .regex(/^[A-Z0-9]{1,9}$/)
-  .meta({ description: "Listed stock code", example: "005930" })
+  .meta({ description: "Listed stock symbol", example: "005930" })
 
 export const tradingDateSchema = z
   .string()
@@ -14,28 +16,24 @@ export const quotationMarketSchema = z
   .enum(["KRX", "NXT", "CONSOLIDATED"])
   .meta({ description: "Quotation market", example: "KRX" })
 
-export const stockQuoteQuerySchema = z
+export const priceQuerySchema = z
   .strictObject({
-    stockCode: stockCodeSchema,
+    symbol: stockSymbolSchema,
     quotationMarket: quotationMarketSchema,
   })
-  .meta({ description: "Current stock quote query" })
+  .meta({ description: "Current stock price query" })
 
-export const dailyCandleQuerySchema = z
-  .strictObject({
-    stockCode: stockCodeSchema,
-    date: tradingDateSchema,
-    quotationMarket: quotationMarketSchema,
-  })
-  .meta({ description: "Daily price candle query" })
+export const candleIntervalSchema = z.literal("1d")
 
-export const lastTradingDayCandleQuerySchema = z
+export const candlesQuerySchema = z
   .strictObject({
-    stockCode: stockCodeSchema,
-    asOfDate: tradingDateSchema,
+    symbol: stockSymbolSchema,
+    interval: candleIntervalSchema,
+    before: tradingDateSchema,
+    count: z.number().int().min(1).max(200),
     quotationMarket: quotationMarketSchema,
   })
-  .meta({ description: "Last trading day candle query" })
+  .meta({ description: "Price candles query" })
 
 export const marketDayQuerySchema = z
   .strictObject({
@@ -44,7 +42,7 @@ export const marketDayQuerySchema = z
   })
   .meta({ description: "Market day query" })
 
-export const stockQuoteSchema = z
+export const priceSchema = z
   .strictObject({
     currentPrice: z
       .number()
@@ -62,21 +60,17 @@ export const stockQuoteSchema = z
       .number()
       .nonnegative()
       .meta({ description: "Low price", example: 77000 }),
-    accumulatedVolume: z
+    volume: z
       .number()
       .int()
       .nonnegative()
-      .meta({ description: "Accumulated volume", example: 12345678 }),
-    previousDayChange: z
-      .number()
-      .meta({ description: "Previous day price change", example: 500 }),
-    previousDayChangeRate: z
-      .number()
-      .meta({ description: "Previous day change rate", example: 0.65 }),
+      .meta({ description: "Volume", example: 12345678 }),
+    changePrice: z.number().meta({ description: "Price change", example: 500 }),
+    changeRate: z.number().meta({ description: "Change rate", example: 0.65 }),
   })
-  .meta({ description: "Current stock quote" })
+  .meta({ description: "Current stock price" })
 
-export const dailyCandleSchema = z
+export const candleSchema = z
   .strictObject({
     date: tradingDateSchema,
     openPrice: z
@@ -95,13 +89,13 @@ export const dailyCandleSchema = z
       .number()
       .nonnegative()
       .meta({ description: "Closing price", example: 78000 }),
-    accumulatedVolume: z
+    volume: z
       .number()
       .int()
       .nonnegative()
-      .meta({ description: "Accumulated volume", example: 12345678 }),
+      .meta({ description: "Volume", example: 12345678 }),
   })
-  .meta({ description: "Daily OHLCV candle" })
+  .meta({ description: "OHLCV candle" })
 
 export const marketDaySchema = z
   .strictObject({
@@ -120,24 +114,25 @@ export const marketDaySchema = z
   })
   .meta({ description: "Market day" })
 
-export type StockCode = z.output<typeof stockCodeSchema>
+export type StockSymbol = z.output<typeof stockSymbolSchema>
 export type TradingDate = z.output<typeof tradingDateSchema>
 export type QuotationMarket = z.output<typeof quotationMarketSchema>
-export type StockQuoteQuery = z.output<typeof stockQuoteQuerySchema>
-export type DailyCandleQuery = z.output<typeof dailyCandleQuerySchema>
-export type LastTradingDayCandleQuery = z.output<
-  typeof lastTradingDayCandleQuerySchema
->
+export type CandleInterval = z.output<typeof candleIntervalSchema>
+export type PriceQuery = z.output<typeof priceQuerySchema>
+export type CandlesQuery = z.output<typeof candlesQuerySchema>
 export type MarketDayQuery = z.output<typeof marketDayQuerySchema>
-export type StockQuote = z.output<typeof stockQuoteSchema>
-export type DailyCandle = z.output<typeof dailyCandleSchema>
+export type Price = z.output<typeof priceSchema>
+export type Candle = z.output<typeof candleSchema>
 export type MarketDay = z.output<typeof marketDaySchema>
 
 export const MARKET_DATA_PORT = Symbol("MARKET_DATA_PORT")
 
 export interface MarketDataPort {
-  stockQuote(query: StockQuoteQuery): Promise<StockQuote>
-  dailyCandle(query: DailyCandleQuery): Promise<DailyCandle | null>
-  lastTradingDayCandle(query: LastTradingDayCandleQuery): Promise<DailyCandle>
-  marketDay(query: MarketDayQuery): Promise<MarketDay>
+  price(query: PriceQuery): Promise<Result<Price, MarketDataProviderError>>
+  candles(
+    query: CandlesQuery
+  ): Promise<Result<Candle[], MarketDataProviderError>>
+  marketDay(
+    query: MarketDayQuery
+  ): Promise<Result<MarketDay, MarketDataProviderError>>
 }

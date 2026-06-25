@@ -1,18 +1,21 @@
-import { BadRequestException } from "@nestjs/common"
 import { createZodValidationPipe } from "nestjs-zod"
 import { ZodError } from "zod"
+import { ApiError } from "../error/error"
 
-function createZodBadRequestException(error: unknown) {
-  if (error instanceof ZodError) {
-    return new BadRequestException({
-      message: "Validation failed",
-      issues: error.issues,
-    })
+function createZodValidationError(error: unknown) {
+  switch (true) {
+    case error instanceof ZodError:
+      return new ApiError("invalid-request", {
+        message: "Validation failed",
+        details: error.issues,
+      })
+    default:
+      return new ApiError("invalid-request", {
+        message: "Validation failed",
+      })
   }
-
-  return new BadRequestException({ message: "Validation failed" })
 }
 
 export const ZodDtoValidationPipe = createZodValidationPipe({
-  createValidationException: createZodBadRequestException,
+  createValidationException: createZodValidationError,
 })

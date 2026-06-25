@@ -1,28 +1,29 @@
 import { z } from "zod"
 import { pastOrTodayIsoDateSchema } from "../common/validation/date"
-import { priceCurrentSchema } from "../prices/prices.schema"
-import { stockCodeSchema, stockSchema } from "../stocks/stock.schema"
+import { priceSchema } from "../prices/prices.schema"
+import { stockSchema } from "../stocks/stock.schema"
 
 export const returnsQuerySchema = z.object({
-  code: stockCodeSchema,
-  buyDate: pastOrTodayIsoDateSchema.meta({ example: "2026-05-15" }),
+  symbol: stockSchema.shape.symbol,
+  buyDate: pastOrTodayIsoDateSchema.meta({ example: "2026-05-17" }),
   quantity: z.coerce.number().int().positive().meta({ example: 10 }),
 })
 
 export const returnBuySchema = z.object({
-  date: z.string().meta({ example: "2026-05-15" }),
-  price: z.number().meta({ example: 78000 }),
-  priceType: z.literal("adjusted-close").meta({ example: "adjusted-close" }),
+  date: z.string().meta({ example: "2026-05-17" }),
+  price: z.string().meta({ example: "70000" }),
   quantity: z.number().meta({ example: 10 }),
 })
 
-export const returnCurrentSchema = priceCurrentSchema
+export const returnCurrentSchema = priceSchema.pick({
+  currentPrice: true,
+})
 
 export const returnCalculationSchema = z.object({
-  buyAmount: z.number().meta({ example: 780000 }),
+  buyAmount: z.number().meta({ example: 700000 }),
   currentValue: z.number().meta({ example: 800000 }),
-  profit: z.number().meta({ example: 20000 }),
-  profitRate: z.number().meta({ example: 2.56 }),
+  profit: z.number().meta({ example: 100000 }),
+  profitRate: z.number().meta({ example: 14.29 }),
 })
 
 export const returnSummarySchema = z.object({

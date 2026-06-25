@@ -2,6 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises"
 import { dirname, resolve } from "node:path"
 import { NestFactory } from "@nestjs/core"
 import type { NestExpressApplication } from "@nestjs/platform-express"
+import { format } from "prettier"
 import { AppModule } from "../src/app.module"
 import { configureApp } from "../src/bootstrap/app-bootstrap"
 import { createSwaggerDocument } from "../src/bootstrap/swagger"
@@ -21,8 +22,9 @@ async function main(): Promise<void> {
     configureApp(app)
 
     const document = createSwaggerDocument(app)
+    const content = await format(JSON.stringify(document), { parser: "json" })
     await mkdir(dirname(outputPath), { recursive: true })
-    await writeFile(outputPath, `${JSON.stringify(document, null, 2)}\n`)
+    await writeFile(outputPath, content)
   } finally {
     await app.close()
   }

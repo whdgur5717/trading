@@ -1,8 +1,21 @@
-import { api } from "../api"
+import { ApiSchemaError, ApiUnexpectedStatusError, api } from "../api"
+import { ResultAsync, err, ok, type Result } from "neverthrow"
 import {
-  HealthControllerCheckResponseSchema,
-  type HealthControllerCheckResponse,
+  HealthControllerCheckResponse200Schema,
+  type HealthControllerCheckResponse200,
+  HealthControllerCheckResponse400Schema,
+  type HealthControllerCheckResponse400,
 } from "./schemas"
+
+export type HealthControllerCheckSuccess = {
+  status: 200
+  body: HealthControllerCheckResponse200
+}
+
+export type HealthControllerCheckFailure = {
+  status: 400
+  body: HealthControllerCheckResponse400
+}
 
 /**
  * @example
@@ -10,8 +23,59 @@ import {
  * await HEALTH_CONTROLLER_CHECK()
  * ```
  */
-export async function HEALTH_CONTROLLER_CHECK(): Promise<HealthControllerCheckResponse> {
-  const data = await api.get<HealthControllerCheckResponse>("health").json()
+export function HEALTH_CONTROLLER_CHECK(): ResultAsync<
+  HealthControllerCheckSuccess,
+  HealthControllerCheckFailure
+> {
+  return new ResultAsync(
+    (async (): Promise<
+      Result<HealthControllerCheckSuccess, HealthControllerCheckFailure>
+    > => {
+      const response = await api.get("health", {})
+      const body: unknown = await response.json()
 
-  return HealthControllerCheckResponseSchema.parse(data)
+      switch (response.status) {
+        case 200: {
+          const result = HealthControllerCheckResponse200Schema.safeParse(body)
+
+          if (!result.success) {
+            throw new ApiSchemaError({
+              status: response.status,
+              schemaName: "HealthControllerCheckResponse200Schema",
+              body,
+              zodError: result.error,
+            })
+          }
+
+          const value: HealthControllerCheckSuccess = {
+            status: 200,
+            body: result.data,
+          }
+
+          return ok(value)
+        }
+        case 400: {
+          const result = HealthControllerCheckResponse400Schema.safeParse(body)
+
+          if (!result.success) {
+            throw new ApiSchemaError({
+              status: response.status,
+              schemaName: "HealthControllerCheckResponse400Schema",
+              body,
+              zodError: result.error,
+            })
+          }
+
+          const value: HealthControllerCheckFailure = {
+            status: 400,
+            body: result.data,
+          }
+
+          return err(value)
+        }
+      }
+
+      throw new ApiUnexpectedStatusError(response.status, body)
+    })()
+  )
 }

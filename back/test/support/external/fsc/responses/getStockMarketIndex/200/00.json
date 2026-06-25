@@ -1,0 +1,30 @@
+{
+  "response": {
+    "header": {
+      "resultCode": "00",
+      "resultMsg": "NORMAL SERVICE."
+    },
+    "body": {
+      "items": {
+        "item": [
+          {
+            "basDt": "20240614",
+            "idxNm": "코스피",
+            "clpr": "2,758.42",
+            "fltRt": "0.13",
+            "trPrc": "9,012,345,678,901",
+            "lstgMrktTotAmt": "2,199,000,000,000,000"
+          },
+          {
+            "basDt": "20240614",
+            "idxNm": "코스닥",
+            "clpr": "862.19",
+            "fltRt": "-0.08",
+            "trPrc": "6,123,456,789,012",
+            "lstgMrktTotAmt": "431,000,000,000,000"
+          }
+        ]
+      }
+    }
+  }
+}

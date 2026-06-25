@@ -1,7 +1,9 @@
-import { Inject, Injectable, NotFoundException, Optional } from "@nestjs/common"
+import { Inject, Injectable, Optional } from "@nestjs/common"
 import { uniqBy } from "es-toolkit"
+import { err, ok, type Result } from "neverthrow"
 import type { Stock } from "./stock.schema"
 import { STOCK_MASTER_DATA, stockMasterData } from "./stocks.data"
+import type { StockError } from "./stocks.errors"
 
 @Injectable()
 export class StocksService {
@@ -19,26 +21,28 @@ export class StocksService {
     }
 
     const exactCodeMatches = this.stocks.filter((stock) =>
-      terms.includes(stock.code.toLowerCase())
+      terms.includes(stock.symbol.toLowerCase())
     )
 
     if (exactCodeMatches.length > 0) {
-      return uniqBy(exactCodeMatches, (stock) => stock.code)
+      return uniqBy(exactCodeMatches, (stock) => stock.symbol)
     }
 
     const matches = this.stocks.filter((stock) => {
-      const code = stock.code.toLowerCase()
+      const symbol = stock.symbol.toLowerCase()
       const name = stock.name.toLowerCase()
 
-      return terms.some((term) => code.includes(term) || name.includes(term))
+      return terms.some((term) => symbol.includes(term) || name.includes(term))
     })
 
-    return uniqBy(matches, (stock) => stock.code).sort((a, b) => {
+    return uniqBy(matches, (stock) => stock.symbol).sort((a, b) => {
       const aExact = terms.some(
-        (term) => a.code.toLowerCase() === term || a.name.toLowerCase() === term
+        (term) =>
+          a.symbol.toLowerCase() === term || a.name.toLowerCase() === term
       )
       const bExact = terms.some(
-        (term) => b.code.toLowerCase() === term || b.name.toLowerCase() === term
+        (term) =>
+          b.symbol.toLowerCase() === term || b.name.toLowerCase() === term
       )
 
       if (aExact !== bExact) {
@@ -49,13 +53,16 @@ export class StocksService {
     })
   }
 
-  getByCode(code: string): Stock {
-    const stock = this.stocks.find((item) => item.code === code)
+  getBySymbol(symbol: string): Result<Stock, StockError> {
+    const stock = this.stocks.find((item) => item.symbol === symbol)
 
     if (!stock) {
-      throw new NotFoundException(`Unknown stock code: ${code}`)
+      return err({
+        type: "unsupported-stock",
+        message: `Unsupported stock symbol: ${symbol}`,
+      })
     }
 
-    return stock
+    return ok(stock)
   }
 }

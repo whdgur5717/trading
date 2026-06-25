@@ -1,18 +1,31 @@
 import { queryOptions } from "@tanstack/react-query"
 
 import {
-  PRICES_CONTROLLER_DAILY_CANDLE,
-  type PricesControllerDailyCandleParams,
+  CANDLES_CONTROLLER_CANDLES,
+  type CandlesControllerCandlesFailure,
+  type CandlesControllerCandlesParams,
+  type CandlesControllerCandlesSuccess,
 } from "@/queries/generated"
 
-export const getStockHistoryQueryOptions = (
-  params: PricesControllerDailyCandleParams
-) =>
-  queryOptions({
-    queryKey: ["stock", params.code, "history", params.date],
-    queryFn: async () => {
-      const response = await PRICES_CONTROLLER_DAILY_CANDLE(params)
+type StockHistoryData = CandlesControllerCandlesSuccess["body"]["data"]
 
-      return response.data
-    },
+export const getStockHistoryQueryOptions = (
+  params: CandlesControllerCandlesParams
+) =>
+  queryOptions<StockHistoryData, CandlesControllerCandlesFailure>({
+    queryKey: [
+      "stock",
+      params.symbol,
+      "history",
+      params.interval,
+      params.count,
+      params.before,
+    ],
+    queryFn: () =>
+      CANDLES_CONTROLLER_CANDLES(params).match(
+        (response) => response.body.data,
+        (response) => {
+          throw response
+        }
+      ),
   })

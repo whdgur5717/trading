@@ -1,87 +1,70 @@
 import { Injectable } from "@nestjs/common"
-import { ExternalServiceError } from "../../../common/error/externalServiceError"
+import { err, ok, type Result } from "neverthrow"
+import type { MarketDataProviderError } from "../../market-data.error"
 import type {
-  DailyCandle,
-  DailyCandleQuery,
-  LastTradingDayCandleQuery,
+  Candle,
+  CandlesQuery,
   MarketDay,
   MarketDayQuery,
-  StockQuote,
-  StockQuoteQuery,
+  Price,
+  PriceQuery,
   TradingDate,
 } from "../../port/data"
 import type { MarketDataPort } from "../../port/data"
+import { toMarketDataError } from "./error"
 import { quotationMarketCode, rest } from "./protocol"
 import { RequestProvider } from "./request.provider"
-import {
-  dailyCandleSchema,
-  lastTradingDayCandleSchema,
-  marketDaySchema,
-  stockQuoteSchema,
-} from "./schema"
+import { candlesSchema, marketDaySchema, priceSchema } from "./schema"
 
 @Injectable()
 export class MarketDataAdaptor implements MarketDataPort {
   constructor(private readonly requestProvider: RequestProvider) {}
 
-  async stockQuote(query: StockQuoteQuery): Promise<StockQuote> {
-    return this.requestProvider.get(
-      rest.stockQuote,
-      {
-        FID_COND_MRKT_DIV_CODE: quotationMarketCode[query.quotationMarket],
-        FID_INPUT_ISCD: query.stockCode,
-      },
-      stockQuoteSchema
-    )
+  price(query: PriceQuery): Promise<Result<Price, MarketDataProviderError>> {
+    return this.requestProvider
+      .get(
+        rest.price,
+        {
+          FID_COND_MRKT_DIV_CODE: quotationMarketCode[query.quotationMarket],
+          FID_INPUT_ISCD: query.symbol,
+        },
+        priceSchema
+      )
+      .then((result) => result.mapErr(toMarketDataError))
   }
 
-  async dailyCandle(query: DailyCandleQuery): Promise<DailyCandle | null> {
-    const date = this.compactDate(query.date)
-
-    return this.requestProvider.get(
-      rest.dailyCandle,
+  async candles(
+    query: CandlesQuery
+  ): Promise<Result<Candle[], MarketDataProviderError>> {
+    const startDate = this.tradingDateDaysBefore(
+      query.before,
+      Math.max(30, query.count * 3)
+    )
+    const candles = await this.requestProvider.get(
+      rest.candles,
       {
         FID_COND_MRKT_DIV_CODE: quotationMarketCode[query.quotationMarket],
-        FID_INPUT_ISCD: query.stockCode,
-        FID_INPUT_DATE_1: date,
-        FID_INPUT_DATE_2: date,
+        FID_INPUT_ISCD: query.symbol,
+        FID_INPUT_DATE_1: this.compactDate(startDate),
+        FID_INPUT_DATE_2: this.compactDate(query.before),
         FID_PERIOD_DIV_CODE: "D",
         FID_ORG_ADJ_PRC: "0",
       },
-      dailyCandleSchema
-    )
-  }
-
-  async lastTradingDayCandle(
-    query: LastTradingDayCandleQuery
-  ): Promise<DailyCandle> {
-    const candle = await this.requestProvider.get(
-      rest.dailyCandle,
-      {
-        FID_COND_MRKT_DIV_CODE: quotationMarketCode[query.quotationMarket],
-        FID_INPUT_ISCD: query.stockCode,
-        FID_INPUT_DATE_1: this.compactDate(
-          this.tradingDateDaysBefore(query.asOfDate, 60)
-        ),
-        FID_INPUT_DATE_2: this.compactDate(query.asOfDate),
-        FID_PERIOD_DIV_CODE: "D",
-        FID_ORG_ADJ_PRC: "0",
-      },
-      lastTradingDayCandleSchema
+      candlesSchema
     )
 
-    if (!candle) {
-      throw new ExternalServiceError("KIS daily candle is missing", {
-        service: "kis",
-        kind: "invalidResponse",
-        endpoint: rest.dailyCandle.path,
-      })
-    }
-
-    return candle
+    return candles
+      .mapErr(toMarketDataError)
+      .map((items) =>
+        items
+          .filter((candle) => candle.date <= query.before)
+          .slice(0, query.count)
+      )
   }
 
-  async marketDay(query: MarketDayQuery): Promise<MarketDay> {
+  async marketDay(
+    query: MarketDayQuery
+  ): Promise<Result<MarketDay, MarketDataProviderError>> {
     const days = await this.requestProvider.get(
       rest.marketDay,
       {
@@ -92,17 +75,24 @@ export class MarketDataAdaptor implements MarketDataPort {
       marketDaySchema(query.quotationMarket)
     )
 
-    const day = days.find((item) => item.date === query.date)
-
-    if (!day) {
-      throw new ExternalServiceError("KIS market day is missing", {
-        service: "kis",
-        kind: "invalidResponse",
-        endpoint: rest.marketDay.path,
-      })
+    if (days.isErr()) {
+      return err(toMarketDataError(days.error))
     }
 
-    return day
+    const day = days.value.find((item) => item.date === query.date)
+
+    if (!day) {
+      return err(
+        toMarketDataError({
+          service: "kis",
+          code: "invalid-response",
+          message: "KIS market day is missing",
+          endpoint: rest.marketDay.path,
+        })
+      )
+    }
+
+    return ok(day)
   }
 
   private compactDate(date: TradingDate): string {

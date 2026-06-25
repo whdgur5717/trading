@@ -1,11 +1,16 @@
 import { Controller, Query, Sse } from "@nestjs/common"
+import type { MessageEvent } from "@nestjs/common"
 import {
+  ApiBadRequestResponse,
   ApiExtraModels,
   ApiOkResponse,
   ApiProduces,
   getSchemaPath,
 } from "@nestjs/swagger"
-import { SkipApiResponse } from "../common/api/response"
+import { Result } from "neverthrow"
+import { of, type Observable } from "rxjs"
+import { apiErrorBody, SkipApiResponse } from "../common/api/response"
+import { apiErrorMapper } from "../common/error/mapper"
 import { StocksService } from "../stocks/stocks.service"
 import {
   RealtimeDisconnectedDto,
@@ -17,7 +22,7 @@ import {
   StreamQueryDto,
 } from "./realtime.dto"
 import { RealtimeService } from "./realtime.service"
-import { normalizeRealtimeStockCodes } from "./realtime.validation"
+import { parseRealtimeSymbols } from "./realtime.validation"
 
 @Controller("realtime")
 export class RealtimeController {
@@ -98,6 +103,26 @@ export class RealtimeController {
                   retry: { type: "number" },
                   data: {
                     oneOf: [
+                      {
+                        type: "object",
+                        properties: {
+                          status: { type: "number", enum: [400] },
+                          code: { type: "string", enum: ["invalid-request"] },
+                          message: { type: "string" },
+                          details: {},
+                        },
+                        required: ["status", "code", "message"],
+                      },
+                      {
+                        type: "object",
+                        properties: {
+                          status: { type: "number", enum: [404] },
+                          code: { type: "string", enum: ["unsupported-stock"] },
+                          message: { type: "string" },
+                          details: {},
+                        },
+                        required: ["status", "code", "message"],
+                      },
                       { $ref: getSchemaPath(RealtimeErrorDto) },
                       { type: "string" },
                     ],
@@ -111,13 +136,47 @@ export class RealtimeController {
       },
     },
   })
-  stream(@Query() query: StreamQueryDto) {
-    const normalizedStockCodes = normalizeRealtimeStockCodes(query.stockCodes)
-
-    for (const stockCode of normalizedStockCodes) {
-      this.stocksService.getByCode(stockCode)
-    }
-
-    return this.realtimeService.stream(normalizedStockCodes)
+  @ApiBadRequestResponse({
+    description:
+      "The symbols query is missing or does not match the stream request contract.",
+    content: {
+      "application/json": {
+        schema: {
+          type: "object",
+          required: ["success", "error"],
+          properties: {
+            success: { type: "boolean", enum: [false] },
+            error: {
+              type: "object",
+              required: ["status", "code", "message"],
+              properties: {
+                status: { type: "number", enum: [400] },
+                code: { type: "string", enum: ["invalid-request"] },
+                message: { type: "string" },
+                details: {},
+              },
+            },
+          },
+        },
+      },
+    },
+  })
+  stream(@Query() query: StreamQueryDto): Observable<MessageEvent> {
+    return parseRealtimeSymbols(query.symbols)
+      .andThen((symbols) =>
+        Result.combine(
+          symbols.map((symbol) =>
+            this.stocksService.getBySymbol(symbol).map(() => symbol)
+          )
+        )
+      )
+      .match(
+        (symbols) => this.realtimeService.stream(symbols),
+        (error) =>
+          of({
+            type: "error",
+            data: apiErrorBody(apiErrorMapper.toApiError(error)),
+          })
+      )
   }
 }

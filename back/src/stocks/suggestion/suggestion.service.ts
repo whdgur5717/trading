@@ -6,7 +6,7 @@ import type { Suggestion } from "./suggestion.schema"
 
 type IndexedStock = {
   stock: Stock
-  code: string
+  symbol: string
   name: string
   nameChoseong: string
 }
@@ -59,8 +59,8 @@ const PRODUCT_QUERY_PRODUCT_RANK: Record<StockProductType, number> = {
 }
 
 const MATCHERS = [
-  (item: IndexedStock, input: string) => item.code === input,
-  (item, input) => item.code.startsWith(input),
+  (item: IndexedStock, input: string) => item.symbol === input,
+  (item, input) => item.symbol.startsWith(input),
   (item, input) => item.name === input,
   (item, input) => item.name.startsWith(input),
   (item, input) => matchesKoreanPrefix(input, item.name),
@@ -82,7 +82,7 @@ export class SuggestionService {
 
       return {
         stock,
-        code: normalizeInput(stock.code),
+        symbol: normalizeInput(stock.symbol),
         name,
         nameChoseong: getChoseong(name),
       }
@@ -186,6 +186,6 @@ function compareSuggestion(a: MatchedStock, b: MatchedStock): number {
     (b.item.stock.marketCap ?? 0) - (a.item.stock.marketCap ?? 0) ||
     (b.item.stock.previousVolume ?? 0) - (a.item.stock.previousVolume ?? 0) ||
     a.item.stock.name.localeCompare(b.item.stock.name, "ko") ||
-    a.item.stock.code.localeCompare(b.item.stock.code)
+    a.item.stock.symbol.localeCompare(b.item.stock.symbol)
   )
 }

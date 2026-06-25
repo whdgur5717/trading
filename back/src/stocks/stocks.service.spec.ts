@@ -14,19 +14,19 @@ describe("StocksService", () => {
           provide: STOCK_MASTER_DATA,
           useValue: [
             {
-              code: "005930",
+              symbol: "005930",
               name: "삼성전자",
               marketName: "KOSPI",
               quotationMarket: "KRX",
             },
             {
-              code: "005935",
+              symbol: "005935",
               name: "삼성전자우",
               marketName: "KOSPI",
               quotationMarket: "KRX",
             },
             {
-              code: "000660",
+              symbol: "000660",
               name: "SK하이닉스",
               marketName: "KOSPI",
               quotationMarket: "KRX",
@@ -42,13 +42,13 @@ describe("StocksService", () => {
   it("searches local stock master data by Korean name and code", () => {
     expect(service.search("삼성")).toEqual([
       {
-        code: "005930",
+        symbol: "005930",
         name: "삼성전자",
         marketName: "KOSPI",
         quotationMarket: "KRX",
       },
       {
-        code: "005935",
+        symbol: "005935",
         name: "삼성전자우",
         marketName: "KOSPI",
         quotationMarket: "KRX",
@@ -57,7 +57,7 @@ describe("StocksService", () => {
 
     expect(service.search("000660")).toEqual([
       {
-        code: "000660",
+        symbol: "000660",
         name: "SK하이닉스",
         marketName: "KOSPI",
         quotationMarket: "KRX",
@@ -68,7 +68,7 @@ describe("StocksService", () => {
   it("normalizes duplicate query matches into one result per stock code", () => {
     expect(service.search("005930 삼성전자")).toEqual([
       {
-        code: "005930",
+        symbol: "005930",
         name: "삼성전자",
         marketName: "KOSPI",
         quotationMarket: "KRX",

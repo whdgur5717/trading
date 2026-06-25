@@ -1,5 +1,7 @@
 import { z } from "zod"
-import { stockCodeSchema, tradingDateSchema } from "./data"
+import type { Result } from "neverthrow"
+import type { MarketDataProviderError } from "../market-data.error"
+import { stockSymbolSchema, tradingDateSchema } from "./data"
 
 export const feedEndpointSchema = z
   .string()
@@ -26,7 +28,7 @@ export const feedFrameSchema = z
 export const tradeSubscriptionSchema = z
   .strictObject({
     credential: feedCredentialSchema,
-    stockCode: stockCodeSchema,
+    stockCode: stockSymbolSchema,
   })
   .meta({ description: "Trade subscription" })
 
@@ -37,7 +39,7 @@ export const tradeTimeSchema = z
 
 export const tradeTickSchema = z
   .strictObject({
-    stockCode: stockCodeSchema,
+    stockCode: stockSymbolSchema,
     trId: z
       .string()
       .min(1)
@@ -62,7 +64,7 @@ export const REALTIME_TRADE_FEED_PORT = Symbol("REALTIME_TRADE_FEED_PORT")
 
 export interface RealtimeTradeFeedPort {
   endpoint(): FeedEndpoint
-  authorize(): Promise<FeedCredential>
+  authorize(): Promise<Result<FeedCredential, MarketDataProviderError>>
   subscribe(subscription: TradeSubscription): FeedFrame
   unsubscribe(subscription: TradeSubscription): FeedFrame
   decode(raw: string): TradeTick | null

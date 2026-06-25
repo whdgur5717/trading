@@ -1,7 +1,11 @@
 import { Controller, Get, Param, Query } from "@nestjs/common"
 import { SuggestionDto, SuggestionQueryDto } from "./suggestion/suggestion.dto"
 import { SuggestionService } from "./suggestion/suggestion.service"
-import { StockCodeParamDto, StockDto, StockSearchQueryDto } from "./stocks.dto"
+import {
+  StockDto,
+  StockSearchQueryDto,
+  StockSymbolParamDto,
+} from "./stocks.dto"
 import { StocksService } from "./stocks.service"
 
 @Controller("stocks")
@@ -16,13 +20,13 @@ export class StocksController {
     return this.suggestionService.suggest(query.q, query.limit)
   }
 
-  @Get("search")
+  @Get()
   search(@Query() query: StockSearchQueryDto): StockDto[] {
-    return this.stocksService.search(query.q)
+    return this.stocksService.search(query.query)
   }
 
-  @Get(":code")
-  get(@Param() params: StockCodeParamDto): StockDto {
-    return this.stocksService.getByCode(params.code)
+  @Get(":symbol")
+  get(@Param() params: StockSymbolParamDto) {
+    return this.stocksService.getBySymbol(params.symbol)
   }
 }

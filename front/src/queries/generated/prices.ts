@@ -1,88 +1,110 @@
-import { api } from "../api"
+import { ApiSchemaError, ApiUnexpectedStatusError, api } from "../api"
+import { ResultAsync, err, ok, type Result } from "neverthrow"
 import {
-  PricesControllerCurrentResponseSchema,
-  type PricesControllerCurrentResponse,
-  PricesControllerQuoteResponseSchema,
-  type PricesControllerQuoteResponse,
-  PricesControllerDailyCandleResponseSchema,
-  type PricesControllerDailyCandleResponse,
+  PricesControllerPriceResponse200Schema,
+  type PricesControllerPriceResponse200,
+  PricesControllerPriceResponse400Schema,
+  type PricesControllerPriceResponse400,
+  PricesControllerPriceResponse404Schema,
+  type PricesControllerPriceResponse404,
 } from "./schemas"
 
-export type PricesControllerCurrentParams = {
-  code: string
+export type PricesControllerPriceParams = {
+  symbol: string
 }
+
+export type PricesControllerPriceSuccess = {
+  status: 200
+  body: PricesControllerPriceResponse200
+}
+
+export type PricesControllerPriceFailure =
+  | { status: 400; body: PricesControllerPriceResponse400 }
+  | { status: 404; body: PricesControllerPriceResponse404 }
 
 /**
  * @example
  * ```ts
- * await PRICES_CONTROLLER_CURRENT({
- *   code: "005930"
+ * await PRICES_CONTROLLER_PRICE({
+ *   symbol: "005930"
  * })
  * ```
  */
-export async function PRICES_CONTROLLER_CURRENT(
-  params: PricesControllerCurrentParams
-): Promise<PricesControllerCurrentResponse> {
-  const data = await api
-    .get<PricesControllerCurrentResponse>(
-      `prices/${encodeURIComponent(String(params.code))}/current`
-    )
-    .json()
-
-  return PricesControllerCurrentResponseSchema.parse(data)
-}
-
-export type PricesControllerQuoteParams = {
-  code: string
-}
-
-/**
- * @example
- * ```ts
- * await PRICES_CONTROLLER_QUOTE({
- *   code: "005930"
- * })
- * ```
- */
-export async function PRICES_CONTROLLER_QUOTE(
-  params: PricesControllerQuoteParams
-): Promise<PricesControllerQuoteResponse> {
-  const data = await api
-    .get<PricesControllerQuoteResponse>(
-      `prices/${encodeURIComponent(String(params.code))}/quote`
-    )
-    .json()
-
-  return PricesControllerQuoteResponseSchema.parse(data)
-}
-
-export type PricesControllerDailyCandleParams = {
-  code: string
-  date: string
-}
-
-/**
- * @example
- * ```ts
- * await PRICES_CONTROLLER_DAILY_CANDLE({
- *   code: "005930",
- *   date: "2026-05-15"
- * })
- * ```
- */
-export async function PRICES_CONTROLLER_DAILY_CANDLE(
-  params: PricesControllerDailyCandleParams
-): Promise<PricesControllerDailyCandleResponse> {
-  const data = await api
-    .get<PricesControllerDailyCandleResponse>(
-      `prices/${encodeURIComponent(String(params.code))}/daily-candle`,
-      {
+export function PRICES_CONTROLLER_PRICE(
+  params: PricesControllerPriceParams
+): ResultAsync<PricesControllerPriceSuccess, PricesControllerPriceFailure> {
+  return new ResultAsync(
+    (async (): Promise<
+      Result<PricesControllerPriceSuccess, PricesControllerPriceFailure>
+    > => {
+      const response = await api.get("prices", {
         searchParams: {
-          date: params.date,
+          symbol: params.symbol,
         },
-      }
-    )
-    .json()
+      })
+      const body: unknown = await response.json()
 
-  return PricesControllerDailyCandleResponseSchema.parse(data)
+      switch (response.status) {
+        case 200: {
+          const result = PricesControllerPriceResponse200Schema.safeParse(body)
+
+          if (!result.success) {
+            throw new ApiSchemaError({
+              status: response.status,
+              schemaName: "PricesControllerPriceResponse200Schema",
+              body,
+              zodError: result.error,
+            })
+          }
+
+          const value: PricesControllerPriceSuccess = {
+            status: 200,
+            body: result.data,
+          }
+
+          return ok(value)
+        }
+        case 400: {
+          const result = PricesControllerPriceResponse400Schema.safeParse(body)
+
+          if (!result.success) {
+            throw new ApiSchemaError({
+              status: response.status,
+              schemaName: "PricesControllerPriceResponse400Schema",
+              body,
+              zodError: result.error,
+            })
+          }
+
+          const value: PricesControllerPriceFailure = {
+            status: 400,
+            body: result.data,
+          }
+
+          return err(value)
+        }
+        case 404: {
+          const result = PricesControllerPriceResponse404Schema.safeParse(body)
+
+          if (!result.success) {
+            throw new ApiSchemaError({
+              status: response.status,
+              schemaName: "PricesControllerPriceResponse404Schema",
+              body,
+              zodError: result.error,
+            })
+          }
+
+          const value: PricesControllerPriceFailure = {
+            status: 404,
+            body: result.data,
+          }
+
+          return err(value)
+        }
+      }
+
+      throw new ApiUnexpectedStatusError(response.status, body)
+    })()
+  )
 }

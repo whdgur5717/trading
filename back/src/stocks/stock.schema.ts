@@ -1,9 +1,5 @@
 import { z } from "zod"
-
-export const stockCodeSchema = z
-  .string()
-  .regex(/^[A-Z0-9]{1,9}$/)
-  .meta({ example: "005930" })
+import { stockSymbolSchema } from "../market/port/data"
 
 export const quotationMarketSchema = z
   .enum(["KRX", "NXT", "CONSOLIDATED"])
@@ -21,15 +17,15 @@ export const stockProductTypeSchema = z.enum([
 ])
 
 export const stockSearchQuerySchema = z.object({
-  q: z.string().trim().min(1).meta({ example: "삼성" }),
+  query: z.string().trim().min(1).meta({ example: "삼성" }),
 })
 
-export const stockCodeParamSchema = z.object({
-  code: stockCodeSchema,
+export const stockSymbolParamSchema = z.object({
+  symbol: stockSymbolSchema,
 })
 
 export const stockSchema = z.object({
-  code: stockCodeSchema,
+  symbol: stockSymbolSchema,
   name: z.string().meta({ example: "삼성전자" }),
   marketName: z.string().meta({ example: "KOSPI" }),
   quotationMarket: quotationMarketSchema,
@@ -60,8 +56,18 @@ export const stockSchema = z.object({
   warningLevel: z.string().nullable().optional().meta({ example: "00" }),
 })
 
+export const stockSourceSchema = stockSchema
+  .omit({ symbol: true })
+  .extend({
+    code: stockSymbolSchema,
+  })
+  .transform(({ code, ...stock }) => ({
+    ...stock,
+    symbol: code,
+  }))
+
 export type StockSearchQuery = z.infer<typeof stockSearchQuerySchema>
-export type StockCodeParam = z.infer<typeof stockCodeParamSchema>
+export type StockSymbolParam = z.infer<typeof stockSymbolParamSchema>
 export type StockProductType = z.infer<typeof stockProductTypeSchema>
 export type StockQuotationMarket = z.infer<typeof quotationMarketSchema>
 export type Stock = z.infer<typeof stockSchema>

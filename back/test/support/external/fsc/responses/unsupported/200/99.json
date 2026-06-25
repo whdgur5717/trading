@@ -1,0 +1,9 @@
+{
+  "response": {
+    "header": {
+      "resultCode": "99",
+      "resultMsg": "UNSUPPORTED FSC REQUEST."
+    },
+    "body": {}
+  }
+}

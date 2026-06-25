@@ -3,13 +3,13 @@ import type { QuotationMarket } from "../../port/data"
 export const rest = {
   accessToken: "/oauth2/tokenP",
   approvalKey: "/oauth2/Approval",
-  stockQuote: {
+  price: {
     path: "/uapi/domestic-stock/v1/quotations/inquire-price",
     headers: {
       tr_id: "FHKST01010100",
     },
   },
-  dailyCandle: {
+  candles: {
     path: "/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice",
     headers: {
       tr_id: "FHKST03010100",

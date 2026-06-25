@@ -1,13 +1,15 @@
 import { Injectable } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
 import { isAxiosError } from "axios"
-import { ExternalServiceError } from "../../../common/error/externalServiceError"
+import { err, ok, type Result } from "neverthrow"
+import type { z } from "zod"
+import type { ExternalServiceError } from "../../../common/error/externalService/error"
 import {
   HttpRequestProvider,
   type HttpResponse,
 } from "../../../common/http/httpRequest.provider"
 import { rest } from "./protocol"
-import { dataFromResponse, errorFromResponse } from "./response"
+import { dataFromResponse, type KisAuthorizationError } from "./response"
 import {
   accessTokenSchema,
   approvalKeySchema,
@@ -20,19 +22,24 @@ interface TokenCache {
   expiresAtMs: number
 }
 
+type AuthorizationError =
+  | KisAuthorizationError
+  | ExternalServiceError<"timeout">
+
 @Injectable()
 export class AuthorizationProvider {
   private tokenCache: TokenCache | null = null
-  private tokenRequest: Promise<string> | null = null
+  private tokenRequest: Promise<Result<string, AuthorizationError>> | null =
+    null
 
   constructor(
     private readonly httpRequestProvider: HttpRequestProvider,
     private readonly config: ConfigService
   ) {}
 
-  async accessToken(): Promise<string> {
+  async accessToken(): Promise<Result<string, AuthorizationError>> {
     if (this.tokenCache && Date.now() < this.tokenCache.expiresAtMs) {
-      return this.tokenCache.value
+      return ok(this.tokenCache.value)
     }
 
     if (this.tokenRequest) {
@@ -52,40 +59,48 @@ export class AuthorizationProvider {
     this.tokenCache = null
   }
 
-  approvalKey(): Promise<ApprovalKey> {
-    return this.post(rest.approvalKey, {
-      grant_type: "client_credentials",
-      appkey: this.appKey,
-      secretkey: this.appSecret,
-    }).then((response) =>
-      dataFromResponse(response, rest.approvalKey, approvalKeySchema)
+  approvalKey(): Promise<Result<ApprovalKey, AuthorizationError>> {
+    return this.post(
+      rest.approvalKey,
+      {
+        grant_type: "client_credentials",
+        appkey: this.appKey,
+        secretkey: this.appSecret,
+      },
+      approvalKeySchema
     )
   }
 
-  private async issueAccessToken(): Promise<string> {
-    const response = await this.post(rest.accessToken, {
-      grant_type: "client_credentials",
-      appkey: this.appKey,
-      appsecret: this.appSecret,
-    })
-    const token = dataFromResponse(
-      response,
+  private async issueAccessToken(): Promise<
+    Result<string, AuthorizationError>
+  > {
+    const token = await this.post(
       rest.accessToken,
+      {
+        grant_type: "client_credentials",
+        appkey: this.appKey,
+        appsecret: this.appSecret,
+      },
       accessTokenSchema
     )
 
-    this.tokenCache = {
-      value: token.access_token,
-      expiresAtMs: this.expiresAtMs(token),
+    if (token.isErr()) {
+      return err(token.error)
     }
 
-    return token.access_token
+    this.tokenCache = {
+      value: token.value.access_token,
+      expiresAtMs: this.expiresAtMs(token.value),
+    }
+
+    return ok(token.value.access_token)
   }
 
-  private async post(
+  private async post<TSchema extends z.ZodType>(
     path: string,
-    body: Record<string, string>
-  ): Promise<HttpResponse> {
+    body: Record<string, string>,
+    schema: TSchema
+  ): Promise<Result<z.output<TSchema>, AuthorizationError>> {
     let response: HttpResponse
 
     try {
@@ -95,25 +110,32 @@ export class AuthorizationProvider {
         body,
       })
     } catch (error) {
-      throw new ExternalServiceError(
-        error instanceof Error ? error.message : "KIS authorization failed",
-        {
+      const code = isAxiosError(error) ? error.code : undefined
+      const message =
+        error instanceof Error ? error.message : "KIS authorization failed"
+
+      if (code === "ECONNABORTED" || code === "ETIMEDOUT") {
+        return err({
           service: "kis",
-          kind: "transport",
+          code: "timeout",
+          message,
           endpoint: path,
-          code: isAxiosError(error) ? error.code : undefined,
+          upstreamCode: code,
           cause: error,
-        }
-      )
+        })
+      }
+
+      return err({
+        service: "kis",
+        code: "auth-unavailable",
+        message,
+        endpoint: path,
+        upstreamCode: code,
+        cause: error,
+      })
     }
 
-    const failure = errorFromResponse(response, path)
-
-    if (failure) {
-      throw failure
-    }
-
-    return response
+    return dataFromResponse(response, path, schema, "authorization")
   }
 
   private expiresAtMs(token: AccessToken): number {
