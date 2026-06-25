@@ -2,10 +2,10 @@ import { Test } from "@nestjs/testing"
 import { ok } from "neverthrow"
 import { beforeEach, describe, expect, it } from "vitest"
 import {
-  MarketDataPortMock,
-  MarketDataTestingModule,
-} from "../market/testing/marketDataTesting.module"
-import { MARKET_DATA_PORT } from "../market/port/data"
+  MarketServiceMock,
+  MarketTestingModule,
+} from "../market/testing/marketTesting.module"
+import { MarketService } from "../market/market.service"
 import {
   StocksServiceMock,
   StocksTestingModule,
@@ -15,17 +15,17 @@ import { CandlesService } from "./candles.service"
 
 describe("CandlesService", () => {
   let service: CandlesService
-  let marketData: MarketDataPortMock
+  let marketService: MarketServiceMock
   let stocksService: StocksServiceMock
 
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [MarketDataTestingModule, StocksTestingModule],
+      imports: [MarketTestingModule, StocksTestingModule],
       providers: [CandlesService],
     }).compile()
 
     service = moduleRef.get(CandlesService)
-    marketData = moduleRef.get(MARKET_DATA_PORT)
+    marketService = moduleRef.get(MarketService)
     stocksService = moduleRef.get(StocksService)
   })
 
@@ -38,7 +38,7 @@ describe("CandlesService", () => {
         quotationMarket: "KRX",
       })
     )
-    marketData.candles.mockResolvedValue(
+    marketService.candles.mockResolvedValue(
       ok([
         {
           date: "2026-05-17",
@@ -78,7 +78,7 @@ describe("CandlesService", () => {
       nextBefore: "2026-05-17",
     })
 
-    expect(marketData.candles).toHaveBeenCalledWith({
+    expect(marketService.candles).toHaveBeenCalledWith({
       symbol: "005930",
       interval: "1d",
       count: 1,
