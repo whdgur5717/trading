@@ -9,11 +9,7 @@
             "name": "q",
             "required": true,
             "in": "query",
-            "schema": {
-              "minLength": 1,
-              "example": "삼ㅈ",
-              "type": "string"
-            }
+            "schema": { "minLength": 1, "example": "삼ㅈ", "type": "string" }
           },
           {
             "name": "limit",
@@ -34,30 +30,69 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/ApiSuccessDto"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "$ref": "#/components/schemas/SuggestionDto"
-                        }
-                      },
-                      "required": ["data"]
-                    }
-                  ]
+                  "type": "object",
+                  "required": ["success", "data"],
+                  "properties": {
+                    "success": { "type": "boolean", "enum": [true] },
+                    "data": { "$ref": "#/components/schemas/SuggestionDto" }
+                  }
                 }
               }
             }
           },
-          "default": {
-            "description": "Error",
+          "400": {
+            "description": "The request query, path parameter, or body does not match the API contract.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiErrorDto"
+                  "type": "object",
+                  "required": ["success", "error"],
+                  "properties": {
+                    "success": { "type": "boolean", "const": false },
+                    "error": {
+                      "type": "object",
+                      "required": ["status", "code", "message"],
+                      "properties": {
+                        "status": { "type": "number", "const": 400 },
+                        "code": {
+                          "type": "string",
+                          "const": "invalid-request"
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Invalid request"
+                        },
+                        "details": {}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "The server failed before the request could be completed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["success", "error"],
+                  "properties": {
+                    "success": { "type": "boolean", "const": false },
+                    "error": {
+                      "type": "object",
+                      "required": ["status", "code", "message"],
+                      "properties": {
+                        "status": { "type": "number", "const": 500 },
+                        "code": { "type": "string", "const": "internal-error" },
+                        "message": {
+                          "type": "string",
+                          "example": "Internal server error"
+                        },
+                        "details": {}
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -66,19 +101,15 @@
         "tags": ["Stocks"]
       }
     },
-    "/stocks/search": {
+    "/stocks": {
       "get": {
         "operationId": "StocksController_search",
         "parameters": [
           {
-            "name": "q",
+            "name": "query",
             "required": true,
             "in": "query",
-            "schema": {
-              "minLength": 1,
-              "example": "삼성",
-              "type": "string"
-            }
+            "schema": { "minLength": 1, "example": "삼성", "type": "string" }
           }
         ],
         "responses": {
@@ -87,33 +118,72 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/ApiSuccessDto"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "type": "array",
-                          "items": {
-                            "$ref": "#/components/schemas/StockDto"
-                          }
-                        }
-                      },
-                      "required": ["data"]
+                  "type": "object",
+                  "required": ["success", "data"],
+                  "properties": {
+                    "success": { "type": "boolean", "enum": [true] },
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/StockDto" }
                     }
-                  ]
+                  }
                 }
               }
             }
           },
-          "default": {
-            "description": "Error",
+          "400": {
+            "description": "The request query, path parameter, or body does not match the API contract.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiErrorDto"
+                  "type": "object",
+                  "required": ["success", "error"],
+                  "properties": {
+                    "success": { "type": "boolean", "const": false },
+                    "error": {
+                      "type": "object",
+                      "required": ["status", "code", "message"],
+                      "properties": {
+                        "status": { "type": "number", "const": 400 },
+                        "code": {
+                          "type": "string",
+                          "const": "invalid-request"
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Invalid request"
+                        },
+                        "details": {}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "The server failed before the request could be completed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["success", "error"],
+                  "properties": {
+                    "success": { "type": "boolean", "const": false },
+                    "error": {
+                      "type": "object",
+                      "required": ["status", "code", "message"],
+                      "properties": {
+                        "status": { "type": "number", "const": 500 },
+                        "code": { "type": "string", "const": "internal-error" },
+                        "message": {
+                          "type": "string",
+                          "example": "Internal server error"
+                        },
+                        "details": {}
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -122,14 +192,15 @@
         "tags": ["Stocks"]
       }
     },
-    "/stocks/{code}": {
+    "/stocks/{symbol}": {
       "get": {
         "operationId": "StocksController_get",
         "parameters": [
           {
-            "name": "code",
+            "name": "symbol",
             "required": true,
             "in": "path",
+            "description": "Listed stock symbol",
             "schema": {
               "pattern": "^[A-Z0-9]{1,9}$",
               "example": "005930",
@@ -143,30 +214,99 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/ApiSuccessDto"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "$ref": "#/components/schemas/StockDto"
-                        }
-                      },
-                      "required": ["data"]
-                    }
-                  ]
+                  "type": "object",
+                  "required": ["success", "data"],
+                  "properties": {
+                    "success": { "type": "boolean", "enum": [true] },
+                    "data": { "$ref": "#/components/schemas/StockDto" }
+                  }
                 }
               }
             }
           },
-          "default": {
-            "description": "Error",
+          "400": {
+            "description": "The request query, path parameter, or body does not match the API contract.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiErrorDto"
+                  "type": "object",
+                  "required": ["success", "error"],
+                  "properties": {
+                    "success": { "type": "boolean", "const": false },
+                    "error": {
+                      "type": "object",
+                      "required": ["status", "code", "message"],
+                      "properties": {
+                        "status": { "type": "number", "const": 400 },
+                        "code": {
+                          "type": "string",
+                          "const": "invalid-request"
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Invalid request"
+                        },
+                        "details": {}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested stock symbol is not supported by this service.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["success", "error"],
+                  "properties": {
+                    "success": { "type": "boolean", "const": false },
+                    "error": {
+                      "type": "object",
+                      "required": ["status", "code", "message"],
+                      "properties": {
+                        "status": { "type": "number", "const": 404 },
+                        "code": {
+                          "type": "string",
+                          "const": "unsupported-stock"
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Unsupported stock symbol"
+                        },
+                        "details": {}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "The server failed before the request could be completed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["success", "error"],
+                  "properties": {
+                    "success": { "type": "boolean", "const": false },
+                    "error": {
+                      "type": "object",
+                      "required": ["status", "code", "message"],
+                      "properties": {
+                        "status": { "type": "number", "const": 500 },
+                        "code": { "type": "string", "const": "internal-error" },
+                        "message": {
+                          "type": "string",
+                          "example": "Internal server error"
+                        },
+                        "details": {}
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -175,14 +315,15 @@
         "tags": ["Stocks"]
       }
     },
-    "/prices/{code}/current": {
+    "/prices": {
       "get": {
-        "operationId": "PricesController_current",
+        "operationId": "PricesController_price",
         "parameters": [
           {
-            "name": "code",
+            "name": "symbol",
             "required": true,
-            "in": "path",
+            "in": "query",
+            "description": "Listed stock symbol",
             "schema": {
               "pattern": "^[A-Z0-9]{1,9}$",
               "example": "005930",
@@ -196,30 +337,236 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "allOf": [
+                  "type": "object",
+                  "required": ["success", "data"],
+                  "properties": {
+                    "success": { "type": "boolean", "enum": [true] },
+                    "data": { "$ref": "#/components/schemas/PriceDto" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request query, path parameter, or body does not match the API contract.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["success", "error"],
+                  "properties": {
+                    "success": { "type": "boolean", "const": false },
+                    "error": {
+                      "type": "object",
+                      "required": ["status", "code", "message"],
+                      "properties": {
+                        "status": { "type": "number", "const": 400 },
+                        "code": {
+                          "type": "string",
+                          "const": "invalid-request"
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Invalid request"
+                        },
+                        "details": {}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested stock symbol is not supported by this service.\nThe requested market data point is required for this operation but was not available from the provider.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
                     {
-                      "$ref": "#/components/schemas/ApiSuccessDto"
+                      "type": "object",
+                      "required": ["success", "error"],
+                      "properties": {
+                        "success": { "type": "boolean", "const": false },
+                        "error": {
+                          "type": "object",
+                          "required": ["status", "code", "message"],
+                          "properties": {
+                            "status": { "type": "number", "const": 404 },
+                            "code": {
+                              "type": "string",
+                              "const": "unsupported-stock"
+                            },
+                            "message": {
+                              "type": "string",
+                              "example": "Unsupported stock symbol"
+                            },
+                            "details": {}
+                          }
+                        }
+                      }
                     },
                     {
                       "type": "object",
+                      "required": ["success", "error"],
                       "properties": {
-                        "data": {
-                          "$ref": "#/components/schemas/PriceCurrentDto"
+                        "success": { "type": "boolean", "const": false },
+                        "error": {
+                          "type": "object",
+                          "required": ["status", "code", "message"],
+                          "properties": {
+                            "status": { "type": "number", "const": 404 },
+                            "code": {
+                              "type": "string",
+                              "const": "market-data-not-found"
+                            },
+                            "message": {
+                              "type": "string",
+                              "example": "Market data was not found"
+                            },
+                            "details": {}
+                          }
                         }
-                      },
-                      "required": ["data"]
+                      }
                     }
                   ]
                 }
               }
             }
           },
-          "default": {
-            "description": "Error",
+          "500": {
+            "description": "The server failed before the request could be completed.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiErrorDto"
+                  "type": "object",
+                  "required": ["success", "error"],
+                  "properties": {
+                    "success": { "type": "boolean", "const": false },
+                    "error": {
+                      "type": "object",
+                      "required": ["status", "code", "message"],
+                      "properties": {
+                        "status": { "type": "number", "const": 500 },
+                        "code": { "type": "string", "const": "internal-error" },
+                        "message": {
+                          "type": "string",
+                          "example": "Internal server error"
+                        },
+                        "details": {}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The upstream market data provider could not complete the request.\nThe upstream market data provider rejected or failed authorization.\nThe upstream market data provider returned a response that does not match the expected contract.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "required": ["success", "error"],
+                      "properties": {
+                        "success": { "type": "boolean", "const": false },
+                        "error": {
+                          "type": "object",
+                          "required": ["status", "code", "message"],
+                          "properties": {
+                            "status": { "type": "number", "const": 502 },
+                            "code": {
+                              "type": "string",
+                              "const": "market-data-unavailable"
+                            },
+                            "message": {
+                              "type": "string",
+                              "example": "Market data is unavailable"
+                            },
+                            "details": {}
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": ["success", "error"],
+                      "properties": {
+                        "success": { "type": "boolean", "const": false },
+                        "error": {
+                          "type": "object",
+                          "required": ["status", "code", "message"],
+                          "properties": {
+                            "status": { "type": "number", "const": 502 },
+                            "code": {
+                              "type": "string",
+                              "const": "market-data-auth-unavailable"
+                            },
+                            "message": {
+                              "type": "string",
+                              "example": "Market data authorization is unavailable"
+                            },
+                            "details": {}
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": ["success", "error"],
+                      "properties": {
+                        "success": { "type": "boolean", "const": false },
+                        "error": {
+                          "type": "object",
+                          "required": ["status", "code", "message"],
+                          "properties": {
+                            "status": { "type": "number", "const": 502 },
+                            "code": {
+                              "type": "string",
+                              "const": "market-data-invalid-response"
+                            },
+                            "message": {
+                              "type": "string",
+                              "example": "Market data response is invalid"
+                            },
+                            "details": {}
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "The upstream market data request exceeded its time limit.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["success", "error"],
+                  "properties": {
+                    "success": { "type": "boolean", "const": false },
+                    "error": {
+                      "type": "object",
+                      "required": ["status", "code", "message"],
+                      "properties": {
+                        "status": { "type": "number", "const": 504 },
+                        "code": {
+                          "type": "string",
+                          "const": "market-data-timeout"
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Market data request timed out"
+                        },
+                        "details": {}
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -228,67 +575,15 @@
         "tags": ["Prices"]
       }
     },
-    "/prices/{code}/quote": {
+    "/candles": {
       "get": {
-        "operationId": "PricesController_quote",
+        "operationId": "CandlesController_candles",
         "parameters": [
           {
-            "name": "code",
+            "name": "symbol",
             "required": true,
-            "in": "path",
-            "schema": {
-              "pattern": "^[A-Z0-9]{1,9}$",
-              "example": "005930",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/ApiSuccessDto"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "$ref": "#/components/schemas/PriceQuoteDto"
-                        }
-                      },
-                      "required": ["data"]
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Prices"]
-      }
-    },
-    "/prices/{code}/daily-candle": {
-      "get": {
-        "operationId": "PricesController_dailyCandle",
-        "parameters": [
-          {
-            "name": "code",
-            "required": true,
-            "in": "path",
+            "in": "query",
+            "description": "Listed stock symbol",
             "schema": {
               "pattern": "^[A-Z0-9]{1,9}$",
               "example": "005930",
@@ -296,13 +591,31 @@
             }
           },
           {
-            "name": "date",
+            "name": "interval",
             "required": true,
+            "in": "query",
+            "schema": { "type": "string", "const": "1d" }
+          },
+          {
+            "name": "count",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 200,
+              "default": 100,
+              "example": 100,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "before",
+            "required": false,
             "in": "query",
             "schema": {
               "format": "date",
               "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
-              "example": "2026-05-15",
+              "example": "2026-05-17",
               "type": "string"
             }
           }
@@ -313,36 +626,242 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "allOf": [
+                  "type": "object",
+                  "required": ["success", "data"],
+                  "properties": {
+                    "success": { "type": "boolean", "enum": [true] },
+                    "data": { "$ref": "#/components/schemas/CandlesDto" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request query, path parameter, or body does not match the API contract.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["success", "error"],
+                  "properties": {
+                    "success": { "type": "boolean", "const": false },
+                    "error": {
+                      "type": "object",
+                      "required": ["status", "code", "message"],
+                      "properties": {
+                        "status": { "type": "number", "const": 400 },
+                        "code": {
+                          "type": "string",
+                          "const": "invalid-request"
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Invalid request"
+                        },
+                        "details": {}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested stock symbol is not supported by this service.\nThe requested market data point is required for this operation but was not available from the provider.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
                     {
-                      "$ref": "#/components/schemas/ApiSuccessDto"
+                      "type": "object",
+                      "required": ["success", "error"],
+                      "properties": {
+                        "success": { "type": "boolean", "const": false },
+                        "error": {
+                          "type": "object",
+                          "required": ["status", "code", "message"],
+                          "properties": {
+                            "status": { "type": "number", "const": 404 },
+                            "code": {
+                              "type": "string",
+                              "const": "unsupported-stock"
+                            },
+                            "message": {
+                              "type": "string",
+                              "example": "Unsupported stock symbol"
+                            },
+                            "details": {}
+                          }
+                        }
+                      }
                     },
                     {
                       "type": "object",
+                      "required": ["success", "error"],
                       "properties": {
-                        "data": {
-                          "$ref": "#/components/schemas/PriceDailyCandleDto"
+                        "success": { "type": "boolean", "const": false },
+                        "error": {
+                          "type": "object",
+                          "required": ["status", "code", "message"],
+                          "properties": {
+                            "status": { "type": "number", "const": 404 },
+                            "code": {
+                              "type": "string",
+                              "const": "market-data-not-found"
+                            },
+                            "message": {
+                              "type": "string",
+                              "example": "Market data was not found"
+                            },
+                            "details": {}
+                          }
                         }
-                      },
-                      "required": ["data"]
+                      }
                     }
                   ]
                 }
               }
             }
           },
-          "default": {
-            "description": "Error",
+          "500": {
+            "description": "The server failed before the request could be completed.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiErrorDto"
+                  "type": "object",
+                  "required": ["success", "error"],
+                  "properties": {
+                    "success": { "type": "boolean", "const": false },
+                    "error": {
+                      "type": "object",
+                      "required": ["status", "code", "message"],
+                      "properties": {
+                        "status": { "type": "number", "const": 500 },
+                        "code": { "type": "string", "const": "internal-error" },
+                        "message": {
+                          "type": "string",
+                          "example": "Internal server error"
+                        },
+                        "details": {}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The upstream market data provider could not complete the request.\nThe upstream market data provider rejected or failed authorization.\nThe upstream market data provider returned a response that does not match the expected contract.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "required": ["success", "error"],
+                      "properties": {
+                        "success": { "type": "boolean", "const": false },
+                        "error": {
+                          "type": "object",
+                          "required": ["status", "code", "message"],
+                          "properties": {
+                            "status": { "type": "number", "const": 502 },
+                            "code": {
+                              "type": "string",
+                              "const": "market-data-unavailable"
+                            },
+                            "message": {
+                              "type": "string",
+                              "example": "Market data is unavailable"
+                            },
+                            "details": {}
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": ["success", "error"],
+                      "properties": {
+                        "success": { "type": "boolean", "const": false },
+                        "error": {
+                          "type": "object",
+                          "required": ["status", "code", "message"],
+                          "properties": {
+                            "status": { "type": "number", "const": 502 },
+                            "code": {
+                              "type": "string",
+                              "const": "market-data-auth-unavailable"
+                            },
+                            "message": {
+                              "type": "string",
+                              "example": "Market data authorization is unavailable"
+                            },
+                            "details": {}
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": ["success", "error"],
+                      "properties": {
+                        "success": { "type": "boolean", "const": false },
+                        "error": {
+                          "type": "object",
+                          "required": ["status", "code", "message"],
+                          "properties": {
+                            "status": { "type": "number", "const": 502 },
+                            "code": {
+                              "type": "string",
+                              "const": "market-data-invalid-response"
+                            },
+                            "message": {
+                              "type": "string",
+                              "example": "Market data response is invalid"
+                            },
+                            "details": {}
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "The upstream market data request exceeded its time limit.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["success", "error"],
+                  "properties": {
+                    "success": { "type": "boolean", "const": false },
+                    "error": {
+                      "type": "object",
+                      "required": ["status", "code", "message"],
+                      "properties": {
+                        "status": { "type": "number", "const": 504 },
+                        "code": {
+                          "type": "string",
+                          "const": "market-data-timeout"
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Market data request timed out"
+                        },
+                        "details": {}
+                      }
+                    }
+                  }
                 }
               }
             }
           }
         },
-        "tags": ["Prices"]
+        "tags": ["Candles"]
       }
     },
     "/returns": {
@@ -350,9 +869,10 @@
         "operationId": "ReturnsController_calculate",
         "parameters": [
           {
-            "name": "code",
+            "name": "symbol",
             "required": true,
             "in": "query",
+            "description": "Listed stock symbol",
             "schema": {
               "pattern": "^[A-Z0-9]{1,9}$",
               "example": "005930",
@@ -366,7 +886,7 @@
             "schema": {
               "format": "date",
               "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
-              "example": "2026-05-15",
+              "example": "2026-05-17",
               "type": "string"
             }
           },
@@ -388,30 +908,236 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "allOf": [
+                  "type": "object",
+                  "required": ["success", "data"],
+                  "properties": {
+                    "success": { "type": "boolean", "enum": [true] },
+                    "data": { "$ref": "#/components/schemas/ReturnSummaryDto" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request query, path parameter, or body does not match the API contract.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["success", "error"],
+                  "properties": {
+                    "success": { "type": "boolean", "const": false },
+                    "error": {
+                      "type": "object",
+                      "required": ["status", "code", "message"],
+                      "properties": {
+                        "status": { "type": "number", "const": 400 },
+                        "code": {
+                          "type": "string",
+                          "const": "invalid-request"
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Invalid request"
+                        },
+                        "details": {}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested stock symbol is not supported by this service.\nThe requested market data point is required for this operation but was not available from the provider.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
                     {
-                      "$ref": "#/components/schemas/ApiSuccessDto"
+                      "type": "object",
+                      "required": ["success", "error"],
+                      "properties": {
+                        "success": { "type": "boolean", "const": false },
+                        "error": {
+                          "type": "object",
+                          "required": ["status", "code", "message"],
+                          "properties": {
+                            "status": { "type": "number", "const": 404 },
+                            "code": {
+                              "type": "string",
+                              "const": "unsupported-stock"
+                            },
+                            "message": {
+                              "type": "string",
+                              "example": "Unsupported stock symbol"
+                            },
+                            "details": {}
+                          }
+                        }
+                      }
                     },
                     {
                       "type": "object",
+                      "required": ["success", "error"],
                       "properties": {
-                        "data": {
-                          "$ref": "#/components/schemas/ReturnSummaryDto"
+                        "success": { "type": "boolean", "const": false },
+                        "error": {
+                          "type": "object",
+                          "required": ["status", "code", "message"],
+                          "properties": {
+                            "status": { "type": "number", "const": 404 },
+                            "code": {
+                              "type": "string",
+                              "const": "market-data-not-found"
+                            },
+                            "message": {
+                              "type": "string",
+                              "example": "Market data was not found"
+                            },
+                            "details": {}
+                          }
                         }
-                      },
-                      "required": ["data"]
+                      }
                     }
                   ]
                 }
               }
             }
           },
-          "default": {
-            "description": "Error",
+          "500": {
+            "description": "The server failed before the request could be completed.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiErrorDto"
+                  "type": "object",
+                  "required": ["success", "error"],
+                  "properties": {
+                    "success": { "type": "boolean", "const": false },
+                    "error": {
+                      "type": "object",
+                      "required": ["status", "code", "message"],
+                      "properties": {
+                        "status": { "type": "number", "const": 500 },
+                        "code": { "type": "string", "const": "internal-error" },
+                        "message": {
+                          "type": "string",
+                          "example": "Internal server error"
+                        },
+                        "details": {}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The upstream market data provider could not complete the request.\nThe upstream market data provider rejected or failed authorization.\nThe upstream market data provider returned a response that does not match the expected contract.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "required": ["success", "error"],
+                      "properties": {
+                        "success": { "type": "boolean", "const": false },
+                        "error": {
+                          "type": "object",
+                          "required": ["status", "code", "message"],
+                          "properties": {
+                            "status": { "type": "number", "const": 502 },
+                            "code": {
+                              "type": "string",
+                              "const": "market-data-unavailable"
+                            },
+                            "message": {
+                              "type": "string",
+                              "example": "Market data is unavailable"
+                            },
+                            "details": {}
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": ["success", "error"],
+                      "properties": {
+                        "success": { "type": "boolean", "const": false },
+                        "error": {
+                          "type": "object",
+                          "required": ["status", "code", "message"],
+                          "properties": {
+                            "status": { "type": "number", "const": 502 },
+                            "code": {
+                              "type": "string",
+                              "const": "market-data-auth-unavailable"
+                            },
+                            "message": {
+                              "type": "string",
+                              "example": "Market data authorization is unavailable"
+                            },
+                            "details": {}
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": ["success", "error"],
+                      "properties": {
+                        "success": { "type": "boolean", "const": false },
+                        "error": {
+                          "type": "object",
+                          "required": ["status", "code", "message"],
+                          "properties": {
+                            "status": { "type": "number", "const": 502 },
+                            "code": {
+                              "type": "string",
+                              "const": "market-data-invalid-response"
+                            },
+                            "message": {
+                              "type": "string",
+                              "example": "Market data response is invalid"
+                            },
+                            "details": {}
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "The upstream market data request exceeded its time limit.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["success", "error"],
+                  "properties": {
+                    "success": { "type": "boolean", "const": false },
+                    "error": {
+                      "type": "object",
+                      "required": ["status", "code", "message"],
+                      "properties": {
+                        "status": { "type": "number", "const": 504 },
+                        "code": {
+                          "type": "string",
+                          "const": "market-data-timeout"
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Market data request timed out"
+                        },
+                        "details": {}
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -425,10 +1151,10 @@
         "operationId": "RealtimeController_stream",
         "parameters": [
           {
-            "name": "stockCodes",
+            "name": "symbols",
             "required": true,
             "in": "query",
-            "description": "Comma-separated stock codes",
+            "description": "Comma-separated stock symbols",
             "schema": {
               "minLength": 1,
               "maxLength": 128,
@@ -449,13 +1175,8 @@
                       {
                         "type": "object",
                         "properties": {
-                          "event": {
-                            "type": "string",
-                            "enum": ["subscribed"]
-                          },
-                          "id": {
-                            "type": "string"
-                          },
+                          "event": { "type": "string", "enum": ["subscribed"] },
+                          "id": { "type": "string" },
                           "data": {
                             "$ref": "#/components/schemas/RealtimeSubscribedDto"
                           }
@@ -465,13 +1186,8 @@
                       {
                         "type": "object",
                         "properties": {
-                          "event": {
-                            "type": "string",
-                            "enum": ["price"]
-                          },
-                          "id": {
-                            "type": "string"
-                          },
+                          "event": { "type": "string", "enum": ["price"] },
+                          "id": { "type": "string" },
                           "data": {
                             "$ref": "#/components/schemas/RealtimePriceDto"
                           }
@@ -481,13 +1197,8 @@
                       {
                         "type": "object",
                         "properties": {
-                          "event": {
-                            "type": "string",
-                            "enum": ["heartbeat"]
-                          },
-                          "id": {
-                            "type": "string"
-                          },
+                          "event": { "type": "string", "enum": ["heartbeat"] },
+                          "id": { "type": "string" },
                           "data": {
                             "$ref": "#/components/schemas/RealtimeHeartbeatDto"
                           }
@@ -501,9 +1212,7 @@
                             "type": "string",
                             "enum": ["disconnected"]
                           },
-                          "id": {
-                            "type": "string"
-                          },
+                          "id": { "type": "string" },
                           "data": {
                             "$ref": "#/components/schemas/RealtimeDisconnectedDto"
                           }
@@ -517,9 +1226,7 @@
                             "type": "string",
                             "enum": ["reconnected"]
                           },
-                          "id": {
-                            "type": "string"
-                          },
+                          "id": { "type": "string" },
                           "data": {
                             "$ref": "#/components/schemas/RealtimeReconnectedDto"
                           }
@@ -529,24 +1236,41 @@
                       {
                         "type": "object",
                         "properties": {
-                          "event": {
-                            "type": "string",
-                            "enum": ["error"]
-                          },
-                          "id": {
-                            "type": "string"
-                          },
-                          "retry": {
-                            "type": "number"
-                          },
+                          "event": { "type": "string", "enum": ["error"] },
+                          "id": { "type": "string" },
+                          "retry": { "type": "number" },
                           "data": {
                             "oneOf": [
                               {
-                                "$ref": "#/components/schemas/RealtimeErrorDto"
+                                "type": "object",
+                                "properties": {
+                                  "status": { "type": "number", "enum": [400] },
+                                  "code": {
+                                    "type": "string",
+                                    "enum": ["invalid-request"]
+                                  },
+                                  "message": { "type": "string" },
+                                  "details": {}
+                                },
+                                "required": ["status", "code", "message"]
                               },
                               {
-                                "type": "string"
-                              }
+                                "type": "object",
+                                "properties": {
+                                  "status": { "type": "number", "enum": [404] },
+                                  "code": {
+                                    "type": "string",
+                                    "enum": ["unsupported-stock"]
+                                  },
+                                  "message": { "type": "string" },
+                                  "details": {}
+                                },
+                                "required": ["status", "code", "message"]
+                              },
+                              {
+                                "$ref": "#/components/schemas/RealtimeErrorDto"
+                              },
+                              { "type": "string" }
                             ]
                           }
                         },
@@ -554,114 +1278,268 @@
                       }
                     ]
                   }
-                },
-                "itemSchema": {
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The symbols query is missing or does not match the stream request contract.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["success", "error"],
+                  "properties": {
+                    "success": { "type": "boolean", "enum": [false] },
+                    "error": {
+                      "type": "object",
+                      "required": ["status", "code", "message"],
+                      "properties": {
+                        "status": { "type": "number", "enum": [400] },
+                        "code": {
+                          "type": "string",
+                          "enum": ["invalid-request"]
+                        },
+                        "message": { "type": "string" },
+                        "details": {}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Realtime"]
+      }
+    },
+    "/jobju/score": {
+      "get": {
+        "operationId": "JobjuController_score",
+        "parameters": [
+          {
+            "name": "symbol",
+            "required": true,
+            "in": "query",
+            "description": "Listed stock symbol",
+            "schema": {
+              "pattern": "^[A-Z0-9]{1,9}$",
+              "example": "005930",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["success", "data"],
+                  "properties": {
+                    "success": { "type": "boolean", "enum": [true] },
+                    "data": { "$ref": "#/components/schemas/JobjuScoreDto" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request query, path parameter, or body does not match the API contract.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["success", "error"],
+                  "properties": {
+                    "success": { "type": "boolean", "const": false },
+                    "error": {
+                      "type": "object",
+                      "required": ["status", "code", "message"],
+                      "properties": {
+                        "status": { "type": "number", "const": 400 },
+                        "code": {
+                          "type": "string",
+                          "const": "invalid-request"
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Invalid request"
+                        },
+                        "details": {}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested stock symbol is not supported by this service.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["success", "error"],
+                  "properties": {
+                    "success": { "type": "boolean", "const": false },
+                    "error": {
+                      "type": "object",
+                      "required": ["status", "code", "message"],
+                      "properties": {
+                        "status": { "type": "number", "const": 404 },
+                        "code": {
+                          "type": "string",
+                          "const": "unsupported-stock"
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Unsupported stock symbol"
+                        },
+                        "details": {}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "ETF, ETN, preferred stock, REIT, SPAC, and non-stock products are not scored by this endpoint.\nThe score currently supports KOSPI and KOSDAQ stocks with comparable market data.",
+            "content": {
+              "application/json": {
+                "schema": {
                   "oneOf": [
                     {
                       "type": "object",
+                      "required": ["success", "error"],
                       "properties": {
-                        "event": {
-                          "type": "string",
-                          "enum": ["subscribed"]
-                        },
-                        "id": {
-                          "type": "string"
-                        },
-                        "data": {
-                          "$ref": "#/components/schemas/RealtimeSubscribedDto"
-                        }
-                      },
-                      "required": ["event", "data"]
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "event": {
-                          "type": "string",
-                          "enum": ["price"]
-                        },
-                        "id": {
-                          "type": "string"
-                        },
-                        "data": {
-                          "$ref": "#/components/schemas/RealtimePriceDto"
-                        }
-                      },
-                      "required": ["event", "data"]
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "event": {
-                          "type": "string",
-                          "enum": ["heartbeat"]
-                        },
-                        "id": {
-                          "type": "string"
-                        },
-                        "data": {
-                          "$ref": "#/components/schemas/RealtimeHeartbeatDto"
-                        }
-                      },
-                      "required": ["event", "data"]
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "event": {
-                          "type": "string",
-                          "enum": ["disconnected"]
-                        },
-                        "id": {
-                          "type": "string"
-                        },
-                        "data": {
-                          "$ref": "#/components/schemas/RealtimeDisconnectedDto"
-                        }
-                      },
-                      "required": ["event", "data"]
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "event": {
-                          "type": "string",
-                          "enum": ["reconnected"]
-                        },
-                        "id": {
-                          "type": "string"
-                        },
-                        "data": {
-                          "$ref": "#/components/schemas/RealtimeReconnectedDto"
-                        }
-                      },
-                      "required": ["event", "data"]
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "event": {
-                          "type": "string",
-                          "enum": ["error"]
-                        },
-                        "id": {
-                          "type": "string"
-                        },
-                        "retry": {
-                          "type": "number"
-                        },
-                        "data": {
-                          "oneOf": [
-                            {
-                              "$ref": "#/components/schemas/RealtimeErrorDto"
+                        "success": { "type": "boolean", "const": false },
+                        "error": {
+                          "type": "object",
+                          "required": ["status", "code", "message"],
+                          "properties": {
+                            "status": { "type": "number", "const": 422 },
+                            "code": {
+                              "type": "string",
+                              "const": "jobju-unsupported-product"
                             },
-                            {
-                              "type": "string"
-                            }
-                          ]
+                            "message": {
+                              "type": "string",
+                              "example": "This product is not supported for jobju scoring"
+                            },
+                            "details": {}
+                          }
                         }
-                      },
-                      "required": ["event", "data"]
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": ["success", "error"],
+                      "properties": {
+                        "success": { "type": "boolean", "const": false },
+                        "error": {
+                          "type": "object",
+                          "required": ["status", "code", "message"],
+                          "properties": {
+                            "status": { "type": "number", "const": 422 },
+                            "code": {
+                              "type": "string",
+                              "const": "jobju-invalid-market"
+                            },
+                            "message": {
+                              "type": "string",
+                              "example": "This market is not supported for jobju scoring"
+                            },
+                            "details": {}
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "The server failed before the request could be completed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["success", "error"],
+                  "properties": {
+                    "success": { "type": "boolean", "const": false },
+                    "error": {
+                      "type": "object",
+                      "required": ["status", "code", "message"],
+                      "properties": {
+                        "status": { "type": "number", "const": 500 },
+                        "code": { "type": "string", "const": "internal-error" },
+                        "message": {
+                          "type": "string",
+                          "example": "Internal server error"
+                        },
+                        "details": {}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The service could not collect enough comparable market data to calculate the jobju score.\nThe service could not collect the OpenDART financial or disclosure data required for the score.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "required": ["success", "error"],
+                      "properties": {
+                        "success": { "type": "boolean", "const": false },
+                        "error": {
+                          "type": "object",
+                          "required": ["status", "code", "message"],
+                          "properties": {
+                            "status": { "type": "number", "const": 502 },
+                            "code": {
+                              "type": "string",
+                              "const": "jobju-score-unavailable"
+                            },
+                            "message": {
+                              "type": "string",
+                              "example": "Jobju score is unavailable"
+                            },
+                            "details": {}
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": ["success", "error"],
+                      "properties": {
+                        "success": { "type": "boolean", "const": false },
+                        "error": {
+                          "type": "object",
+                          "required": ["status", "code", "message"],
+                          "properties": {
+                            "status": { "type": "number", "const": 502 },
+                            "code": {
+                              "type": "string",
+                              "const": "jobju-financial-data-unavailable"
+                            },
+                            "message": {
+                              "type": "string",
+                              "example": "Financial disclosure data is unavailable"
+                            },
+                            "details": {}
+                          }
+                        }
+                      }
                     }
                   ]
                 }
@@ -669,7 +1547,7 @@
             }
           }
         },
-        "tags": ["Realtime"]
+        "tags": ["Jobju"]
       }
     },
     "/health": {
@@ -682,30 +1560,69 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/ApiSuccessDto"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "$ref": "#/components/schemas/HealthCheckDto"
-                        }
-                      },
-                      "required": ["data"]
-                    }
-                  ]
+                  "type": "object",
+                  "required": ["success", "data"],
+                  "properties": {
+                    "success": { "type": "boolean", "enum": [true] },
+                    "data": { "$ref": "#/components/schemas/HealthCheckDto" }
+                  }
                 }
               }
             }
           },
-          "default": {
-            "description": "Error",
+          "400": {
+            "description": "The request query, path parameter, or body does not match the API contract.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiErrorDto"
+                  "type": "object",
+                  "required": ["success", "error"],
+                  "properties": {
+                    "success": { "type": "boolean", "const": false },
+                    "error": {
+                      "type": "object",
+                      "required": ["status", "code", "message"],
+                      "properties": {
+                        "status": { "type": "number", "const": 400 },
+                        "code": {
+                          "type": "string",
+                          "const": "invalid-request"
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Invalid request"
+                        },
+                        "details": {}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "The server failed before the request could be completed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["success", "error"],
+                  "properties": {
+                    "success": { "type": "boolean", "const": false },
+                    "error": {
+                      "type": "object",
+                      "required": ["status", "code", "message"],
+                      "properties": {
+                        "status": { "type": "number", "const": 500 },
+                        "code": { "type": "string", "const": "internal-error" },
+                        "message": {
+                          "type": "string",
+                          "example": "Internal server error"
+                        },
+                        "details": {}
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -733,53 +1650,28 @@
             "items": {
               "type": "object",
               "properties": {
-                "code": {
+                "symbol": {
                   "type": "string",
                   "pattern": "^[A-Z0-9]{1,9}$",
+                  "description": "Listed stock symbol",
                   "example": "005930"
                 },
-                "name": {
-                  "type": "string",
-                  "example": "삼성전자"
-                },
-                "marketName": {
-                  "type": "string",
-                  "example": "KOSPI"
-                },
+                "name": { "type": "string", "example": "삼성전자" },
+                "marketName": { "type": "string", "example": "KOSPI" },
                 "quotationMarket": {
                   "type": "string",
                   "enum": ["KRX", "NXT", "CONSOLIDATED"],
                   "example": "KRX"
                 },
-                "standardCode": {
-                  "example": "KR7005930003",
-                  "type": "string"
-                },
-                "securityGroupCode": {
-                  "example": "ST",
-                  "type": "string"
-                },
+                "standardCode": { "example": "KR7005930003", "type": "string" },
+                "securityGroupCode": { "example": "ST", "type": "string" },
                 "rawEtpType": {
                   "example": "2",
-                  "anyOf": [
-                    {
-                      "type": "string"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
+                  "anyOf": [{ "type": "string" }, { "type": "null" }]
                 },
                 "preferredStockType": {
                   "example": "0",
-                  "anyOf": [
-                    {
-                      "type": "string"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
+                  "anyOf": [{ "type": "string" }, { "type": "null" }]
                 },
                 "productType": {
                   "example": "STOCK",
@@ -795,38 +1687,17 @@
                     "OTHER"
                   ]
                 },
-                "isPreferred": {
-                  "example": false,
-                  "type": "boolean"
-                },
-                "isEtf": {
-                  "example": false,
-                  "type": "boolean"
-                },
-                "isEtn": {
-                  "example": false,
-                  "type": "boolean"
-                },
-                "isSpac": {
-                  "example": false,
-                  "type": "boolean"
-                },
-                "isReit": {
-                  "example": false,
-                  "type": "boolean"
-                },
-                "isTradingHalted": {
-                  "example": false,
-                  "type": "boolean"
-                },
+                "isPreferred": { "example": false, "type": "boolean" },
+                "isEtf": { "example": false, "type": "boolean" },
+                "isEtn": { "example": false, "type": "boolean" },
+                "isSpac": { "example": false, "type": "boolean" },
+                "isReit": { "example": false, "type": "boolean" },
+                "isTradingHalted": { "example": false, "type": "boolean" },
                 "isUnderAdministration": {
                   "example": false,
                   "type": "boolean"
                 },
-                "isLowLiquidity": {
-                  "example": false,
-                  "type": "boolean"
-                },
+                "isLowLiquidity": { "example": false, "type": "boolean" },
                 "marketCap": {
                   "anyOf": [
                     {
@@ -834,9 +1705,7 @@
                       "minimum": 0,
                       "maximum": 9007199254740991
                     },
-                    {
-                      "type": "null"
-                    }
+                    { "type": "null" }
                   ]
                 },
                 "previousVolume": {
@@ -846,107 +1715,56 @@
                       "minimum": 0,
                       "maximum": 9007199254740991
                     },
-                    {
-                      "type": "null"
-                    }
+                    { "type": "null" }
                   ]
                 },
                 "listedDate": {
                   "example": "19750611",
                   "anyOf": [
-                    {
-                      "type": "string",
-                      "pattern": "^\\d{8}$"
-                    },
-                    {
-                      "type": "null"
-                    }
+                    { "type": "string", "pattern": "^\\d{8}$" },
+                    { "type": "null" }
                   ]
                 },
-                "isKospi100": {
-                  "example": true,
-                  "type": "boolean"
-                },
-                "isKospi50": {
-                  "example": true,
-                  "type": "boolean"
-                },
-                "isKrx300": {
-                  "example": true,
-                  "type": "boolean"
-                },
+                "isKospi100": { "example": true, "type": "boolean" },
+                "isKospi50": { "example": true, "type": "boolean" },
+                "isKrx300": { "example": true, "type": "boolean" },
                 "warningLevel": {
                   "example": "00",
-                  "anyOf": [
-                    {
-                      "type": "string"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
+                  "anyOf": [{ "type": "string" }, { "type": "null" }]
                 }
               },
-              "required": ["code", "name", "marketName", "quotationMarket"]
+              "required": ["symbol", "name", "marketName", "quotationMarket"]
             }
           },
-          "hasMore": {
-            "type": "boolean",
-            "example": true
-          }
+          "hasMore": { "type": "boolean", "example": true }
         },
         "required": ["items", "hasMore"]
       },
       "StockDto": {
         "type": "object",
         "properties": {
-          "code": {
+          "symbol": {
             "type": "string",
             "pattern": "^[A-Z0-9]{1,9}$",
+            "description": "Listed stock symbol",
             "example": "005930"
           },
-          "name": {
-            "type": "string",
-            "example": "삼성전자"
-          },
-          "marketName": {
-            "type": "string",
-            "example": "KOSPI"
-          },
+          "name": { "type": "string", "example": "삼성전자" },
+          "marketName": { "type": "string", "example": "KOSPI" },
           "quotationMarket": {
             "type": "string",
             "enum": ["KRX", "NXT", "CONSOLIDATED"],
             "example": "KRX"
           },
-          "standardCode": {
-            "example": "KR7005930003",
-            "type": "string"
-          },
-          "securityGroupCode": {
-            "example": "ST",
-            "type": "string"
-          },
+          "standardCode": { "example": "KR7005930003", "type": "string" },
+          "securityGroupCode": { "example": "ST", "type": "string" },
           "rawEtpType": {
             "example": "2",
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "anyOf": [{ "type": "string" }, { "type": "null" }]
           },
           "preferredStockType": {
             "example": "0",
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "anyOf": [{ "type": "string" }, { "type": "null" }]
           },
           "productType": {
             "example": "STOCK",
@@ -962,623 +1780,140 @@
               "OTHER"
             ]
           },
-          "isPreferred": {
-            "example": false,
-            "type": "boolean"
-          },
-          "isEtf": {
-            "example": false,
-            "type": "boolean"
-          },
-          "isEtn": {
-            "example": false,
-            "type": "boolean"
-          },
-          "isSpac": {
-            "example": false,
-            "type": "boolean"
-          },
-          "isReit": {
-            "example": false,
-            "type": "boolean"
-          },
-          "isTradingHalted": {
-            "example": false,
-            "type": "boolean"
-          },
-          "isUnderAdministration": {
-            "example": false,
-            "type": "boolean"
-          },
-          "isLowLiquidity": {
-            "example": false,
-            "type": "boolean"
-          },
+          "isPreferred": { "example": false, "type": "boolean" },
+          "isEtf": { "example": false, "type": "boolean" },
+          "isEtn": { "example": false, "type": "boolean" },
+          "isSpac": { "example": false, "type": "boolean" },
+          "isReit": { "example": false, "type": "boolean" },
+          "isTradingHalted": { "example": false, "type": "boolean" },
+          "isUnderAdministration": { "example": false, "type": "boolean" },
+          "isLowLiquidity": { "example": false, "type": "boolean" },
           "marketCap": {
             "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 9007199254740991
-              },
-              {
-                "type": "null"
-              }
+              { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+              { "type": "null" }
             ]
           },
           "previousVolume": {
             "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 9007199254740991
-              },
-              {
-                "type": "null"
-              }
+              { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+              { "type": "null" }
             ]
           },
           "listedDate": {
             "example": "19750611",
             "anyOf": [
-              {
-                "type": "string",
-                "pattern": "^\\d{8}$"
-              },
-              {
-                "type": "null"
-              }
+              { "type": "string", "pattern": "^\\d{8}$" },
+              { "type": "null" }
             ]
           },
-          "isKospi100": {
-            "example": true,
-            "type": "boolean"
-          },
-          "isKospi50": {
-            "example": true,
-            "type": "boolean"
-          },
-          "isKrx300": {
-            "example": true,
-            "type": "boolean"
-          },
+          "isKospi100": { "example": true, "type": "boolean" },
+          "isKospi50": { "example": true, "type": "boolean" },
+          "isKrx300": { "example": true, "type": "boolean" },
           "warningLevel": {
             "example": "00",
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "anyOf": [{ "type": "string" }, { "type": "null" }]
           }
         },
-        "required": ["code", "name", "marketName", "quotationMarket"]
+        "required": ["symbol", "name", "marketName", "quotationMarket"]
       },
-      "PriceCurrentDto": {
+      "PriceDto": {
         "type": "object",
         "properties": {
-          "price": {
-            "type": "number",
-            "example": 80000
-          },
-          "source": {
+          "symbol": {
             "type": "string",
-            "enum": ["stock-quote", "daily-candle"],
-            "example": "stock-quote"
+            "pattern": "^[A-Z0-9]{1,9}$",
+            "description": "Listed stock symbol",
+            "example": "005930"
           },
-          "quotationMarket": {
+          "currentPrice": {
             "type": "string",
-            "const": "CONSOLIDATED",
-            "example": "CONSOLIDATED"
+            "minLength": 1,
+            "example": "80000"
           },
-          "basis": {
-            "oneOf": [
-              {
-                "type": "object",
-                "properties": {
-                  "type": {
-                    "type": "string",
-                    "const": "current-snapshot",
-                    "example": "current-snapshot"
-                  },
-                  "requestedAt": {
-                    "type": "string",
-                    "example": "2026-06-03T09:00:01+09:00"
-                  }
-                },
-                "required": ["type", "requestedAt"]
-              },
-              {
-                "type": "object",
-                "properties": {
-                  "type": {
-                    "type": "string",
-                    "const": "latest-close",
-                    "example": "latest-close"
-                  },
-                  "tradingDate": {
-                    "type": "string",
-                    "example": "2026-06-02"
-                  }
-                },
-                "required": ["type", "tradingDate"]
-              }
-            ]
-          }
-        },
-        "required": ["price", "source", "quotationMarket", "basis"]
-      },
-      "PriceQuoteDto": {
-        "type": "object",
-        "properties": {
-          "stock": {
-            "type": "object",
-            "properties": {
-              "code": {
-                "type": "string",
-                "pattern": "^[A-Z0-9]{1,9}$",
-                "example": "005930"
-              },
-              "name": {
-                "type": "string",
-                "example": "삼성전자"
-              },
-              "marketName": {
-                "type": "string",
-                "example": "KOSPI"
-              },
-              "quotationMarket": {
-                "type": "string",
-                "enum": ["KRX", "NXT", "CONSOLIDATED"],
-                "example": "KRX"
-              },
-              "standardCode": {
-                "example": "KR7005930003",
-                "type": "string"
-              },
-              "securityGroupCode": {
-                "example": "ST",
-                "type": "string"
-              },
-              "rawEtpType": {
-                "example": "2",
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "preferredStockType": {
-                "example": "0",
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "productType": {
-                "example": "STOCK",
-                "type": "string",
-                "enum": [
-                  "STOCK",
-                  "PREFERRED",
-                  "ETF",
-                  "ETN",
-                  "REIT",
-                  "BENEFICIARY_CERTIFICATE",
-                  "SPAC",
-                  "OTHER"
-                ]
-              },
-              "isPreferred": {
-                "example": false,
-                "type": "boolean"
-              },
-              "isEtf": {
-                "example": false,
-                "type": "boolean"
-              },
-              "isEtn": {
-                "example": false,
-                "type": "boolean"
-              },
-              "isSpac": {
-                "example": false,
-                "type": "boolean"
-              },
-              "isReit": {
-                "example": false,
-                "type": "boolean"
-              },
-              "isTradingHalted": {
-                "example": false,
-                "type": "boolean"
-              },
-              "isUnderAdministration": {
-                "example": false,
-                "type": "boolean"
-              },
-              "isLowLiquidity": {
-                "example": false,
-                "type": "boolean"
-              },
-              "marketCap": {
-                "anyOf": [
-                  {
-                    "type": "integer",
-                    "minimum": 0,
-                    "maximum": 9007199254740991
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "previousVolume": {
-                "anyOf": [
-                  {
-                    "type": "integer",
-                    "minimum": 0,
-                    "maximum": 9007199254740991
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "listedDate": {
-                "example": "19750611",
-                "anyOf": [
-                  {
-                    "type": "string",
-                    "pattern": "^\\d{8}$"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "isKospi100": {
-                "example": true,
-                "type": "boolean"
-              },
-              "isKospi50": {
-                "example": true,
-                "type": "boolean"
-              },
-              "isKrx300": {
-                "example": true,
-                "type": "boolean"
-              },
-              "warningLevel": {
-                "example": "00",
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              }
-            },
-            "required": ["code", "name", "marketName", "quotationMarket"]
-          },
-          "quotationMarket": {
+          "openPrice": { "type": "string", "minLength": 1, "example": "79000" },
+          "highPrice": { "type": "string", "minLength": 1, "example": "81000" },
+          "lowPrice": { "type": "string", "minLength": 1, "example": "78000" },
+          "volume": { "type": "string", "minLength": 1, "example": "12345678" },
+          "changePrice": {
             "type": "string",
-            "enum": ["KRX", "NXT", "CONSOLIDATED"],
-            "example": "KRX"
+            "minLength": 1,
+            "example": "10000"
           },
-          "price": {
-            "type": "object",
-            "properties": {
-              "currentPrice": {
-                "type": "number",
-                "minimum": 0,
-                "description": "Current price",
-                "example": 78000
-              },
-              "openPrice": {
-                "type": "number",
-                "minimum": 0,
-                "description": "Opening price",
-                "example": 77500
-              },
-              "highPrice": {
-                "type": "number",
-                "minimum": 0,
-                "description": "High price",
-                "example": 78500
-              },
-              "lowPrice": {
-                "type": "number",
-                "minimum": 0,
-                "description": "Low price",
-                "example": 77000
-              },
-              "accumulatedVolume": {
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 9007199254740991,
-                "description": "Accumulated volume",
-                "example": 12345678
-              },
-              "previousDayChange": {
-                "type": "number",
-                "description": "Previous day price change",
-                "example": 500
-              },
-              "previousDayChangeRate": {
-                "type": "number",
-                "description": "Previous day change rate",
-                "example": 0.65
-              }
-            },
-            "required": [
-              "currentPrice",
-              "openPrice",
-              "highPrice",
-              "lowPrice",
-              "accumulatedVolume",
-              "previousDayChange",
-              "previousDayChangeRate"
-            ],
-            "additionalProperties": false,
-            "description": "Current stock quote"
-          }
-        },
-        "required": ["stock", "quotationMarket", "price"]
-      },
-      "PriceDailyCandleDto": {
-        "type": "object",
-        "properties": {
-          "stock": {
-            "type": "object",
-            "properties": {
-              "code": {
-                "type": "string",
-                "pattern": "^[A-Z0-9]{1,9}$",
-                "example": "005930"
-              },
-              "name": {
-                "type": "string",
-                "example": "삼성전자"
-              },
-              "marketName": {
-                "type": "string",
-                "example": "KOSPI"
-              },
-              "quotationMarket": {
-                "type": "string",
-                "enum": ["KRX", "NXT", "CONSOLIDATED"],
-                "example": "KRX"
-              },
-              "standardCode": {
-                "example": "KR7005930003",
-                "type": "string"
-              },
-              "securityGroupCode": {
-                "example": "ST",
-                "type": "string"
-              },
-              "rawEtpType": {
-                "example": "2",
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "preferredStockType": {
-                "example": "0",
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "productType": {
-                "example": "STOCK",
-                "type": "string",
-                "enum": [
-                  "STOCK",
-                  "PREFERRED",
-                  "ETF",
-                  "ETN",
-                  "REIT",
-                  "BENEFICIARY_CERTIFICATE",
-                  "SPAC",
-                  "OTHER"
-                ]
-              },
-              "isPreferred": {
-                "example": false,
-                "type": "boolean"
-              },
-              "isEtf": {
-                "example": false,
-                "type": "boolean"
-              },
-              "isEtn": {
-                "example": false,
-                "type": "boolean"
-              },
-              "isSpac": {
-                "example": false,
-                "type": "boolean"
-              },
-              "isReit": {
-                "example": false,
-                "type": "boolean"
-              },
-              "isTradingHalted": {
-                "example": false,
-                "type": "boolean"
-              },
-              "isUnderAdministration": {
-                "example": false,
-                "type": "boolean"
-              },
-              "isLowLiquidity": {
-                "example": false,
-                "type": "boolean"
-              },
-              "marketCap": {
-                "anyOf": [
-                  {
-                    "type": "integer",
-                    "minimum": 0,
-                    "maximum": 9007199254740991
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "previousVolume": {
-                "anyOf": [
-                  {
-                    "type": "integer",
-                    "minimum": 0,
-                    "maximum": 9007199254740991
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "listedDate": {
-                "example": "19750611",
-                "anyOf": [
-                  {
-                    "type": "string",
-                    "pattern": "^\\d{8}$"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "isKospi100": {
-                "example": true,
-                "type": "boolean"
-              },
-              "isKospi50": {
-                "example": true,
-                "type": "boolean"
-              },
-              "isKrx300": {
-                "example": true,
-                "type": "boolean"
-              },
-              "warningLevel": {
-                "example": "00",
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              }
-            },
-            "required": ["code", "name", "marketName", "quotationMarket"]
-          },
-          "requestedDate": {
-            "type": "string",
-            "example": "2026-05-15"
-          },
-          "quotationMarket": {
-            "type": "string",
-            "enum": ["KRX", "NXT", "CONSOLIDATED"],
-            "example": "KRX"
-          },
-          "isTradingDay": {
-            "type": "boolean",
-            "example": true
-          },
-          "candle": {
-            "anyOf": [
-              {
-                "type": "object",
-                "properties": {
-                  "date": {
-                    "type": "string",
-                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-                    "description": "Trading date",
-                    "example": "2026-05-15"
-                  },
-                  "openPrice": {
-                    "type": "number",
-                    "minimum": 0,
-                    "description": "Opening price",
-                    "example": 77500
-                  },
-                  "highPrice": {
-                    "type": "number",
-                    "minimum": 0,
-                    "description": "High price",
-                    "example": 78500
-                  },
-                  "lowPrice": {
-                    "type": "number",
-                    "minimum": 0,
-                    "description": "Low price",
-                    "example": 77000
-                  },
-                  "closePrice": {
-                    "type": "number",
-                    "minimum": 0,
-                    "description": "Closing price",
-                    "example": 78000
-                  },
-                  "accumulatedVolume": {
-                    "type": "integer",
-                    "minimum": 0,
-                    "maximum": 9007199254740991,
-                    "description": "Accumulated volume",
-                    "example": 12345678
-                  }
-                },
-                "required": [
-                  "date",
-                  "openPrice",
-                  "highPrice",
-                  "lowPrice",
-                  "closePrice",
-                  "accumulatedVolume"
-                ],
-                "additionalProperties": false,
-                "description": "Daily OHLCV candle"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
+          "changeRate": { "type": "string", "minLength": 1, "example": "14.29" }
         },
         "required": [
-          "stock",
-          "requestedDate",
-          "quotationMarket",
-          "isTradingDay",
-          "candle"
+          "symbol",
+          "currentPrice",
+          "openPrice",
+          "highPrice",
+          "lowPrice",
+          "volume",
+          "changePrice",
+          "changeRate"
         ]
+      },
+      "CandlesDto": {
+        "type": "object",
+        "properties": {
+          "symbol": {
+            "type": "string",
+            "pattern": "^[A-Z0-9]{1,9}$",
+            "description": "Listed stock symbol",
+            "example": "005930"
+          },
+          "interval": { "type": "string", "const": "1d" },
+          "candles": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "timestamp": {
+                  "type": "string",
+                  "example": "2026-05-17T09:00:00+09:00"
+                },
+                "openPrice": {
+                  "type": "string",
+                  "minLength": 1,
+                  "example": "69000"
+                },
+                "highPrice": {
+                  "type": "string",
+                  "minLength": 1,
+                  "example": "71000"
+                },
+                "lowPrice": {
+                  "type": "string",
+                  "minLength": 1,
+                  "example": "68000"
+                },
+                "closePrice": {
+                  "type": "string",
+                  "minLength": 1,
+                  "example": "70000"
+                },
+                "volume": {
+                  "type": "string",
+                  "minLength": 1,
+                  "example": "12345678"
+                }
+              },
+              "required": [
+                "timestamp",
+                "openPrice",
+                "highPrice",
+                "lowPrice",
+                "closePrice",
+                "volume"
+              ]
+            }
+          },
+          "nextBefore": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "example": "2026-05-17"
+          }
+        },
+        "required": ["symbol", "interval", "candles", "nextBefore"]
       },
       "ReturnSummaryDto": {
         "type": "object",
@@ -1586,53 +1921,28 @@
           "stock": {
             "type": "object",
             "properties": {
-              "code": {
+              "symbol": {
                 "type": "string",
                 "pattern": "^[A-Z0-9]{1,9}$",
+                "description": "Listed stock symbol",
                 "example": "005930"
               },
-              "name": {
-                "type": "string",
-                "example": "삼성전자"
-              },
-              "marketName": {
-                "type": "string",
-                "example": "KOSPI"
-              },
+              "name": { "type": "string", "example": "삼성전자" },
+              "marketName": { "type": "string", "example": "KOSPI" },
               "quotationMarket": {
                 "type": "string",
                 "enum": ["KRX", "NXT", "CONSOLIDATED"],
                 "example": "KRX"
               },
-              "standardCode": {
-                "example": "KR7005930003",
-                "type": "string"
-              },
-              "securityGroupCode": {
-                "example": "ST",
-                "type": "string"
-              },
+              "standardCode": { "example": "KR7005930003", "type": "string" },
+              "securityGroupCode": { "example": "ST", "type": "string" },
               "rawEtpType": {
                 "example": "2",
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
+                "anyOf": [{ "type": "string" }, { "type": "null" }]
               },
               "preferredStockType": {
                 "example": "0",
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
+                "anyOf": [{ "type": "string" }, { "type": "null" }]
               },
               "productType": {
                 "example": "STOCK",
@@ -1648,38 +1958,14 @@
                   "OTHER"
                 ]
               },
-              "isPreferred": {
-                "example": false,
-                "type": "boolean"
-              },
-              "isEtf": {
-                "example": false,
-                "type": "boolean"
-              },
-              "isEtn": {
-                "example": false,
-                "type": "boolean"
-              },
-              "isSpac": {
-                "example": false,
-                "type": "boolean"
-              },
-              "isReit": {
-                "example": false,
-                "type": "boolean"
-              },
-              "isTradingHalted": {
-                "example": false,
-                "type": "boolean"
-              },
-              "isUnderAdministration": {
-                "example": false,
-                "type": "boolean"
-              },
-              "isLowLiquidity": {
-                "example": false,
-                "type": "boolean"
-              },
+              "isPreferred": { "example": false, "type": "boolean" },
+              "isEtf": { "example": false, "type": "boolean" },
+              "isEtn": { "example": false, "type": "boolean" },
+              "isSpac": { "example": false, "type": "boolean" },
+              "isReit": { "example": false, "type": "boolean" },
+              "isTradingHalted": { "example": false, "type": "boolean" },
+              "isUnderAdministration": { "example": false, "type": "boolean" },
+              "isLowLiquidity": { "example": false, "type": "boolean" },
               "marketCap": {
                 "anyOf": [
                   {
@@ -1687,9 +1973,7 @@
                     "minimum": 0,
                     "maximum": 9007199254740991
                   },
-                  {
-                    "type": "null"
-                  }
+                  { "type": "null" }
                 ]
               },
               "previousVolume": {
@@ -1699,145 +1983,53 @@
                     "minimum": 0,
                     "maximum": 9007199254740991
                   },
-                  {
-                    "type": "null"
-                  }
+                  { "type": "null" }
                 ]
               },
               "listedDate": {
                 "example": "19750611",
                 "anyOf": [
-                  {
-                    "type": "string",
-                    "pattern": "^\\d{8}$"
-                  },
-                  {
-                    "type": "null"
-                  }
+                  { "type": "string", "pattern": "^\\d{8}$" },
+                  { "type": "null" }
                 ]
               },
-              "isKospi100": {
-                "example": true,
-                "type": "boolean"
-              },
-              "isKospi50": {
-                "example": true,
-                "type": "boolean"
-              },
-              "isKrx300": {
-                "example": true,
-                "type": "boolean"
-              },
+              "isKospi100": { "example": true, "type": "boolean" },
+              "isKospi50": { "example": true, "type": "boolean" },
+              "isKrx300": { "example": true, "type": "boolean" },
               "warningLevel": {
                 "example": "00",
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
+                "anyOf": [{ "type": "string" }, { "type": "null" }]
               }
             },
-            "required": ["code", "name", "marketName", "quotationMarket"]
+            "required": ["symbol", "name", "marketName", "quotationMarket"]
           },
           "buy": {
             "type": "object",
             "properties": {
-              "date": {
-                "type": "string",
-                "example": "2026-05-15"
-              },
-              "price": {
-                "type": "number",
-                "example": 78000
-              },
-              "priceType": {
-                "type": "string",
-                "const": "adjusted-close",
-                "example": "adjusted-close"
-              },
-              "quantity": {
-                "type": "number",
-                "example": 10
-              }
+              "date": { "type": "string", "example": "2026-05-17" },
+              "price": { "type": "string", "example": "70000" },
+              "quantity": { "type": "number", "example": 10 }
             },
-            "required": ["date", "price", "priceType", "quantity"]
+            "required": ["date", "price", "quantity"]
           },
           "current": {
             "type": "object",
             "properties": {
-              "price": {
-                "type": "number",
-                "example": 80000
-              },
-              "source": {
+              "currentPrice": {
                 "type": "string",
-                "enum": ["stock-quote", "daily-candle"],
-                "example": "stock-quote"
-              },
-              "quotationMarket": {
-                "type": "string",
-                "const": "CONSOLIDATED",
-                "example": "CONSOLIDATED"
-              },
-              "basis": {
-                "oneOf": [
-                  {
-                    "type": "object",
-                    "properties": {
-                      "type": {
-                        "type": "string",
-                        "const": "current-snapshot",
-                        "example": "current-snapshot"
-                      },
-                      "requestedAt": {
-                        "type": "string",
-                        "example": "2026-06-03T09:00:01+09:00"
-                      }
-                    },
-                    "required": ["type", "requestedAt"]
-                  },
-                  {
-                    "type": "object",
-                    "properties": {
-                      "type": {
-                        "type": "string",
-                        "const": "latest-close",
-                        "example": "latest-close"
-                      },
-                      "tradingDate": {
-                        "type": "string",
-                        "example": "2026-06-02"
-                      }
-                    },
-                    "required": ["type", "tradingDate"]
-                  }
-                ]
+                "minLength": 1,
+                "example": "80000"
               }
             },
-            "required": ["price", "source", "quotationMarket", "basis"]
+            "required": ["currentPrice"]
           },
           "result": {
             "type": "object",
             "properties": {
-              "buyAmount": {
-                "type": "number",
-                "example": 780000
-              },
-              "currentValue": {
-                "type": "number",
-                "example": 800000
-              },
-              "profit": {
-                "type": "number",
-                "example": 20000
-              },
-              "profitRate": {
-                "type": "number",
-                "example": 2.56
-              }
+              "buyAmount": { "type": "number", "example": 700000 },
+              "currentValue": { "type": "number", "example": 800000 },
+              "profit": { "type": "number", "example": 100000 },
+              "profitRate": { "type": "number", "example": 14.29 }
             },
             "required": ["buyAmount", "currentValue", "profit", "profitRate"]
           }
@@ -1847,175 +2039,156 @@
       "RealtimeDisconnectedDto": {
         "type": "object",
         "properties": {
-          "closeCode": {
-            "type": "number",
-            "example": 1006
-          },
-          "reason": {
-            "type": "string",
-            "example": ""
-          }
+          "closeCode": { "type": "number", "example": 1006 },
+          "reason": { "type": "string", "example": "" }
         },
         "required": ["closeCode", "reason"]
       },
       "RealtimeErrorDto": {
         "type": "object",
         "properties": {
-          "code": {
-            "type": "string",
-            "example": "FEED_UNAVAILABLE"
-          },
+          "code": { "type": "string", "example": "FEED_UNAVAILABLE" },
           "message": {
             "type": "string",
             "example": "Realtime feed connection failed"
           },
-          "retryAfterMs": {
-            "type": "number",
-            "example": 300000
-          }
+          "retryAfterMs": { "example": 300000, "type": "number" }
         },
         "required": ["code", "message"]
       },
       "RealtimeHeartbeatDto": {
         "type": "object",
         "properties": {
-          "at": {
-            "type": "string",
-            "example": "2026-05-15T01:30:15.000Z"
-          }
+          "at": { "type": "string", "example": "2026-05-15T01:30:15.000Z" }
         },
         "required": ["at"]
       },
       "RealtimePriceDto": {
         "type": "object",
         "properties": {
-          "stockCode": {
-            "type": "string",
-            "example": "005930"
-          },
-          "trId": {
-            "type": "string",
-            "example": "H0STCNT0"
-          },
-          "price": {
-            "type": "number",
-            "example": 78000
-          },
-          "tradeTime": {
-            "type": "string",
-            "example": "103015"
-          },
-          "businessDate": {
-            "type": "string",
-            "example": "20260515"
-          }
+          "symbol": { "type": "string", "example": "005930" },
+          "trId": { "type": "string", "example": "H0STCNT0" },
+          "price": { "type": "number", "example": 78000 },
+          "tradeTime": { "type": "string", "example": "103015" },
+          "businessDate": { "type": "string", "example": "20260515" }
         },
-        "required": ["stockCode", "trId", "price", "tradeTime", "businessDate"]
+        "required": ["symbol", "trId", "price", "tradeTime", "businessDate"]
       },
       "RealtimeReconnectedDto": {
         "type": "object",
         "properties": {
-          "stockCodes": {
+          "symbols": {
             "type": "array",
-            "items": {
-              "type": "string"
-            },
+            "items": { "type": "string" },
             "example": ["005930", "000660"]
           }
         },
-        "required": ["stockCodes"]
+        "required": ["symbols"]
       },
       "RealtimeSubscribedDto": {
         "type": "object",
+        "properties": { "symbol": { "type": "string", "example": "005930" } },
+        "required": ["symbol"]
+      },
+      "JobjuScoreDto": {
+        "type": "object",
         "properties": {
-          "stockCode": {
+          "stock": {
+            "type": "object",
+            "properties": {
+              "symbol": {
+                "type": "string",
+                "pattern": "^[A-Z0-9]{1,9}$",
+                "description": "Listed stock symbol",
+                "example": "005930"
+              },
+              "name": { "type": "string", "example": "삼성전자" },
+              "marketName": { "type": "string", "example": "KOSPI" }
+            },
+            "required": ["symbol", "name", "marketName"]
+          },
+          "asOfDate": {
             "type": "string",
-            "example": "005930"
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "example": "2026-06-18"
+          },
+          "sampleDays": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "example": 20
+          },
+          "score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "example": 87
+          },
+          "grade": {
+            "type": "string",
+            "enum": ["normal", "notice", "suspect", "high", "danger"],
+            "example": "danger"
+          },
+          "label": { "type": "string", "example": "인간지표급 잡주" },
+          "summary": {
+            "type": "string",
+            "example": "여러 위험 신호가 동시에 터진 상태입니다."
+          },
+          "signals": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "price-volatility",
+                    "liquidity",
+                    "market-size",
+                    "market-sensitivity",
+                    "status-flags",
+                    "financial-disclosure"
+                  ]
+                },
+                "label": { "type": "string", "example": "가격 급등락" },
+                "score": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991,
+                  "example": 18
+                },
+                "maxScore": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "maximum": 9007199254740991,
+                  "example": 25
+                },
+                "description": {
+                  "type": "string",
+                  "example": "최근 20거래일 가격 움직임과 장중 고저폭을 반영했습니다."
+                }
+              },
+              "required": ["type", "label", "score", "maxScore", "description"]
+            }
           }
         },
-        "required": ["stockCode"]
+        "required": [
+          "stock",
+          "asOfDate",
+          "sampleDays",
+          "score",
+          "grade",
+          "label",
+          "summary",
+          "signals"
+        ]
       },
       "HealthCheckDto": {
         "type": "object",
         "properties": {
-          "status": {
-            "type": "string",
-            "const": "ok",
-            "example": "ok"
-          }
+          "status": { "type": "string", "const": "ok", "example": "ok" }
         },
         "required": ["status"]
-      },
-      "ApiSuccessDto": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "const": true,
-            "example": true
-          },
-          "data": {},
-          "meta": {
-            "type": "object",
-            "propertyNames": {
-              "type": "string"
-            },
-            "additionalProperties": {}
-          }
-        },
-        "required": ["success", "data"]
-      },
-      "ApiErrorDto": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "const": false,
-            "example": false
-          },
-          "error": {
-            "type": "object",
-            "properties": {
-              "status": {
-                "type": "number",
-                "enum": [
-                  400, 401, 403, 404, 405, 408, 409, 412, 413, 422, 429, 499,
-                  500, 502, 503, 504
-                ],
-                "example": 400
-              },
-              "code": {
-                "type": "string",
-                "enum": [
-                  "BAD_REQUEST",
-                  "UNAUTHORIZED",
-                  "FORBIDDEN",
-                  "NOT_FOUND",
-                  "METHOD_NOT_SUPPORTED",
-                  "TIMEOUT",
-                  "CONFLICT",
-                  "PRECONDITION_FAILED",
-                  "PAYLOAD_TOO_LARGE",
-                  "UNPROCESSABLE_CONTENT",
-                  "TOO_MANY_REQUESTS",
-                  "CLIENT_CLOSED_REQUEST",
-                  "INTERNAL_SERVER_ERROR",
-                  "BAD_GATEWAY",
-                  "SERVICE_UNAVAILABLE",
-                  "GATEWAY_TIMEOUT"
-                ],
-                "example": "BAD_REQUEST"
-              },
-              "message": {
-                "type": "string",
-                "example": "Validation failed"
-              },
-              "details": {}
-            },
-            "required": ["status", "code", "message"]
-          }
-        },
-        "required": ["success", "error"]
       }
     }
   }

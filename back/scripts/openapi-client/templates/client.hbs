@@ -1,4 +1,6 @@
-{{#if usesHttp}}{{#if usesSse}}import { api, apiBaseUrl } from "../api"{{else}}import { api } from "../api"{{/if}}{{else}}import { apiBaseUrl } from "../api"{{/if}}
+{{#if usesHttp}}{{#if usesSse}}import { ApiSchemaError, ApiUnexpectedStatusError, api, apiBaseUrl } from "../api"{{else}}import { ApiSchemaError, ApiUnexpectedStatusError, api } from "../api"{{/if}}{{else}}import { apiBaseUrl } from "../api"{{/if}}
+{{#if usesHttp}}import { ResultAsync, err, ok, type Result } from "neverthrow"
+{{/if}}
 {{#if schemaImports.length}}
 import {
 {{#each schemaImports}}
@@ -27,6 +29,13 @@ export type {{paramsTypeName}} = {{{paramsTypeExpression}}}
 
 {{/if}}
 {{#if isSse}}
+{{#if failureResponses.length}}
+export type {{failureTypeName}} =
+{{#each failureResponses}}
+  | { status: {{statusTypeExpression}}; body: {{typeName}} }
+{{/each}}
+
+{{/if}}
 /**
 {{#each jsDocLines}}
  * {{{this}}}
@@ -42,20 +51,91 @@ export function {{functionName}}({{#if hasParams}}params: {{paramsTypeName}}{{/i
   return new EventSource(apiBaseUrl + {{{eventSourcePathExpression}}} + (queryString ? `?${queryString}` : ""))
 }
 {{else}}
+export type {{successTypeName}} =
+{{#if successResponses.length}}
+{{#each successResponses}}
+  | { status: {{statusTypeExpression}}; body: {{typeName}} }
+{{/each}}
+{{else}}
+  never
+{{/if}}
+
+export type {{failureTypeName}} =
+{{#if failureResponses.length}}
+{{#each failureResponses}}
+  | { status: {{statusTypeExpression}}; body: {{typeName}} }
+{{/each}}
+{{else}}
+  never
+{{/if}}
+
 /**
 {{#each jsDocLines}}
  * {{{this}}}
 {{/each}}
  */
-export async function {{functionName}}({{#if hasParams}}params: {{paramsTypeName}}{{/if}}): Promise<{{responseTypeName}}> {
+export function {{functionName}}({{#if hasParams}}params: {{paramsTypeName}}{{/if}}): ResultAsync<{{successTypeName}}, {{failureTypeName}}> {
 {{#if hasResponseBody}}
-  const data = await api
-    .{{method}}<{{responseTypeName}}>({{{pathExpression}}}{{#if kyOptionsExpression}}, {{{kyOptionsExpression}}}{{/if}})
-    .json()
+  return new ResultAsync(
+    (async (): Promise<Result<{{successTypeName}}, {{failureTypeName}}>> => {
+      const response = await api.{{method}}({{{pathExpression}}}{{#if kyOptionsExpression}}, {{{kyOptionsExpression}}}{{/if}})
+      const body: unknown = await response.json()
 
-  return {{responseSchemaName}}.parse(data)
+      switch (response.status) {
+{{#each successResponses}}
+        {{switchLabel}} {
+          const result = {{schemaName}}.safeParse(body)
+
+          if (!result.success) {
+            throw new ApiSchemaError({
+              status: response.status,
+              schemaName: "{{schemaName}}",
+              body,
+              zodError: result.error,
+            })
+          }
+
+          const value: {{../successTypeName}} = {
+            status: {{statusValueExpression}},
+            body: result.data,
+          }
+
+          return ok(value)
+        }
+{{/each}}
+{{#each failureResponses}}
+        {{switchLabel}} {
+          const result = {{schemaName}}.safeParse(body)
+
+          if (!result.success) {
+            throw new ApiSchemaError({
+              status: response.status,
+              schemaName: "{{schemaName}}",
+              body,
+              zodError: result.error,
+            })
+          }
+
+          const value: {{../failureTypeName}} = {
+            status: {{statusValueExpression}},
+            body: result.data,
+          }
+
+          return err(value)
+        }
+{{/each}}
+      }
+
+      throw new ApiUnexpectedStatusError(response.status, body)
+    })()
+  )
 {{else}}
-  await api.{{method}}({{{pathExpression}}}{{#if kyOptionsExpression}}, {{{kyOptionsExpression}}}{{/if}})
+  return new ResultAsync(
+    (async (): Promise<Result<{{successTypeName}}, {{failureTypeName}}>> => {
+      await api.{{method}}({{{pathExpression}}}{{#if kyOptionsExpression}}, {{{kyOptionsExpression}}}{{/if}})
+      throw new Error("Response body schema is not defined")
+    })()
+  )
 {{/if}}
 }
 {{/if}}

@@ -161,6 +161,54 @@ async function main() {
         const eventStream =
           operation.responses?.["200"]?.content?.["text/event-stream"]
         const isSse = Boolean(eventStream)
+        const jsonResponses = Object.entries(operation.responses ?? {}).flatMap(
+          ([status, response]) => {
+            const schema = response?.content?.["application/json"]?.schema
+
+            if (!schema) {
+              return []
+            }
+
+            const statusCode = Number(status)
+            const hasNumericStatus = Number.isInteger(statusCode)
+            const success =
+              hasNumericStatus && statusCode >= 200 && statusCode < 300
+            const handledByClient =
+              success || !hasNumericStatus || statusCode < 500
+            const responseTypeName = `${pascalCase(operationId)}Response${pascalCase(
+              status
+            )}`
+
+            return [
+              {
+                status,
+                schema,
+                success,
+                handledByClient,
+                typeName: responseTypeName,
+                schemaName: `${responseTypeName}Schema`,
+                statusTypeExpression: hasNumericStatus
+                  ? String(statusCode)
+                  : "number",
+                statusValueExpression: hasNumericStatus
+                  ? String(statusCode)
+                  : "response.status",
+                switchLabel: hasNumericStatus
+                  ? `case ${statusCode}:`
+                  : "default:",
+              },
+            ]
+          }
+        )
+        const successResponses = jsonResponses.filter(
+          (response) => response.success
+        )
+        const errorResponses = jsonResponses.filter(
+          (response) => !response.success
+        )
+        const failureResponses = jsonResponses.filter(
+          (response) => !response.success && response.handledByClient
+        )
         const functionName = constantCase(operationId)
         const exampleParams = Object.fromEntries(
           parameters.map((parameter) => [
@@ -204,10 +252,7 @@ async function main() {
             pathParams.length > 0 ||
             queryParams.length > 0 ||
             bodySchema !== undefined,
-          hasResponseBody:
-            isSse ||
-            operation.responses?.["200"]?.content?.["application/json"]
-              ?.schema !== undefined,
+          hasResponseBody: isSse || jsonResponses.length > 0,
           paramsTypeName: `${pascalCase(operationId)}Params`,
           paramsTypeExpression,
           responseTypeName: isSse
@@ -218,22 +263,31 @@ async function main() {
             : `${pascalCase(operationId)}ResponseSchema`,
           pathExpression: pathExpression(path, false),
           eventSourcePathExpression: pathExpression(path, true),
-          kyOptionsExpression:
-            queryParams.length === 0 && !bodySchema
-              ? null
-              : `{\n    ${[
-                  queryParams.length > 0
-                    ? `searchParams: {\n${queryParams
-                        .map(
-                          (parameter) =>
-                            `      ${propertyKey(parameter.name)}: params.${parameter.name}`
-                        )
-                        .join(",\n")}\n    }`
-                    : null,
-                  bodySchema ? "json: params.body" : null,
-                ]
-                  .filter(Boolean)
-                  .join(",\n    ")}\n  }`,
+          kyOptionsExpression: `{\n    ${[
+            queryParams.length > 0
+              ? `searchParams: {\n${queryParams
+                  .map(
+                    (parameter) =>
+                      `      ${propertyKey(parameter.name)}: params.${parameter.name}`
+                  )
+                  .join(",\n")}\n    }`
+              : null,
+            bodySchema ? "json: params.body" : null,
+          ]
+            .filter(Boolean)
+            .join(",\n    ")}\n  }`,
+          successTypeName: `${pascalCase(operationId)}Success`,
+          failureTypeName: `${pascalCase(operationId)}Failure`,
+          successResponses,
+          errorResponses,
+          failureResponses,
+          responseSchemas: jsonResponses
+            .filter((response) => response.handledByClient)
+            .map((response) => ({
+              schemaName: response.schemaName,
+              typeName: response.typeName,
+              zodExpression: responseZod(response.schema),
+            })),
           sseQueryLines: queryParams.map(
             (parameter) =>
               `searchParams.set(${JSON.stringify(
@@ -245,7 +299,7 @@ async function main() {
       })
   )
 
-  const operationSchemas = operations.map((operation) => {
+  const operationSchemas = operations.flatMap((operation) => {
     const pathItem = Object.values(document.paths).find((item) =>
       Object.values(item).some(
         (candidate) => candidate?.operationId === operation.operationId
@@ -262,14 +316,24 @@ async function main() {
       : sourceOperation.responses?.["200"]?.content?.["application/json"]
           ?.schema
 
-    return {
-      schemaName: operation.responseSchemaName,
-      typeName: operation.responseTypeName,
-      zodExpression: operation.hasResponseBody
-        ? responseZod(schema)
-        : "z.void()",
-    }
+    return operation.isSse
+      ? [
+          {
+            schemaName: operation.responseSchemaName,
+            typeName: operation.responseTypeName,
+            zodExpression: operation.hasResponseBody
+              ? responseZod(schema)
+              : "z.void()",
+          },
+          ...operation.responseSchemas,
+        ]
+      : operation.responseSchemas
   })
+  const apiErrorSchemaExpressions = uniq(
+    operations.flatMap((operation) =>
+      operation.errorResponses.map((response) => responseZod(response.schema))
+    )
+  )
   const tags = sortBy(
     Object.entries(
       groupBy(operations, (operation) => operation.tag.toLowerCase())
@@ -280,21 +344,33 @@ async function main() {
       schemaImports: uniq(
         tagOperations.flatMap((operation) =>
           operation.isSse
-            ? []
-            : [
-                operation.responseSchemaName,
-                `type ${operation.responseTypeName}`,
-              ]
+            ? operation.responseSchemas.map(
+                (schema) => `type ${schema.typeName}`
+              )
+            : operation.responseSchemas.flatMap((schema) => [
+                schema.schemaName,
+                `type ${schema.typeName}`,
+              ])
         )
       ),
       schemaExports: uniq(
         tagOperations.flatMap((operation) =>
-          operation.isSse ? [operation.responseSchemaName] : []
+          operation.isSse
+            ? [
+                operation.responseSchemaName,
+                ...operation.responseSchemas.map((schema) => schema.schemaName),
+              ]
+            : []
         )
       ),
       typeExports: uniq(
         tagOperations.flatMap((operation) =>
-          operation.isSse ? [operation.responseTypeName] : []
+          operation.isSse
+            ? [
+                operation.responseTypeName,
+                ...operation.responseSchemas.map((schema) => schema.typeName),
+              ]
+            : []
         )
       ),
       operations: tagOperations,
@@ -315,6 +391,20 @@ async function main() {
           })
         ),
         ...operationSchemas,
+        ...(apiErrorSchemaExpressions.length > 0
+          ? [
+              {
+                schemaName: "ApiErrorDtoSchema",
+                typeName: "ApiErrorDto",
+                zodExpression:
+                  apiErrorSchemaExpressions.length === 1
+                    ? apiErrorSchemaExpressions[0]
+                    : `z.union([\n${apiErrorSchemaExpressions
+                        .map((schema) => `  ${schema}`)
+                        .join(",\n")}\n])`,
+              },
+            ]
+          : []),
       ],
     },
     resolve(outputDir, "schemas.ts")
