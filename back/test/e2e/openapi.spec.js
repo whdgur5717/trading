@@ -1,32 +1,22 @@
 import { ConfigService } from "@nestjs/config"
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest"
-import { createSwaggerDocument } from "../../src/bootstrap/swagger"
 import { createApp } from "../support/app"
 import { createExternalServer } from "../support/external/server"
 import { Server as KisWebSocketServer } from "../support/external/kis/websocket/server"
+import { readOpenApiDocument } from "../support/openapi/openApiDocument"
 import {
   jsonContentType,
   openApiRequestCases,
   sseContentType,
 } from "../support/openapi/openApiRequestCases"
 
-const openapi = await createOpenApiDocument()
+const openapi = await readOpenApiDocument()
 const requestCases = openApiRequestCases(openapi)
 
 let app
 let appUrl
 let kisWebSocketServer
 let externalServer
-
-async function createOpenApiDocument() {
-  const documentApp = await createApp()
-
-  try {
-    return createSwaggerDocument(documentApp)
-  } finally {
-    await documentApp.close()
-  }
-}
 
 beforeAll(async () => {
   kisWebSocketServer = new KisWebSocketServer()
