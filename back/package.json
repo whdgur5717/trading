@@ -15,7 +15,7 @@
     "start:debug": "NODE_ENV=development nest start --debug --watch",
     "start:prod": "NODE_ENV=production node dist/main.js",
     "lint": "eslint --fix . --max-warnings 0",
-    "test": "NODE_ENV=test vitest run src",
+    "test": "NODE_ENV=test vitest run",
     "test:watch": "NODE_ENV=test vitest src",
     "test:cov": "NODE_ENV=test vitest run src --coverage",
     "test:debug": "NODE_ENV=test vitest --inspect-brk --run src",
