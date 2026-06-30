@@ -18,7 +18,7 @@ FROM deps AS build
 
 COPY front ./front
 
-RUN pnpm --filter front build
+RUN pnpm --dir front build
 
 FROM node:24-bookworm-slim AS runner
 

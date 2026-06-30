@@ -13,39 +13,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  detect-changes:
-    runs-on: ubuntu-latest
-    outputs:
-      back_changed: ${{ steps.changed.outputs.back_any_changed }}
-      front_changed: ${{ steps.changed.outputs.front_any_changed }}
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Detect changed files
-        id: changed
-        uses: tj-actions/changed-files@v47
-        with:
-          files_yaml: |
-            back:
-              - back/**
-              - package.json
-              - pnpm-lock.yaml
-              - pnpm-workspace.yaml
-              - .github/workflows/deploy.yml
-            front:
-              - front/**
-              - package.json
-              - pnpm-lock.yaml
-              - pnpm-workspace.yaml
-              - .github/workflows/deploy.yml
-
   deploy:
-    needs: detect-changes
-    if: ${{ needs.detect-changes.outputs.back_changed == 'true' || needs.detect-changes.outputs.front_changed == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -69,25 +37,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Lint back
-        if: ${{ needs.detect-changes.outputs.back_changed == 'true' }}
-        run: pnpm --filter back exec eslint . --max-warnings 0
+      - name: Lint
+        run: pnpm lint
 
-      - name: Test back
-        if: ${{ needs.detect-changes.outputs.back_changed == 'true' }}
-        run: pnpm --filter back test
+      - name: Test
+        run: pnpm test
 
-      - name: Build back
-        if: ${{ needs.detect-changes.outputs.back_changed == 'true' }}
-        run: pnpm --filter back build
-
-      - name: Lint front
-        if: ${{ needs.detect-changes.outputs.front_changed == 'true' }}
-        run: pnpm --filter front exec eslint . --max-warnings 0
-
-      - name: Build front
-        if: ${{ needs.detect-changes.outputs.front_changed == 'true' }}
-        run: pnpm --filter front build
+      - name: Build workspace
+        run: pnpm build
 
       - name: Authenticate to Google Cloud
         id: auth
@@ -108,7 +65,6 @@ jobs:
           password: ${{ steps.auth.outputs.access_token }}
 
       - name: Build and push back image
-        if: ${{ needs.detect-changes.outputs.back_changed == 'true' }}
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -118,7 +74,6 @@ jobs:
           tags: ${{ vars.ARTIFACT_REGISTRY_HOST }}/${{ vars.GCP_PROJECT_ID }}/${{ vars.ARTIFACT_REPOSITORY }}/${{ vars.CLOUD_RUN_BACK_SERVICE_NAME }}:${{ github.sha }}
 
       - name: Build and push front image
-        if: ${{ needs.detect-changes.outputs.front_changed == 'true' }}
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -128,7 +83,6 @@ jobs:
           tags: ${{ vars.ARTIFACT_REGISTRY_HOST }}/${{ vars.GCP_PROJECT_ID }}/${{ vars.ARTIFACT_REPOSITORY }}/${{ vars.CLOUD_RUN_FRONT_SERVICE_NAME }}:${{ github.sha }}
 
       - name: Deploy back to Cloud Run
-        if: ${{ needs.detect-changes.outputs.back_changed == 'true' }}
         uses: google-github-actions/deploy-cloudrun@v3
         with:
           service: ${{ vars.CLOUD_RUN_BACK_SERVICE_NAME }}
@@ -137,7 +91,6 @@ jobs:
           image: ${{ vars.ARTIFACT_REGISTRY_HOST }}/${{ vars.GCP_PROJECT_ID }}/${{ vars.ARTIFACT_REPOSITORY }}/${{ vars.CLOUD_RUN_BACK_SERVICE_NAME }}:${{ github.sha }}
 
       - name: Deploy front to Cloud Run
-        if: ${{ needs.detect-changes.outputs.front_changed == 'true' }}
         uses: google-github-actions/deploy-cloudrun@v3
         with:
           service: ${{ vars.CLOUD_RUN_FRONT_SERVICE_NAME }}
