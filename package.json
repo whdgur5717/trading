@@ -4,9 +4,14 @@
   "private": true,
   "description": "Trading application workspace",
   "scripts": {
-    "lint": "pnpm -r --parallel run lint",
+    "generate:openapi": "pnpm --dir back generate:openapi",
+    "generate:api": "api-client generate front && prettier --write front/src/queries/generated --ignore-path .prettierignore",
+    "prepare:api": "pnpm generate:openapi && pnpm generate:api",
+    "build": "pnpm prepare:api && turbo run build",
+    "lint": "turbo run lint",
     "format": "pnpm -r --parallel run format",
-    "type-check": "pnpm -r --parallel run type-check",
+    "type-check": "pnpm prepare:api && turbo run type-check",
+    "test": "turbo run test",
     "prepare": "husky"
   },
   "keywords": [],
@@ -14,6 +19,7 @@
   "license": "ISC",
   "packageManager": "pnpm@10.28.0",
   "devDependencies": {
+    "@trading/api-client": "workspace:*",
     "@eslint/eslintrc": "^3.3.5",
     "@eslint/js": "^9.39.4",
     "dotenv": "^17.4.2",
@@ -23,6 +29,7 @@
     "prettier": "^3.8.3",
     "typescript-eslint": "^8.59.2",
     "husky": "^9.1.7",
-    "lint-staged": "^17.0.5"
+    "lint-staged": "^17.0.5",
+    "turbo": "^2.10.0"
   }
 }

@@ -10,10 +10,6 @@ export const API_ERROR_STATUS: Record<ErrorCode, HttpStatus> = {
   "market-data-timeout": HttpStatus.GATEWAY_TIMEOUT,
   "market-data-invalid-response": HttpStatus.BAD_GATEWAY,
   "market-data-not-found": HttpStatus.NOT_FOUND,
-  "jobju-score-unavailable": HttpStatus.BAD_GATEWAY,
-  "jobju-unsupported-product": HttpStatus.UNPROCESSABLE_ENTITY,
-  "jobju-invalid-market": HttpStatus.UNPROCESSABLE_ENTITY,
-  "jobju-financial-data-unavailable": HttpStatus.BAD_GATEWAY,
 }
 
 export function apiStatusFor(code: ErrorCode): HttpStatus {

@@ -18,7 +18,7 @@ FROM deps AS build
 
 COPY back ./back
 
-RUN pnpm --filter back build
+RUN pnpm --dir back build
 
 FROM base AS prod-deps
 

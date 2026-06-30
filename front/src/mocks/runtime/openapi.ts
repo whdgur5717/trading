@@ -14,8 +14,8 @@ type JsonRecord = Record<string, unknown>
 
 const METHODS = ["get", "post", "put", "patch", "delete"] as const
 const OPENAPI_PATHS = [
-  resolve(process.cwd(), "../back/docs/openapi.json"),
-  resolve(process.cwd(), "back/docs/openapi.json"),
+  resolve(process.cwd(), "../packages/api-client/openapi.json"),
+  resolve(process.cwd(), "packages/api-client/openapi.json"),
 ]
 
 async function readOpenApiDocument(): Promise<JsonRecord> {

@@ -226,37 +226,6 @@ export const RealtimeSubscribedDtoSchema = z.object({
 })
 export type RealtimeSubscribedDto = z.infer<typeof RealtimeSubscribedDtoSchema>
 
-export const JobjuScoreDtoSchema = z.object({
-  stock: z.object({
-    symbol: z.string().regex(new RegExp("^[A-Z0-9]{1,9}$")),
-    name: z.string(),
-    marketName: z.string(),
-  }),
-  asOfDate: z.string().regex(new RegExp("^\\d{4}-\\d{2}-\\d{2}$")),
-  sampleDays: z.number().int().max(9007199254740991).gt(0),
-  score: z.number().int().min(0).max(100),
-  grade: z.enum(["normal", "notice", "suspect", "high", "danger"]),
-  label: z.string(),
-  summary: z.string(),
-  signals: z.array(
-    z.object({
-      type: z.enum([
-        "price-volatility",
-        "liquidity",
-        "market-size",
-        "market-sensitivity",
-        "status-flags",
-        "financial-disclosure",
-      ]),
-      label: z.string(),
-      score: z.number().int().min(0).max(9007199254740991),
-      maxScore: z.number().int().max(9007199254740991).gt(0),
-      description: z.string(),
-    })
-  ),
-})
-export type JobjuScoreDto = z.infer<typeof JobjuScoreDtoSchema>
-
 export const HealthCheckDtoSchema = z.object({
   status: z.literal("ok"),
 })
@@ -538,64 +507,6 @@ export type RealtimeControllerStreamResponse400 = z.infer<
   typeof RealtimeControllerStreamResponse400Schema
 >
 
-export const JobjuControllerScoreResponse200Schema = z.object({
-  success: z.literal(true),
-  data: JobjuScoreDtoSchema,
-})
-export type JobjuControllerScoreResponse200 = z.infer<
-  typeof JobjuControllerScoreResponse200Schema
->
-
-export const JobjuControllerScoreResponse400Schema = z.object({
-  success: z.literal(false),
-  error: z.object({
-    status: z.literal(400),
-    code: z.literal("invalid-request"),
-    message: z.string(),
-    details: z.unknown().optional(),
-  }),
-})
-export type JobjuControllerScoreResponse400 = z.infer<
-  typeof JobjuControllerScoreResponse400Schema
->
-
-export const JobjuControllerScoreResponse404Schema = z.object({
-  success: z.literal(false),
-  error: z.object({
-    status: z.literal(404),
-    code: z.literal("unsupported-stock"),
-    message: z.string(),
-    details: z.unknown().optional(),
-  }),
-})
-export type JobjuControllerScoreResponse404 = z.infer<
-  typeof JobjuControllerScoreResponse404Schema
->
-
-export const JobjuControllerScoreResponse422Schema = z.union([
-  z.object({
-    success: z.literal(false),
-    error: z.object({
-      status: z.literal(422),
-      code: z.literal("jobju-unsupported-product"),
-      message: z.string(),
-      details: z.unknown().optional(),
-    }),
-  }),
-  z.object({
-    success: z.literal(false),
-    error: z.object({
-      status: z.literal(422),
-      code: z.literal("jobju-invalid-market"),
-      message: z.string(),
-      details: z.unknown().optional(),
-    }),
-  }),
-])
-export type JobjuControllerScoreResponse422 = z.infer<
-  typeof JobjuControllerScoreResponse422Schema
->
-
 export const HealthControllerCheckResponse200Schema = z.object({
   success: z.literal(true),
   data: HealthCheckDtoSchema,
@@ -703,45 +614,5 @@ export const ApiErrorDtoSchema = z.union([
       details: z.unknown().optional(),
     }),
   }),
-  z.union([
-    z.object({
-      success: z.literal(false),
-      error: z.object({
-        status: z.literal(422),
-        code: z.literal("jobju-unsupported-product"),
-        message: z.string(),
-        details: z.unknown().optional(),
-      }),
-    }),
-    z.object({
-      success: z.literal(false),
-      error: z.object({
-        status: z.literal(422),
-        code: z.literal("jobju-invalid-market"),
-        message: z.string(),
-        details: z.unknown().optional(),
-      }),
-    }),
-  ]),
-  z.union([
-    z.object({
-      success: z.literal(false),
-      error: z.object({
-        status: z.literal(502),
-        code: z.literal("jobju-score-unavailable"),
-        message: z.string(),
-        details: z.unknown().optional(),
-      }),
-    }),
-    z.object({
-      success: z.literal(false),
-      error: z.object({
-        status: z.literal(502),
-        code: z.literal("jobju-financial-data-unavailable"),
-        message: z.string(),
-        details: z.unknown().optional(),
-      }),
-    }),
-  ]),
 ])
 export type ApiErrorDto = z.infer<typeof ApiErrorDtoSchema>

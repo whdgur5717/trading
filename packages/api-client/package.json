@@ -1,0 +1,20 @@
+{
+  "name": "@trading/api-client",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "api-client": "./bin/api-client.mjs"
+  },
+  "scripts": {
+    "build": "pnpm run type-check",
+    "lint": "eslint . --max-warnings 0",
+    "type-check": "find bin generator -name '*.mjs' -print0 | xargs -0 -n 1 node --check"
+  },
+  "dependencies": {
+    "handlebars": "^4.7.9"
+  },
+  "peerDependencies": {
+    "zod": "^4.4.3"
+  }
+}
