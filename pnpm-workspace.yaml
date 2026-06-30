@@ -1,6 +1,7 @@
 packages:
   - "back"
   - "front"
+  - "packages/api-client"
 
 ignoredBuiltDependencies:
   - sharp

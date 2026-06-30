@@ -1,0 +1,29 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "tasks": {
+    "front#build": {
+      "dependsOn": ["type-check"],
+      "outputs": [".next/**", "!.next/cache/**"]
+    },
+    "back#build": {
+      "dependsOn": ["type-check"],
+      "outputs": ["dist/**"]
+    },
+    "@trading/api-client#build": {
+      "dependsOn": ["type-check"],
+      "outputs": []
+    },
+    "type-check": {
+      "outputs": []
+    },
+    "lint": {
+      "outputs": []
+    },
+    "test": {
+      "outputs": []
+    },
+    "format": {
+      "outputs": []
+    }
+  }
+}

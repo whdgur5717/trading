@@ -7,7 +7,7 @@ import { AppModule } from "../src/app.module"
 import { configureApp } from "../src/bootstrap/app-bootstrap"
 import { createSwaggerDocument } from "../src/bootstrap/swagger"
 
-const DEFAULT_OUTPUT_PATH = "docs/openapi.json"
+const DEFAULT_OUTPUT_PATH = "../packages/api-client/openapi.json"
 
 async function main(): Promise<void> {
   const outputPath = resolve(
