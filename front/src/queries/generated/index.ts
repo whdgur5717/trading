@@ -1,7 +1,6 @@
 export * from "./schemas"
 export * from "./candles"
 export * from "./health"
-export * from "./jobju"
 export * from "./prices"
 export * from "./realtime"
 export * from "./returns"

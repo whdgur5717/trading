@@ -1,5 +1,4 @@
 import { MARKET_DATA_ERRORS } from "../../market/market-data.error"
-import { JOBJU_ERRORS } from "../../jobju/jobju.errors"
 import { STOCK_ERRORS } from "../../stocks/stocks.errors"
 
 export const COMMON_ERRORS = {
@@ -18,7 +17,6 @@ export const API_ERRORS = {
   ...COMMON_ERRORS,
   ...STOCK_ERRORS,
   ...MARKET_DATA_ERRORS,
-  ...JOBJU_ERRORS,
 } as const
 
 export type ErrorCode = keyof typeof API_ERRORS
