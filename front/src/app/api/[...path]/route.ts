@@ -1,6 +1,9 @@
 import type { NextRequest } from "next/server"
 
-import { issueToken } from "@/server/token"
+import {
+  applyCloudflareAccessHeaders,
+  deleteCloudflareAccessHeaders,
+} from "@/server/cloudflare-access"
 
 type RouteContext = {
   params: Promise<{
@@ -8,13 +11,11 @@ type RouteContext = {
   }>
 }
 
-const backendBaseUrl = process.env.API_BASE_URL
-
 async function proxy(request: NextRequest, context: RouteContext) {
   const { path } = await context.params
   const backendUrl = new URL(
     `/${path.map(encodeURIComponent).join("/")}${request.nextUrl.search}`,
-    backendBaseUrl
+    process.env.API_BASE_URL
   )
   const headers = new Headers(request.headers)
 
@@ -22,12 +23,9 @@ async function proxy(request: NextRequest, context: RouteContext) {
   headers.delete("connection")
   headers.delete("content-length")
   headers.delete("authorization")
+  deleteCloudflareAccessHeaders(headers)
 
-  const token = await issueToken()
-
-  if (token) {
-    headers.set("authorization", `Bearer ${token}`)
-  }
+  applyCloudflareAccessHeaders(headers)
 
   const response = await fetch(backendUrl, {
     method: request.method,

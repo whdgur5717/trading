@@ -18,6 +18,10 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      BACK_IMAGE_TAG: ${{ vars.ECR_REGISTRY }}/${{ vars.ECR_BACK_REPOSITORY }}:${{ github.sha }}
+      CODEDEPLOY_ARTIFACT_KEY: codedeploy/trading-back/${{ github.sha }}.zip
 
     steps:
       - name: Checkout
@@ -54,57 +58,37 @@ jobs:
       - name: Build workspace
         run: pnpm build
 
-      - name: Authenticate to Google Cloud
-        id: auth
-        uses: google-github-actions/auth@v3
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6.1.0
         with:
-          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ vars.GCP_DEPLOYER_SERVICE_ACCOUNT }}
-          token_format: access_token
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          mask-aws-account-id: true
+
+      - name: Verify AWS CLI
+        run: aws --version
 
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Login to Artifact Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ vars.ARTIFACT_REGISTRY_HOST }}
-          username: oauth2accesstoken
-          password: ${{ steps.auth.outputs.access_token }}
+      - name: Login to ECR
+        uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build and push back image
+        id: build_back
         uses: docker/build-push-action@v6
         with:
           context: .
           file: back/Dockerfile
-          platforms: linux/amd64
+          platforms: linux/arm64
           push: true
-          tags: ${{ vars.ARTIFACT_REGISTRY_HOST }}/${{ vars.GCP_PROJECT_ID }}/${{ vars.ARTIFACT_REPOSITORY }}/${{ vars.CLOUD_RUN_BACK_SERVICE_NAME }}:${{ github.sha }}
+          tags: ${{ env.BACK_IMAGE_TAG }}
 
-      - name: Build and push front image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: front/Dockerfile
-          platforms: linux/amd64
-          push: true
-          tags: ${{ vars.ARTIFACT_REGISTRY_HOST }}/${{ vars.GCP_PROJECT_ID }}/${{ vars.ARTIFACT_REPOSITORY }}/${{ vars.CLOUD_RUN_FRONT_SERVICE_NAME }}:${{ github.sha }}
-
-      - name: Deploy back to Cloud Run
-        uses: google-github-actions/deploy-cloudrun@v3
-        with:
-          service: ${{ vars.CLOUD_RUN_BACK_SERVICE_NAME }}
-          project_id: ${{ vars.GCP_PROJECT_ID }}
-          region: ${{ vars.CLOUD_RUN_REGION }}
-          image: ${{ vars.ARTIFACT_REGISTRY_HOST }}/${{ vars.GCP_PROJECT_ID }}/${{ vars.ARTIFACT_REPOSITORY }}/${{ vars.CLOUD_RUN_BACK_SERVICE_NAME }}:${{ github.sha }}
-
-      - name: Deploy front to Cloud Run
-        uses: google-github-actions/deploy-cloudrun@v3
-        with:
-          service: ${{ vars.CLOUD_RUN_FRONT_SERVICE_NAME }}
-          project_id: ${{ vars.GCP_PROJECT_ID }}
-          region: ${{ vars.CLOUD_RUN_REGION }}
-          image: ${{ vars.ARTIFACT_REGISTRY_HOST }}/${{ vars.GCP_PROJECT_ID }}/${{ vars.ARTIFACT_REPOSITORY }}/${{ vars.CLOUD_RUN_FRONT_SERVICE_NAME }}:${{ github.sha }}
-
-      - name: Verify deployment
-        run: curl --fail --silent --show-error --retry 5 --retry-delay 5 --retry-all-errors "${{ vars.PUBLIC_ORIGIN }}/api/health"
+      - name: Deploy back with CodeDeploy
+        env:
+          BACK_IMAGE_URI: ${{ vars.ECR_REGISTRY }}/${{ vars.ECR_BACK_REPOSITORY }}@${{ steps.build_back.outputs.digest }}
+          CODEDEPLOY_ARTIFACT_BUCKET: ${{ vars.CODEDEPLOY_ARTIFACT_BUCKET }}
+          CODEDEPLOY_APPLICATION_NAME: ${{ vars.CODEDEPLOY_APPLICATION_NAME }}
+          CODEDEPLOY_DEPLOYMENT_GROUP_NAME: ${{ vars.CODEDEPLOY_DEPLOYMENT_GROUP_NAME }}
+          CODEDEPLOY_WAIT_SECONDS: "900"
+        run: node scripts/deploy/create-codedeploy-deployment.mjs

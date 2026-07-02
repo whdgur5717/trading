@@ -1,0 +1,11 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /opt/trading/codedeploy
+file_exists_behavior: OVERWRITE
+hooks:
+  ApplicationStart:
+    - location: deploy/codedeploy/deploy.mjs
+      timeout: 600
+      runas: root
