@@ -393,6 +393,10 @@ Manage these parameters directly in AWS Parameter Store. The deploy pipeline doe
 not read repository env files and does not keep back runtime secrets in GitHub Actions.
 Create or update each value as a SecureString before deploying the app.
 
+Set `HOST=0.0.0.0` for the container process. The container is still only exposed
+on the EC2 host loopback because the deploy hook publishes Docker as
+`127.0.0.1:<PORT>:<PORT>`.
+
 The deploy hook reads the full path with:
 
 ```bash

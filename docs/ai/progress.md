@@ -193,4 +193,11 @@ Last updated: 2026-07-02
   `/trading/prod/back` ARN 권한 누락으로 실패했습니다. EC2 role policy에 base path와
   하위 path ARN을 모두 허용했고, SSM Run Command로 값 출력 없이 parameter count
   조회 성공을 확인했습니다.
+- 다섯 번째 main Deploy run은 같은 SSM 권한 오류로 실패했습니다. 실제 EC2 role policy와
+  SSM Run Command 조회는 성공했기 때문에 CodeDeploy agent를 재시작했고, 실패한
+  deployment archive의 `deploy.mjs`를 EC2에서 직접 실행해 SSM read, ECR pull, Docker
+  run이 성공함을 확인했습니다.
+- 이후 host loopback `/health`가 empty reply를 반환하는 문제는 Parameter Store의
+  `HOST=127.0.0.1` 때문이었습니다. `/trading/prod/back/HOST`를 `0.0.0.0`으로 갱신했고,
+  같은 deploy hook 재실행 후 host `127.0.0.1:4000/health`가 200을 반환했습니다.
 - `git diff --check` 통과.

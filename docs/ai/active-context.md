@@ -100,6 +100,14 @@ Last updated: 2026-07-02
   `trading-back-ec2`에 `/trading/prod/back/*`만 허용되어 있었고 AWS가 base path
   `/trading/prod/back` ARN도 검사했습니다. EC2 role policy에 base path ARN을 추가했고,
   SSM Run Command로 값 출력 없이 parameter count 조회가 성공함을 확인했습니다.
+- 2026-07-02 EC2 role policy 변경 뒤에도 다음 CodeDeploy run은 같은 SSM 권한 오류로
+  실패했습니다. 실제 role policy와 SSM Run Command 조회는 성공했기 때문에
+  CodeDeploy agent를 재시작했고, 실패한 deployment archive의 `deploy.mjs`를 EC2에서
+  직접 실행해 SSM read, ECR pull, Docker run이 성공함을 확인했습니다.
+- 2026-07-02 container는 떠 있었지만 host loopback `/health`는 empty reply였습니다.
+  원인은 Parameter Store `HOST=127.0.0.1`로 앱이 container 내부 loopback에만 bind된
+  것이었습니다. `/trading/prod/back/HOST`를 `0.0.0.0`으로 갱신했고, 같은 deploy hook
+  재실행 후 host `127.0.0.1:4000/health`가 200을 반환했습니다.
 
 ## Working Agreements
 
