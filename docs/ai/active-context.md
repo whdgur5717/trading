@@ -86,6 +86,11 @@ Last updated: 2026-07-02
   `AWS_REGION`, `AWS_DEPLOY_ROLE_ARN`, `ECR_REGISTRY`, `ECR_BACK_REPOSITORY`,
   `CODEDEPLOY_ARTIFACT_BUCKET`, `CODEDEPLOY_APPLICATION_NAME`,
   `CODEDEPLOY_DEPLOYMENT_GROUP_NAME`를 사용합니다.
+- 2026-07-02 main Deploy run에서 ECR push 권한 누락은 수정됐고, 다음 실패는
+  `aws deploy push` 내부의 CodeDeploy revision 등록 권한 누락이었습니다.
+  GitHub Actions deploy role policy에 `codedeploy:RegisterApplicationRevision`을
+  추가했고, `codedeploy:GetDeployment` resource도 CodeDeploy service authorization에
+  맞게 deployment group ARN으로 정정했습니다.
 
 ## Working Agreements
 

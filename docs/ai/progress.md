@@ -180,4 +180,8 @@ Last updated: 2026-07-02
   실패했습니다. `trading-github-actions-deploy`에 `ecr:BatchGetImage`,
   `ecr:GetDownloadUrlForLayer`, `ecr:DescribeImages`를 추가했고 IAM simulator에서
   해당 action들이 `allowed`임을 확인했습니다.
+- 두 번째 main Deploy run은 ECR image push를 통과했지만 `aws deploy push`가
+  CodeDeploy `RegisterApplicationRevision` 권한 누락으로 실패했습니다. GitHub
+  Actions deploy role에 `codedeploy:RegisterApplicationRevision`을 추가하고,
+  `codedeploy:GetDeployment` resource를 deployment group ARN으로 정정했습니다.
 - `git diff --check` 통과.

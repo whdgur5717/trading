@@ -30,23 +30,23 @@
       "Resource": "arn:aws:s3:::<CODEDEPLOY_ARTIFACT_BUCKET>/codedeploy/trading-back/*"
     },
     {
-      "Sid": "StartCodeDeployDeployment",
+      "Sid": "RegisterCodeDeployRevision",
+      "Effect": "Allow",
+      "Action": [
+        "codedeploy:GetApplication",
+        "codedeploy:RegisterApplicationRevision"
+      ],
+      "Resource": "arn:aws:codedeploy:ap-northeast-2:<AWS_ACCOUNT_ID>:application:trading-back"
+    },
+    {
+      "Sid": "StartAndPollCodeDeployDeployment",
       "Effect": "Allow",
       "Action": [
         "codedeploy:CreateDeployment",
-        "codedeploy:GetApplication",
+        "codedeploy:GetDeployment",
         "codedeploy:GetDeploymentGroup"
       ],
-      "Resource": [
-        "arn:aws:codedeploy:ap-northeast-2:<AWS_ACCOUNT_ID>:application:trading-back",
-        "arn:aws:codedeploy:ap-northeast-2:<AWS_ACCOUNT_ID>:deploymentgroup:trading-back/trading-back-prod"
-      ]
-    },
-    {
-      "Sid": "PollCodeDeployDeployment",
-      "Effect": "Allow",
-      "Action": ["codedeploy:GetDeployment"],
-      "Resource": "arn:aws:codedeploy:ap-northeast-2:<AWS_ACCOUNT_ID>:deployment:*"
+      "Resource": "arn:aws:codedeploy:ap-northeast-2:<AWS_ACCOUNT_ID>:deploymentgroup:trading-back/trading-back-prod"
     }
   ]
 }
