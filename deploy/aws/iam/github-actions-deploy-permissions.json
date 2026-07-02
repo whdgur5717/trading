@@ -47,6 +47,12 @@
         "codedeploy:GetDeploymentGroup"
       ],
       "Resource": "arn:aws:codedeploy:ap-northeast-2:<AWS_ACCOUNT_ID>:deploymentgroup:trading-back/trading-back-prod"
+    },
+    {
+      "Sid": "ReadCodeDeployDeploymentConfig",
+      "Effect": "Allow",
+      "Action": ["codedeploy:GetDeploymentConfig"],
+      "Resource": "arn:aws:codedeploy:ap-northeast-2:<AWS_ACCOUNT_ID>:deploymentconfig:CodeDeployDefault.OneAtATime"
     }
   ]
 }

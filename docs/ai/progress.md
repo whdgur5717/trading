@@ -184,4 +184,8 @@ Last updated: 2026-07-02
   CodeDeploy `RegisterApplicationRevision` 권한 누락으로 실패했습니다. GitHub
   Actions deploy role에 `codedeploy:RegisterApplicationRevision`을 추가하고,
   `codedeploy:GetDeployment` resource를 deployment group ARN으로 정정했습니다.
+- 세 번째 main Deploy run은 ECR image push와 CodeDeploy revision 등록을 통과했지만
+  `create-deployment` 중 `codedeploy:GetDeploymentConfig` 권한 누락으로 실패했습니다.
+  GitHub Actions deploy role에 `CodeDeployDefault.OneAtATime` deployment config 조회
+  권한을 추가했고 IAM simulator에서 `allowed`를 확인했습니다.
 - `git diff --check` 통과.

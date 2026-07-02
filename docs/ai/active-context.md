@@ -91,6 +91,10 @@ Last updated: 2026-07-02
   GitHub Actions deploy role policy에 `codedeploy:RegisterApplicationRevision`을
   추가했고, `codedeploy:GetDeployment` resource도 CodeDeploy service authorization에
   맞게 deployment group ARN으로 정정했습니다.
+- 2026-07-02 다음 main Deploy run은 ECR push와 CodeDeploy revision 등록을 통과했고,
+  `create-deployment` 중 `CodeDeployDefault.OneAtATime` deployment config 조회 권한이
+  없어 실패했습니다. GitHub Actions deploy role policy에
+  `codedeploy:GetDeploymentConfig`를 해당 deployment config ARN으로 추가했습니다.
 
 ## Working Agreements
 
