@@ -27,7 +27,10 @@
         "ssm:GetParameters",
         "ssm:GetParametersByPath"
       ],
-      "Resource": "arn:aws:ssm:ap-northeast-2:<AWS_ACCOUNT_ID>:parameter/trading/prod/back/*"
+      "Resource": [
+        "arn:aws:ssm:ap-northeast-2:<AWS_ACCOUNT_ID>:parameter/trading/prod/back",
+        "arn:aws:ssm:ap-northeast-2:<AWS_ACCOUNT_ID>:parameter/trading/prod/back/*"
+      ]
     },
     {
       "Sid": "ReadCodeDeployRevision",

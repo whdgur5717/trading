@@ -95,6 +95,11 @@ Last updated: 2026-07-02
   `create-deployment` 중 `CodeDeployDefault.OneAtATime` deployment config 조회 권한이
   없어 실패했습니다. GitHub Actions deploy role policy에
   `codedeploy:GetDeploymentConfig`를 해당 deployment config ARN으로 추가했습니다.
+- 2026-07-02 다음 main Deploy run은 CodeDeploy deployment 생성까지 통과했지만,
+  EC2 `ApplicationStart` hook에서 Parameter Store path 조회가 실패했습니다. EC2 role
+  `trading-back-ec2`에 `/trading/prod/back/*`만 허용되어 있었고 AWS가 base path
+  `/trading/prod/back` ARN도 검사했습니다. EC2 role policy에 base path ARN을 추가했고,
+  SSM Run Command로 값 출력 없이 parameter count 조회가 성공함을 확인했습니다.
 
 ## Working Agreements
 

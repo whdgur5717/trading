@@ -188,4 +188,9 @@ Last updated: 2026-07-02
   `create-deployment` 중 `codedeploy:GetDeploymentConfig` 권한 누락으로 실패했습니다.
   GitHub Actions deploy role에 `CodeDeployDefault.OneAtATime` deployment config 조회
   권한을 추가했고 IAM simulator에서 `allowed`를 확인했습니다.
+- 네 번째 main Deploy run은 CodeDeploy deployment 생성까지 통과했지만 EC2
+  `ApplicationStart` hook에서 `ssm:GetParametersByPath`가 base path
+  `/trading/prod/back` ARN 권한 누락으로 실패했습니다. EC2 role policy에 base path와
+  하위 path ARN을 모두 허용했고, SSM Run Command로 값 출력 없이 parameter count
+  조회 성공을 확인했습니다.
 - `git diff --check` 통과.
