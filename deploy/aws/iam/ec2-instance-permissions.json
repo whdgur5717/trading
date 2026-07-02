@@ -1,0 +1,51 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "EcrAuth",
+      "Effect": "Allow",
+      "Action": ["ecr:GetAuthorizationToken"],
+      "Resource": "*"
+    },
+    {
+      "Sid": "PullBackImage",
+      "Effect": "Allow",
+      "Action": [
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:BatchGetImage",
+        "ecr:DescribeImages",
+        "ecr:DescribeRepositories",
+        "ecr:GetDownloadUrlForLayer"
+      ],
+      "Resource": "arn:aws:ecr:ap-northeast-2:<AWS_ACCOUNT_ID>:repository/trading-back"
+    },
+    {
+      "Sid": "ReadBackRuntimeParameters",
+      "Effect": "Allow",
+      "Action": [
+        "ssm:GetParameter",
+        "ssm:GetParameters",
+        "ssm:GetParametersByPath"
+      ],
+      "Resource": "arn:aws:ssm:ap-northeast-2:<AWS_ACCOUNT_ID>:parameter/trading/prod/back/*"
+    },
+    {
+      "Sid": "ReadCodeDeployRevision",
+      "Effect": "Allow",
+      "Action": ["s3:GetObject"],
+      "Resource": [
+        "arn:aws:s3:::<CODEDEPLOY_ARTIFACT_BUCKET>/codedeploy/trading-back/*",
+        "arn:aws:s3:::aws-codedeploy-ap-northeast-2/*"
+      ]
+    },
+    {
+      "Sid": "ListCodeDeployBuckets",
+      "Effect": "Allow",
+      "Action": ["s3:ListBucket"],
+      "Resource": [
+        "arn:aws:s3:::<CODEDEPLOY_ARTIFACT_BUCKET>",
+        "arn:aws:s3:::aws-codedeploy-ap-northeast-2"
+      ]
+    }
+  ]
+}

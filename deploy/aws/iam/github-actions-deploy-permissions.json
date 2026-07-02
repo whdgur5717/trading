@@ -1,0 +1,49 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "EcrAuth",
+      "Effect": "Allow",
+      "Action": ["ecr:GetAuthorizationToken"],
+      "Resource": "*"
+    },
+    {
+      "Sid": "PushBackImage",
+      "Effect": "Allow",
+      "Action": [
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:CompleteLayerUpload",
+        "ecr:DescribeRepositories",
+        "ecr:InitiateLayerUpload",
+        "ecr:PutImage",
+        "ecr:UploadLayerPart"
+      ],
+      "Resource": "arn:aws:ecr:ap-northeast-2:<AWS_ACCOUNT_ID>:repository/trading-back"
+    },
+    {
+      "Sid": "UploadCodeDeployRevision",
+      "Effect": "Allow",
+      "Action": ["s3:PutObject"],
+      "Resource": "arn:aws:s3:::<CODEDEPLOY_ARTIFACT_BUCKET>/codedeploy/trading-back/*"
+    },
+    {
+      "Sid": "StartCodeDeployDeployment",
+      "Effect": "Allow",
+      "Action": [
+        "codedeploy:CreateDeployment",
+        "codedeploy:GetApplication",
+        "codedeploy:GetDeploymentGroup"
+      ],
+      "Resource": [
+        "arn:aws:codedeploy:ap-northeast-2:<AWS_ACCOUNT_ID>:application:trading-back",
+        "arn:aws:codedeploy:ap-northeast-2:<AWS_ACCOUNT_ID>:deploymentgroup:trading-back/trading-back-prod"
+      ]
+    },
+    {
+      "Sid": "PollCodeDeployDeployment",
+      "Effect": "Allow",
+      "Action": ["codedeploy:GetDeployment"],
+      "Resource": "arn:aws:codedeploy:ap-northeast-2:<AWS_ACCOUNT_ID>:deployment:*"
+    }
+  ]
+}
