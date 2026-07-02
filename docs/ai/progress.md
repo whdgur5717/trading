@@ -176,4 +176,8 @@ Last updated: 2026-07-02
   warning은 남지만 build는 성공합니다.
 - CodeDeploy revision push/deployment script는 AWS SDK나 zip library 없이 AWS CLI를
   호출하는 방식으로 정리했고, Node 문법 검사를 통과했습니다.
+- 첫 main Deploy run은 ECR image push 중 manifest HEAD 확인에서 `403 Forbidden`으로
+  실패했습니다. `trading-github-actions-deploy`에 `ecr:BatchGetImage`,
+  `ecr:GetDownloadUrlForLayer`, `ecr:DescribeImages`를 추가했고 IAM simulator에서
+  해당 action들이 `allowed`임을 확인했습니다.
 - `git diff --check` 통과.
