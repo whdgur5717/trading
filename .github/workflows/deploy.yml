@@ -18,6 +18,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
+      pull-requests: read
 
     steps:
       - name: Checkout
@@ -72,10 +73,49 @@ jobs:
             const output = readFileSync(".turbo/affected.json", "utf8")
             const items = JSON.parse(output).data.affectedPackages.items
             const packages = items.map(({ name }) => name)
+            const { owner, repo } = context.repo
+            const { data: pullRequests } =
+              await github.rest.repos.listPullRequestsAssociatedWithCommit({
+                owner,
+                repo,
+                commit_sha: context.sha,
+              })
+            const pullRequest = pullRequests.find(({ merged_at }) => merged_at)
+            let labels = []
+
+            if (pullRequest) {
+              const { data } = await github.rest.issues.listLabelsOnIssue({
+                owner,
+                repo,
+                issue_number: pullRequest.number,
+                per_page: 100,
+              })
+              labels = data.map(({ name }) => name)
+            }
 
             core.info(`affected packages: ${packages.join(", ") || "none"}`)
-            core.setOutput("back", String(packages.includes("back")))
-            core.setOutput("front", String(packages.includes("front")))
+            core.info(
+              `deploy labels: ${
+                labels.filter((label) => label.startsWith("deploy:")).join(", ") ||
+                "none"
+              }`,
+            )
+            core.setOutput(
+              "back",
+              String(
+                packages.includes("back") ||
+                  labels.includes("deploy:all") ||
+                  labels.includes("deploy:back"),
+              ),
+            )
+            core.setOutput(
+              "front",
+              String(
+                packages.includes("front") ||
+                  labels.includes("deploy:all") ||
+                  labels.includes("deploy:front"),
+              ),
+            )
             core.setOutput("packages", JSON.stringify(packages))
 
       - name: Deploy affected back
