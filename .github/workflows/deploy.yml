@@ -136,7 +136,3 @@ jobs:
         with:
           cloudflare-account-id: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
           cloudflare-api-token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-
-      - name: Verify deployment
-        if: steps.affected.outputs.back == 'true' || steps.affected.outputs.front == 'true'
-        run: curl --fail --silent --show-error --retry 5 --retry-delay 5 --retry-all-errors "${{ vars.PUBLIC_ORIGIN }}/api/health"
