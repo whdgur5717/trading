@@ -256,3 +256,33 @@ Last updated: 2026-07-05
 - `.github/workflows/deploy.yml`, `.github/actions/deploy-back/action.yml`,
   `.github/actions/deploy-front/action.yml` YAML parse와 `git diff --check`를
   통과했습니다.
+- 로컬 `front` build 시간을 측정했습니다. `pnpm exec turbo run build --filter front`는
+  Turbo cache hit로 1.05초, `pnpm exec turbo run build --filter front --force`는
+  cache bypass로 20.87초, `pnpm --filter front run build`는 OpenNext 단독 build로
+  18.19초였습니다. 루트 `pnpm build`는 API 생성 뒤 Turbo 6개 task 모두 cache hit로
+  5.43초였습니다.
+- GitHub Actions에서 변경사항 없는 PR #6의 `front:build`가 miss나는 원인을 로컬
+  독립 clone으로 재현했습니다. `2169951` clone에서 생성한 `.turbo/cache`를 archive로
+  옮겨 `5587fe7` clone에 복원하면 dry run은 `front#build aceece7800854458 HIT`로
+  보이지만, 실제 `turbo run build --filter front`는 output restore 후
+  `front:build cache miss`로 떨어집니다. 같은 clone에서 `front/.open-next`를 지워도
+  같은 현상이 재현됩니다.
+- `front#build` artifact를 직접 `zstd -dc .turbo/cache/aceece7800854458.tar.zst | tar -xf -`
+  로 풀면 `front/.open-next/server-functions/default/front/node_modules/next/dist/...:
+Cannot extract through symlink` 오류가 대량 발생합니다. 즉 cache miss는 변경 감지
+  실패가 아니라 OpenNext `.open-next` output 안의 pnpm/Next symlink 구조 때문에 Turbo
+  output artifact가 새 runner에서 복원되지 않는 문제입니다.
+- `front#build.outputs`를 `.open-next/**`와 `!.open-next/**/node_modules/**`로 정정했습니다.
+  독립 producer clone에서 만든 artifact에는 `/node_modules/` 경로가 포함되지 않았고,
+  같은 clone에서 `.open-next` 삭제 후 `front:build cache hit`, `Cached: 2 cached, 2 total`
+  로 복원됐습니다.
+- 독립 consumer clone에 producer `.turbo` cache를 옮긴 뒤에도
+  `front:build cache hit`, `Cached: 2 cached, 2 total`로 복원됐습니다.
+- 복원된 `.open-next`로 `wrangler deploy --dry-run`을 실행해
+  `Total Upload: 7531.47 KiB / gzip: 1505.43 KiB`와 `--dry-run: exiting now.`를
+  확인했습니다.
+- 현재 repo에서도 `.open-next`와 `.next`를 지운 뒤
+  `pnpm exec turbo run build --filter front --no-color`가 `front:build cache hit`,
+  `Cached: 2 cached, 2 total`, `119ms >>> FULL TURBO`로 통과했고, 이어서
+  `pnpm exec wrangler deploy --dry-run --outdir /tmp/wrangler-open-next-current-dry-run`
+  이 통과했습니다.

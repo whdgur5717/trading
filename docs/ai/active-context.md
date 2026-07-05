@@ -153,6 +153,19 @@ Last updated: 2026-07-05
   `deploy:front`, `deploy:back`, `deploy:all` label이 있으면 해당 platform 배포를
   강제합니다. `deploy:skip`은 만들지 않았습니다. workflow token에는 PR label 조회를 위한
   `pull-requests: read`만 추가했습니다.
+- 2026-07-05 로컬 build 측정에서 `front` Turbo cache hit는 약 1초, cache bypass
+  `front` build는 약 21초, OpenNext 단독 build는 약 18초였습니다. 현재 루트
+  `pnpm build`는 API 생성 뒤 Turbo 6개 task 모두 cache hit로 약 5초입니다.
+- 2026-07-05 추가 로컬 재현에서 GitHub Actions의 `front:build` cache miss 원인은
+  변경 감지 실패가 아니라 `.open-next` output artifact 복원 실패로 확인됐습니다.
+  `front#build` archive에는 `front/.open-next/.../front/node_modules/next` symlink와
+  그 symlink 하위 `next/dist/**` 파일들이 함께 들어가며, 새 checkout에서 tar restore 시
+  `Cannot extract through symlink` 오류가 발생합니다.
+- 2026-07-05 `front#build.outputs`는 `.open-next/**`를 유지하되
+  `!.open-next/**/node_modules/**`를 제외하도록 정정했습니다. OpenNext/Cloudflare
+  배포 입력은 `.open-next/worker.js`와 `.open-next/assets`이고, 제외 후 독립 clone과
+  현재 repo 모두에서 `.open-next` 삭제 뒤 `front:build`가 실제 cache hit로 복원됐으며
+  Wrangler dry-run이 통과했습니다.
 
 ## Working Agreements
 
