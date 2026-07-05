@@ -1,0 +1,63 @@
+name: Deploy back
+description: Build the backend image, push it to ECR, and start CodeDeploy.
+
+inputs:
+  aws-region:
+    description: AWS region for ECR and CodeDeploy.
+    required: true
+  aws-deploy-role-arn:
+    description: IAM role assumed by GitHub Actions.
+    required: true
+  ecr-registry:
+    description: ECR registry URI.
+    required: true
+  ecr-back-repository:
+    description: ECR repository name for the backend image.
+    required: true
+  codedeploy-artifact-bucket:
+    description: S3 bucket used for CodeDeploy revisions.
+    required: true
+  codedeploy-application-name:
+    description: CodeDeploy application name.
+    required: true
+  codedeploy-deployment-group-name:
+    description: CodeDeploy deployment group name.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v6.1.0
+      with:
+        aws-region: ${{ inputs.aws-region }}
+        role-to-assume: ${{ inputs.aws-deploy-role-arn }}
+        mask-aws-account-id: true
+
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Login to ECR
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Build and push image
+      id: build_back
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        file: back/Dockerfile
+        platforms: linux/arm64
+        push: true
+        tags: ${{ inputs.ecr-registry }}/${{ inputs.ecr-back-repository }}:${{ github.sha }}
+
+    - name: Start CodeDeploy deployment
+      shell: bash
+      env:
+        AWS_REGION: ${{ inputs.aws-region }}
+        BACK_IMAGE_URI: ${{ inputs.ecr-registry }}/${{ inputs.ecr-back-repository }}@${{ steps.build_back.outputs.digest }}
+        CODEDEPLOY_ARTIFACT_BUCKET: ${{ inputs.codedeploy-artifact-bucket }}
+        CODEDEPLOY_ARTIFACT_KEY: codedeploy/trading-back/${{ github.sha }}.zip
+        CODEDEPLOY_APPLICATION_NAME: ${{ inputs.codedeploy-application-name }}
+        CODEDEPLOY_DEPLOYMENT_GROUP_NAME: ${{ inputs.codedeploy-deployment-group-name }}
+        CODEDEPLOY_WAIT_SECONDS: "900"
+      run: node scripts/deploy/create-codedeploy-deployment.mjs

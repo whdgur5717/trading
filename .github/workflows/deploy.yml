@@ -18,14 +18,12 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    env:
-      AWS_REGION: ${{ vars.AWS_REGION }}
-      BACK_IMAGE_TAG: ${{ vars.ECR_REGISTRY }}/${{ vars.ECR_BACK_REPOSITORY }}:${{ github.sha }}
-      CODEDEPLOY_ARTIFACT_KEY: codedeploy/trading-back/${{ github.sha }}.zip
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
@@ -52,43 +50,53 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-turbo-
 
-      - name: Lint
+      - name: Lint workspace
         run: pnpm lint
 
       - name: Build workspace
         run: pnpm build
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v6.1.0
-        with:
-          aws-region: ${{ env.AWS_REGION }}
-          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
-          mask-aws-account-id: true
-
-      - name: Verify AWS CLI
-        run: aws --version
-
-      - name: Setup Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to ECR
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Build and push back image
-        id: build_back
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: back/Dockerfile
-          platforms: linux/arm64
-          push: true
-          tags: ${{ env.BACK_IMAGE_TAG }}
-
-      - name: Deploy back with CodeDeploy
+      - name: Write affected deployment targets
         env:
-          BACK_IMAGE_URI: ${{ vars.ECR_REGISTRY }}/${{ vars.ECR_BACK_REPOSITORY }}@${{ steps.build_back.outputs.digest }}
-          CODEDEPLOY_ARTIFACT_BUCKET: ${{ vars.CODEDEPLOY_ARTIFACT_BUCKET }}
-          CODEDEPLOY_APPLICATION_NAME: ${{ vars.CODEDEPLOY_APPLICATION_NAME }}
-          CODEDEPLOY_DEPLOYMENT_GROUP_NAME: ${{ vars.CODEDEPLOY_DEPLOYMENT_GROUP_NAME }}
-          CODEDEPLOY_WAIT_SECONDS: "900"
-        run: node scripts/deploy/create-codedeploy-deployment.mjs
+          TURBO_SCM_BASE: ${{ github.event.before }}
+          TURBO_SCM_HEAD: ${{ github.sha }}
+        run: pnpm exec turbo query affected --packages back front --base "$TURBO_SCM_BASE" --head "$TURBO_SCM_HEAD" --no-color --no-update-notifier > .turbo/affected.json
+
+      - name: Detect affected deployment targets
+        id: affected
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const { readFileSync } = require("node:fs")
+
+            const output = readFileSync(".turbo/affected.json", "utf8")
+            const items = JSON.parse(output).data.affectedPackages.items
+            const packages = items.map(({ name }) => name)
+
+            core.info(`affected packages: ${packages.join(", ") || "none"}`)
+            core.setOutput("back", String(packages.includes("back")))
+            core.setOutput("front", String(packages.includes("front")))
+            core.setOutput("packages", JSON.stringify(packages))
+
+      - name: Deploy affected back
+        if: steps.affected.outputs.back == 'true'
+        uses: ./.github/actions/deploy-back
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          aws-deploy-role-arn: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          ecr-registry: ${{ vars.ECR_REGISTRY }}
+          ecr-back-repository: ${{ vars.ECR_BACK_REPOSITORY }}
+          codedeploy-artifact-bucket: ${{ vars.CODEDEPLOY_ARTIFACT_BUCKET }}
+          codedeploy-application-name: ${{ vars.CODEDEPLOY_APPLICATION_NAME }}
+          codedeploy-deployment-group-name: ${{ vars.CODEDEPLOY_DEPLOYMENT_GROUP_NAME }}
+
+      - name: Deploy affected front Worker
+        if: steps.affected.outputs.front == 'true'
+        uses: ./.github/actions/deploy-front
+        with:
+          cloudflare-account-id: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          cloudflare-api-token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+      - name: Verify deployment
+        if: steps.affected.outputs.back == 'true' || steps.affected.outputs.front == 'true'
+        run: curl --fail --silent --show-error --retry 5 --retry-delay 5 --retry-all-errors "${{ vars.PUBLIC_ORIGIN }}/api/health"

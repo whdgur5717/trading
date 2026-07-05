@@ -1,0 +1,20 @@
+name: Deploy front
+description: Deploy the frontend Cloudflare Worker.
+
+inputs:
+  cloudflare-account-id:
+    description: Cloudflare account ID.
+    required: true
+  cloudflare-api-token:
+    description: Cloudflare API token.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Deploy Worker
+      shell: bash
+      env:
+        CLOUDFLARE_ACCOUNT_ID: ${{ inputs.cloudflare-account-id }}
+        CLOUDFLARE_API_TOKEN: ${{ inputs.cloudflare-api-token }}
+      run: pnpm --filter front deploy
