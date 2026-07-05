@@ -1,6 +1,6 @@
 # Progress
 
-Last updated: 2026-07-04
+Last updated: 2026-07-05
 
 ## Done
 
@@ -88,6 +88,9 @@ Last updated: 2026-07-04
   `deploy-front`는 Cloudflare Worker upload를 담당합니다. affected 판단은
   `turbo query affected --packages back front` JSON output을 파싱해 workflow output으로
   사용합니다.
+- Deploy workflow에 PR label 기반 강제 배포 override를 추가했습니다. GitHub labels는
+  `deploy:front`, `deploy:back`, `deploy:all`만 사용하고, 배포 차단 label은 만들지
+  않았습니다.
 
 ## In Progress
 
@@ -239,6 +242,12 @@ Last updated: 2026-07-04
 - deploy workflow는 `prepare:api`를 직접 호출하지 않고 기존 `pnpm build` script를
   사용합니다. build 뒤 `turbo query affected --packages back front`를 한 번 실행해
   deploy target output을 만듭니다.
+- `deploy:front`, `deploy:back`, `deploy:all` repository labels가 존재함을 GitHub REST
+  API로 확인했습니다.
+- `.github/workflows/deploy.yml`은 merged PR label 조회를 위해 job `permissions`에
+  `pull-requests: read`만 추가했습니다.
+- PR label override 로직은 로컬 Node simulation에서 no label, front/back/all label,
+  Turbo front/back affected 조합을 확인했습니다.
 - 임시 worktree에서 workflow 순서와 같이 `pnpm build`를 먼저 실행한 뒤 deploy target
   JSON을 계산했습니다. no-change는 대상 없음, front-only 변경은 front만,
   back README 변경은 back만, `back/src/returns/returns.schema.ts` query schema 변경은

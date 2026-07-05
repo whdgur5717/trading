@@ -1,6 +1,6 @@
 # Active Context
 
-Last updated: 2026-07-04
+Last updated: 2026-07-05
 
 ## Current Focus
 
@@ -148,6 +148,11 @@ Last updated: 2026-07-04
   `CLOUDFLARE_ACCOUNT_ID`는 unset이고, `front`의 `wrangler whoami`는 auth token 만료로
   실패했습니다. Cloudflare Access 생성과 Workers 배포에는 Cloudflare API token 또는
   재로그인이 필요합니다.
+- 2026-07-05 Deploy workflow에 PR label 기반 강제 배포 override를 추가했습니다.
+  `turbo query affected --packages back front` 결과를 기본값으로 쓰고, merged PR에
+  `deploy:front`, `deploy:back`, `deploy:all` label이 있으면 해당 platform 배포를
+  강제합니다. `deploy:skip`은 만들지 않았습니다. workflow token에는 PR label 조회를 위한
+  `pull-requests: read`만 추가했습니다.
 
 ## Working Agreements
 
@@ -183,4 +188,5 @@ Last updated: 2026-07-04
   `back`/`front` 영향을 판단하고, 실제 platform 배포는 repo-local composite action
   `.github/actions/deploy-back`과 `.github/actions/deploy-front`에 모읍니다. workflow는
   `prepare:api`를 직접 호출하지 않고 기존 `pnpm build` script가 API generated output을
-  갱신한 뒤 deploy 대상만 한 번 계산합니다.
+  갱신한 뒤 deploy 대상만 한 번 계산합니다. 강제 배포가 필요하면 PR에
+  `deploy:front`, `deploy:back`, `deploy:all` 중 하나를 붙입니다.
