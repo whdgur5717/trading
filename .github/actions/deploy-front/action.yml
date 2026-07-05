@@ -17,4 +17,4 @@ runs:
       env:
         CLOUDFLARE_ACCOUNT_ID: ${{ inputs.cloudflare-account-id }}
         CLOUDFLARE_API_TOKEN: ${{ inputs.cloudflare-api-token }}
-      run: pnpm --filter front deploy
+      run: pnpm --filter front run deploy
