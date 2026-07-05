@@ -8,6 +8,12 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS",
   },
+  "routes": [
+    {
+      "pattern": "ittaesalgeol.com/*",
+      "zone_name": "ittaesalgeol.com",
+    },
+  ],
   "services": [
     {
       "binding": "WORKER_SELF_REFERENCE",

@@ -3,7 +3,7 @@
   "tasks": {
     "front#build": {
       "dependsOn": ["type-check"],
-      "outputs": [".next/**", "!.next/cache/**"]
+      "outputs": [".open-next/**"]
     },
     "back#build": {
       "dependsOn": ["type-check"],
