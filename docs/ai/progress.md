@@ -1,6 +1,6 @@
 # Progress
 
-Last updated: 2026-07-02
+Last updated: 2026-07-04
 
 ## Done
 
@@ -76,6 +76,18 @@ Last updated: 2026-07-02
   SecureString에서 직접 관리합니다.
 - `gh` CLI로 AWS deploy workflow에 필요한 GitHub Actions repository variables를
   설정했습니다.
+- Cloudflare Tunnel route가 `api.ittaesalgeol.com`에서 EC2 host loopback
+  `http://127.0.0.1:4000`으로 연결되도록 설정됐습니다. `trading-cloudflared`는
+  `--network host`로 재실행했고, 외부 `https://api.ittaesalgeol.com/health`가 200을
+  반환합니다.
+- `trading-front` Cloudflare Worker를 배포했습니다. Worker secrets에는
+  `API_BASE_URL`, `APP_ORIGIN`, `CF_ACCESS_CLIENT_ID`, `CF_ACCESS_CLIENT_SECRET`가
+  설정됐고, Worker route `ittaesalgeol.com/*` trigger 배포가 성공했습니다.
+- deploy workflow의 platform 배포 절차를 repo-local composite action으로 분리했습니다.
+  `deploy-back`은 AWS OIDC, ECR image push, CodeDeploy 시작을 담당하고,
+  `deploy-front`는 Cloudflare Worker upload를 담당합니다. affected 판단은
+  `turbo query affected --packages back front` JSON output을 파싱해 workflow output으로
+  사용합니다.
 
 ## In Progress
 
@@ -200,4 +212,38 @@ Last updated: 2026-07-02
 - 이후 host loopback `/health`가 empty reply를 반환하는 문제는 Parameter Store의
   `HOST=127.0.0.1` 때문이었습니다. `/trading/prod/back/HOST`를 `0.0.0.0`으로 갱신했고,
   같은 deploy hook 재실행 후 host `127.0.0.1:4000/health`가 200을 반환했습니다.
+- main Deploy run `28601160820`은 성공했습니다. CodeDeploy deployment
+  `d-284QF9FGJ`가 성공했고, EC2 내부 `http://127.0.0.1:4000/health`가 200을
+  반환했습니다.
+- Cloudflare Tunnel 검증에서 `cloudflared_network=host`, `running=true`,
+  `restarts=0`을 확인했습니다. cloudflared 로그에는
+  `api.ittaesalgeol.com -> http://127.0.0.1:4000` ingress config와 Seoul edge QUIC
+  connection, connectivity pre-check PASS가 기록됐습니다.
+- Cloudflare Access 적용 후 헤더 없는 `curl https://api.ittaesalgeol.com/health`와
+  fake `CF-Access-*` header 요청은 모두 `HTTP/2 403`을 반환했습니다. 응답에는
+  `cf-access-domain: api.ittaesalgeol.com`이 포함되어 Cloudflare Access가 back 앞에서
+  요청을 차단함을 확인했습니다.
+- `front/.env.development`에서 `dotenv`로 `CF_ACCESS_CLIENT_ID`와
+  `CF_ACCESS_CLIENT_SECRET`을 읽어 실제 service token 요청을 검증했습니다. 해당
+  header로 `https://api.ittaesalgeol.com/health`를 호출하면 200을 반환합니다.
+- `pnpm --filter front exec opennextjs-cloudflare build` 통과.
+- `pnpm --filter front exec opennextjs-cloudflare deploy`로 Worker version
+  `5993e2b3-aa60-4970-98ac-6ccb4eebd2ac`를 배포했고, `ittaesalgeol.com/*` route trigger
+  배포가 성공했습니다.
+- Apex `ittaesalgeol.com` DNS record를 Cloudflare proxied로 전환한 뒤
+  `https://ittaesalgeol.com`과 `https://ittaesalgeol.com/api/health`가 모두 200을
+  반환했습니다. 응답에는 `server: cloudflare`와 `x-opennext: 1`이 포함됐습니다.
 - `git diff --check` 통과.
+- `turbo query affected --packages back front` JSON output을 Node에서 파싱해 `back`,
+  `front`, `packages` output을 만드는 경로를 확인했습니다.
+- deploy workflow는 `prepare:api`를 직접 호출하지 않고 기존 `pnpm build` script를
+  사용합니다. build 뒤 `turbo query affected --packages back front`를 한 번 실행해
+  deploy target output을 만듭니다.
+- 임시 worktree에서 workflow 순서와 같이 `pnpm build`를 먼저 실행한 뒤 deploy target
+  JSON을 계산했습니다. no-change는 대상 없음, front-only 변경은 front만,
+  back README 변경은 back만, `back/src/returns/returns.schema.ts` query schema 변경은
+  `packages/api-client/openapi.json`과 `front/src/queries/generated/returns.ts`를 바꿔
+  back/front 둘 다 deploy 대상으로 잡혔습니다.
+- `.github/workflows/deploy.yml`, `.github/actions/deploy-back/action.yml`,
+  `.github/actions/deploy-front/action.yml` YAML parse와 `git diff --check`를
+  통과했습니다.

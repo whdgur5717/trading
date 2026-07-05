@@ -1,6 +1,6 @@
 # Active Context
 
-Last updated: 2026-07-02
+Last updated: 2026-07-04
 
 ## Current Focus
 
@@ -108,6 +108,46 @@ Last updated: 2026-07-02
   원인은 Parameter Store `HOST=127.0.0.1`로 앱이 container 내부 loopback에만 bind된
   것이었습니다. `/trading/prod/back/HOST`를 `0.0.0.0`으로 갱신했고, 같은 deploy hook
   재실행 후 host `127.0.0.1:4000/health`가 200을 반환했습니다.
+- 2026-07-03 main Deploy run `28601160820`이 성공했습니다. CodeDeploy deployment
+  `d-284QF9FGJ`가 성공했고, EC2 내부 `http://127.0.0.1:4000/health`가 200을
+  반환했습니다. Running image digest는
+  `sha256:e5c041449ad4c63ff37a79cc3895b44bc7f11876fd3ab27e21b5651ab1a0a46c`입니다.
+- 2026-07-04 Cloudflare Tunnel route가 `api.ittaesalgeol.com`에서
+  `http://127.0.0.1:4000`으로 내려오는 것을 확인했습니다. 초기 외부 요청은 502였고,
+  원인은 `cloudflared` container가 Docker bridge network에서 실행되어
+  `127.0.0.1`이 EC2 host loopback이 아니라 container loopback을 가리킨 점이었습니다.
+  `trading-cloudflared`를 `--network host`로 재실행한 뒤
+  `https://api.ittaesalgeol.com/health`가 200을 반환했습니다.
+- 2026-07-04 Cloudflare Access Service Auth가 적용됐습니다. 헤더 없는
+  `https://api.ittaesalgeol.com/health` 요청과 fake `CF-Access-*` header 요청은 모두
+  `HTTP/2 403`을 반환했고, 응답에는 `cf-access-domain: api.ittaesalgeol.com`이
+  포함됐습니다.
+- 2026-07-04 `front/.env.development`의 Cloudflare Access service token 값을
+  `dotenv`로 읽어 검증했습니다. env key는 front 코드가 기대하는
+  `CF_ACCESS_CLIENT_ID`, `CF_ACCESS_CLIENT_SECRET` 이름으로 정리했고, 해당 값으로
+  `https://api.ittaesalgeol.com/health`를 호출하면 200을 반환합니다. secret 값은
+  기록하지 않았습니다.
+- 2026-07-04 `trading-front` Cloudflare Worker를 배포했습니다. OpenNext build가
+  통과했고, Worker version `5993e2b3-aa60-4970-98ac-6ccb4eebd2ac`가 100% traffic에
+  배포됐습니다. Worker secrets에는 `API_BASE_URL`, `APP_ORIGIN`,
+  `CF_ACCESS_CLIENT_ID`, `CF_ACCESS_CLIENT_SECRET`가 설정됐습니다.
+- 2026-07-04 `front/wrangler.jsonc`는 `ittaesalgeol.com/*` Worker route를 사용하도록
+  정리했습니다. Custom domain 방식은 Cloudflare API의 domain record 생성 단계에서
+  실패했고, route 방식 배포는 성공했습니다.
+- 2026-07-04 apex `ittaesalgeol.com` DNS record를 Cloudflare proxied로 전환한 뒤
+  `https://ittaesalgeol.com`과 `https://ittaesalgeol.com/api/health`가 모두 Worker를
+  통해 200을 반환했습니다. 응답에는 `server: cloudflare`와 `x-opennext: 1`이
+  포함됐습니다.
+- 2026-07-04 `/result` 흐름은 front/Worker/Access/Tunnel 문제가 아니라 back의
+  `/returns`가 KIS REST 인증 endpoint에 연결하지 못해 502를 반환하는 상태입니다.
+  AWS SSM의 `KIS_REST_BASE_URL`은 `https://openapi.koreainvestment.com:9443`로
+  설정돼 있고, EC2와 로컬 모두 해당 endpoint TCP 연결이 실패합니다. 같은 시각
+  한국투자증권 점검 페이지는 2026-07-04 08:00부터 2026-07-05 12:00까지 모든
+  금융서비스 일시 중단을 안내합니다.
+- 2026-07-04 로컬에는 Cloudflare API credential이 없습니다. `CLOUDFLARE_API_TOKEN`과
+  `CLOUDFLARE_ACCOUNT_ID`는 unset이고, `front`의 `wrangler whoami`는 auth token 만료로
+  실패했습니다. Cloudflare Access 생성과 Workers 배포에는 Cloudflare API token 또는
+  재로그인이 필요합니다.
 
 ## Working Agreements
 
@@ -135,9 +175,12 @@ Last updated: 2026-07-02
 - API 계약 변경을 다룰 때는 `pnpm build` 또는 `pnpm type-check`의 Turbo 그래프가
   `back:type-check` -> `//:generate:openapi` -> `front:generate:api` ->
   `front:type-check` 순서를 보장하는지 확인합니다.
-- AWS/Cloudflare migration 구현을 시작할 때는 정적 Cloudflare Pages로 바로 가지
-  말고 Workers/OpenNext 경로를 유지합니다. `/api` proxy는 별도 Worker로 분리하지
-  않고 현재 Next.js route handler를 유지합니다. back application code에는 custom
-  header guard를 넣지 않습니다. back origin 값은 repo/config에 실제 값으로 박지 않고
-  배포 환경에서 주입합니다. 다음 구현 단계는 Cloudflare Access protected application
-  실제 생성/검증, 첫 back deployment, Cloudflare Workers front deploy step 추가입니다.
+- AWS/Cloudflare migration을 이어갈 때는 정적 Cloudflare Pages로 바로 가지 말고
+  Workers/OpenNext 경로를 유지합니다. `/api` proxy는 별도 Worker로 분리하지 않고
+  현재 Next.js route handler를 유지합니다. back application code에는 custom header
+  guard를 넣지 않습니다. back origin 값은 repo/config에 실제 값으로 박지 않고 배포
+  환경에서 주입합니다. deploy workflow는 `turbo query affected` JSON output으로
+  `back`/`front` 영향을 판단하고, 실제 platform 배포는 repo-local composite action
+  `.github/actions/deploy-back`과 `.github/actions/deploy-front`에 모읍니다. workflow는
+  `prepare:api`를 직접 호출하지 않고 기존 `pnpm build` script가 API generated output을
+  갱신한 뒤 deploy 대상만 한 번 계산합니다.

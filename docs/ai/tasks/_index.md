@@ -9,4 +9,4 @@
 | TASK-0005 | Done        | Deploy failure response analysis | 2026-06-26   |
 | TASK-0006 | Done        | API client package boundary      | 2026-06-27   |
 | TASK-0007 | Done        | Resume evidence mining           | 2026-06-30   |
-| TASK-0008 | In Progress | AWS EC2 + Cloudflare migration   | 2026-07-02   |
+| TASK-0008 | In Progress | AWS EC2 + Cloudflare migration   | 2026-07-04   |
