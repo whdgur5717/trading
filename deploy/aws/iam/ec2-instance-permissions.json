@@ -33,6 +33,12 @@
       ]
     },
     {
+      "Sid": "ReadTunnelToken",
+      "Effect": "Allow",
+      "Action": ["ssm:GetParameter"],
+      "Resource": "arn:aws:ssm:ap-northeast-2:<AWS_ACCOUNT_ID>:parameter/trading/prod/tunnel/TOKEN"
+    },
+    {
       "Sid": "ReadCodeDeployRevision",
       "Effect": "Allow",
       "Action": ["s3:GetObject"],

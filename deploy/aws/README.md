@@ -100,6 +100,13 @@ Do not commit filled account IDs, real bucket names if they reveal the account, 
 - SecureString parameters under `/trading/prod/back/*`
 - One parameter leaf name becomes one env key in `/opt/trading/back/.env`
 
+12. Cloudflare Tunnel token
+
+- SecureString parameter: `/trading/prod/tunnel/TOKEN`
+- EC2 runs `cloudflare/cloudflared` as container `trading-cloudflared`
+- The tunnel service points to the back container through EC2 loopback:
+  `http://127.0.0.1:4000`
+
 ## Command Order
 
 These commands are a runbook shape only. Do not run them until approved.
@@ -407,6 +414,54 @@ aws ssm get-parameters-by-path \
   --region ap-northeast-2
 ```
 
+### 12. Store And Run Cloudflare Tunnel
+
+Create the tunnel in Cloudflare first, then store its token as a SecureString:
+
+```bash
+aws ssm put-parameter \
+  --name /trading/prod/tunnel/TOKEN \
+  --type SecureString \
+  --value "$CLOUDFLARE_TUNNEL_TOKEN" \
+  --overwrite \
+  --region ap-northeast-2
+```
+
+Run `cloudflared` on EC2 as a Docker container:
+
+```bash
+TOKEN=$(aws ssm get-parameter \
+  --name /trading/prod/tunnel/TOKEN \
+  --with-decryption \
+  --region ap-northeast-2 \
+  --query Parameter.Value \
+  --output text)
+
+docker pull cloudflare/cloudflared:latest
+docker rm -f trading-cloudflared || true
+docker run -d \
+  --name trading-cloudflared \
+  --restart unless-stopped \
+  --network host \
+  --security-opt no-new-privileges \
+  --cap-drop ALL \
+  cloudflare/cloudflared:latest \
+  tunnel --no-autoupdate run --token "$TOKEN"
+unset TOKEN
+```
+
+Cloudflare still needs a tunnel route, shown as a Published application or
+Public Hostname depending on the dashboard view:
+
+```text
+Hostname: api.ittaesalgeol.com
+Service: http://127.0.0.1:4000
+```
+
+The container uses `--network host` because the service URL is EC2 host
+loopback. Without host networking, `127.0.0.1` points inside the `cloudflared`
+container instead of the back container published on the EC2 host.
+
 ## GitHub Actions Variables
 
 Set these repository variables after AWS resources exist:
@@ -432,6 +487,10 @@ CODEDEPLOY_DEPLOYMENT_GROUP_NAME=trading-back-prod
 7. CodeDeploy agent runs on EC2.
 8. EC2 can pull the ECR image and read `/trading/prod/back` parameters.
 9. `deploy/codedeploy/deploy.mjs` starts `trading-back` bound to `127.0.0.1`.
+10. `trading-cloudflared` is running and connected to Cloudflare.
+11. The Cloudflare tunnel route resolves and reaches back through the tunnel.
+12. Cloudflare Access rejects direct browser/client requests that do not carry
+    the front Worker service token.
 
 ## AWS Documentation Basis
 
