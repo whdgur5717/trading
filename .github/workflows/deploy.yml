@@ -55,6 +55,8 @@ jobs:
         run: pnpm lint
 
       - name: Build workspace
+        env:
+          APP_ORIGIN: ${{ vars.APP_ORIGIN }}
         run: pnpm build
 
       - name: Write affected deployment targets

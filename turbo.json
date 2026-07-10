@@ -1,8 +1,8 @@
 {
   "$schema": "https://turborepo.com/schema.json",
-  "globalEnv": ["APP_ORIGIN"],
   "tasks": {
     "front#build": {
+      "env": ["APP_ORIGIN"],
       "dependsOn": ["type-check"],
       "outputs": [".open-next/**", "!.open-next/**/node_modules/**"]
     },
