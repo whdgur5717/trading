@@ -5,7 +5,7 @@ import { candleIntervalSchema, stockSymbolSchema } from "../market/port/data"
 const decimalTextSchema = z.string().min(1)
 
 export const DEFAULT_CANDLE_COUNT = 100
-export const MAX_CANDLE_COUNT = 200
+export const MAX_CANDLE_COUNT = 100
 
 export const candlesQuerySchema = z.object({
   symbol: stockSymbolSchema,

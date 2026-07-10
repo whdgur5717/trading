@@ -2,7 +2,12 @@ import { Injectable } from "@nestjs/common"
 import { ResultAsync, ok } from "neverthrow"
 import { MarketService } from "../market/market.service"
 import { StocksService } from "../stocks/stocks.service"
-import type { Candle, Candles, CandlesQuery } from "./candles.schema"
+import {
+  MAX_CANDLE_COUNT,
+  type Candle,
+  type Candles,
+  type CandlesQuery,
+} from "./candles.schema"
 
 const KST_TIME_ZONE = "Asia/Seoul"
 
@@ -58,7 +63,7 @@ export class CandlesService {
         symbol: query.symbol,
         interval: query.interval,
         before,
-        count: 200,
+        count: MAX_CANDLE_COUNT,
       })
 
       if (result.isErr()) {

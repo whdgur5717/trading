@@ -39,7 +39,7 @@ export const candlesQuerySchema = z
     symbol: stockSymbolSchema,
     interval: candleIntervalSchema,
     before: tradingDateSchema,
-    count: z.number().int().min(1).max(200),
+    count: z.number().int().min(1).max(100),
     quotationMarket: quotationMarketSchema,
   })
   .meta({ description: "Price candles query" })
