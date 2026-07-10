@@ -1,5 +1,4 @@
 import { z } from "zod"
-import { API_ERRORS } from "../error/error-catalog"
 
 export const apiSuccessSchema = z.object({
   success: z.literal(true).meta({ example: true }),
@@ -9,9 +8,9 @@ export const apiSuccessSchema = z.object({
 
 export const apiErrorDetailSchema = z.object({
   status: z.number().int().meta({ example: 400 }),
-  code: z.enum(Object.keys(API_ERRORS)).meta({ example: "invalid-request" }),
+  type: z.string().meta({ example: "common.invalid_request" }),
   message: z.string().meta({ example: "Validation failed" }),
-  details: z.unknown().optional(),
+  data: z.unknown(),
 })
 
 export const apiErrorSchema = z.object({
@@ -21,6 +20,4 @@ export const apiErrorSchema = z.object({
 
 export type ApiErrorDetail = z.infer<typeof apiErrorDetailSchema>
 export type ApiFailure = z.infer<typeof apiErrorSchema>
-export type ApiSuccess<T> = z.infer<typeof apiSuccessSchema> & {
-  data: T
-}
+export type ApiSuccess = z.infer<typeof apiSuccessSchema>

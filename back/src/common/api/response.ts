@@ -8,9 +8,8 @@ import {
 import { Reflector } from "@nestjs/core"
 import type { Response } from "express"
 import { Observable, mergeMap } from "rxjs"
-import { apiErrorMapper } from "../error/mapper"
-import type { ApiError } from "../error/error"
-import { apiStatusFor } from "./api.errors"
+import { commonErrors } from "../error/common.errors"
+import { isDefinedError } from "../error/define"
 import { type ApiFailure, type ApiSuccess } from "./schema"
 
 export const SKIP_API_RESPONSE = "skipApiResponse"
@@ -22,14 +21,14 @@ export function SkipApiResponse() {
 @Injectable()
 export class ApiResponseInterceptor<T> implements NestInterceptor<
   T,
-  ApiSuccess<unknown> | ApiFailure | T
+  ApiSuccess | ApiFailure | T
 > {
   constructor(private readonly reflector: Reflector) {}
 
   intercept(
     context: ExecutionContext,
     next: CallHandler<T>
-  ): Observable<ApiSuccess<unknown> | ApiFailure | T> {
+  ): Observable<ApiSuccess | ApiFailure | T> {
     const shouldSkip = this.reflector.getAllAndOverride<boolean>(
       SKIP_API_RESPONSE,
       [context.getHandler(), context.getClass()]
@@ -51,12 +50,14 @@ export class ApiResponseInterceptor<T> implements NestInterceptor<
   }
 }
 
-export function apiErrorBody(error: ApiError): ApiFailure["error"] {
+export function apiErrorBody(error: unknown): ApiFailure["error"] {
+  const apiError = isDefinedError(error) ? error : commonErrors.internal({})
+
   return {
-    status: apiStatusFor(error.code),
-    code: error.code,
-    message: error.message,
-    ...(error.details === undefined ? {} : { details: error.details }),
+    type: apiError.type,
+    status: apiError.status,
+    message: apiError.message,
+    data: apiError.data,
   }
 }
 
@@ -70,7 +71,7 @@ type ResultLike = {
 function apiResponse<T>(
   data: T,
   response: Response
-): ApiSuccess<unknown> | ApiFailure | T {
+): ApiSuccess | ApiFailure | T {
   if (!isResultLike(data)) {
     return {
       success: true as const,
@@ -85,8 +86,7 @@ function apiResponse<T>(
     }
   }
 
-  const error = apiErrorMapper.toApiError(data.error)
-  const body = apiErrorBody(error)
+  const body = apiErrorBody(data.error)
   response.status(body.status)
 
   return {
