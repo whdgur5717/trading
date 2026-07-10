@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common"
+import { sortBy, uniqBy } from "es-toolkit"
 import { ResultAsync, ok } from "neverthrow"
 import { MarketService } from "../market/market.service"
 import { StocksService } from "../stocks/stocks.service"
@@ -85,7 +86,10 @@ export class CandlesService {
         return ok({
           symbol: query.symbol,
           interval: query.interval,
-          candles: candles.toReversed(),
+          candles: sortBy(
+            uniqBy(candles, (candle) => candle.timestamp.slice(0, 10)),
+            [(candle) => candle.timestamp]
+          ),
           nextBefore: null,
         } satisfies Candles)
       }

@@ -120,6 +120,14 @@ describe("CandlesService", () => {
       .mockResolvedValueOnce(
         ok([
           {
+            date: "2026-04-02",
+            openPrice: 69000,
+            highPrice: 71000,
+            lowPrice: 68000,
+            closePrice: 70000,
+            volume: 12345678,
+          },
+          {
             date: "2026-04-01",
             openPrice: 69000,
             highPrice: 71000,
@@ -154,6 +162,7 @@ describe("CandlesService", () => {
     expect(result.value.candles.at(-1)?.timestamp).toBe(
       "2026-07-10T09:00:00+09:00"
     )
+    expect(result.value.candles).toHaveLength(101)
     expect(marketService.candles).toHaveBeenNthCalledWith(1, {
       symbol: "005930",
       interval: "1d",
