@@ -3,10 +3,12 @@ import { ConfigModule } from "@nestjs/config"
 import { ConfigService } from "@nestjs/config"
 import { NestFactory } from "@nestjs/core"
 import type { NestExpressApplication } from "@nestjs/platform-express"
+import { SwaggerModule, type OpenAPIObject } from "@nestjs/swagger"
 import type { NextFunction, Request, Response } from "express"
+import { resolve } from "node:path"
+import { pathToFileURL } from "node:url"
 import { AppCoreModule } from "../src/app-core.module"
 import { configureApp } from "../src/bootstrap/app-bootstrap"
-import { configureSwagger } from "../src/bootstrap/swagger"
 import { validateEnv } from "../src/config/env.validation"
 import { createExternalServer } from "../test/support/external/server"
 import { Server as MockKisWebSocketServer } from "../test/support/external/kis/websocket/server"
@@ -274,7 +276,13 @@ async function bootstrap() {
 
   installMockMiddleware(app)
   configureApp(app)
-  configureSwagger(app)
+  const { createOpenApiDocument } = (await import(
+    pathToFileURL(resolve(process.cwd(), "openapi/document.mjs")).href
+  )) as {
+    createOpenApiDocument: (app: NestExpressApplication) => OpenAPIObject
+  }
+
+  SwaggerModule.setup("docs", app, createOpenApiDocument(app))
   app.use((request: Request, _response: Response, next: NextFunction) => {
     console.log(`[HTTP] ${request.method} ${request.originalUrl}`)
     next()
