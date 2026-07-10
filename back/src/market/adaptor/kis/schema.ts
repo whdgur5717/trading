@@ -13,11 +13,6 @@ export const responseMetaSchema = z.object({
   msg1: z.string().optional(),
 })
 
-export const httpErrorMessageSchema = z.object({
-  msg_cd: z.string().optional(),
-  msg1: z.string().optional(),
-})
-
 export const accessTokenSchema = z.object({
   access_token: z.string().min(1),
   access_token_token_expired: z.string().optional(),

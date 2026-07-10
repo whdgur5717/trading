@@ -1,21 +1,29 @@
 import { Injectable } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
-import { isAxiosError } from "axios"
-import { err, type Result } from "neverthrow"
+import { err, ok, type Result } from "neverthrow"
 import type { z } from "zod"
 import {
+  HttpRequestError,
   HttpRequestProvider,
   type HttpResponse,
 } from "../../../common/http/httpRequest.provider"
+import {
+  marketErrors,
+  type MarketDataProviderError,
+} from "../../market-data.error"
 import { AuthorizationProvider } from "./authorization.provider"
-import type { KisMarketDataFailure } from "./error"
-import { dataFromResponse } from "./response"
+import {
+  RequestQueueProvider,
+  type RequestQueueOptions,
+} from "./request-queue.provider"
+import { responseMetaSchema } from "./schema"
 
 @Injectable()
 export class RequestProvider {
   constructor(
     private readonly httpRequestProvider: HttpRequestProvider,
     private readonly authorizationProvider: AuthorizationProvider,
+    private readonly requestQueueProvider: RequestQueueProvider,
     private readonly config: ConfigService
   ) {}
 
@@ -25,8 +33,9 @@ export class RequestProvider {
       headers: Record<string, string>
     },
     query: Record<string, string>,
-    schema: TSchema
-  ): Promise<Result<z.output<TSchema>, KisMarketDataFailure>> {
+    schema: TSchema,
+    options: RequestQueueOptions = {}
+  ): Promise<Result<z.output<TSchema>, MarketDataProviderError>> {
     const accessToken = await this.authorizationProvider.accessToken()
 
     if (accessToken.isErr()) {
@@ -37,10 +46,14 @@ export class RequestProvider {
       api,
       query,
       accessToken.value,
-      schema
+      schema,
+      options
     )
 
-    if (first.isOk() || first.error.code !== "auth-unavailable") {
+    if (
+      first.isOk() ||
+      first.error.type !== "market.provider_auth_unavailable"
+    ) {
       return first
     }
 
@@ -55,7 +68,8 @@ export class RequestProvider {
       api,
       query,
       refreshedAccessToken.value,
-      schema
+      schema,
+      options
     )
   }
 
@@ -66,50 +80,107 @@ export class RequestProvider {
     },
     query: Record<string, string>,
     accessToken: string,
-    schema: TSchema
-  ): Promise<Result<z.output<TSchema>, KisMarketDataFailure>> {
+    schema: TSchema,
+    options: RequestQueueOptions
+  ): Promise<Result<z.output<TSchema>, MarketDataProviderError>> {
     let response: HttpResponse
 
     try {
-      response = await this.httpRequestProvider.request({
-        method: "GET",
-        url: `${this.restBaseUrl}${api.path}`,
-        headers: {
-          appkey: this.appKey,
-          appsecret: this.appSecret,
-          custtype: "P",
-          ...api.headers,
-          authorization: `Bearer ${accessToken}`,
-        },
-        query,
-      })
+      response = await this.requestQueueProvider.run(
+        (signal) =>
+          this.httpRequestProvider.request({
+            method: "GET",
+            url: `${this.restBaseUrl}${api.path}`,
+            headers: {
+              appkey: this.appKey,
+              appsecret: this.appSecret,
+              custtype: "P",
+              ...api.headers,
+              authorization: `Bearer ${accessToken}`,
+            },
+            query,
+            signal,
+            validateStatus: (status) => status >= 200 && status < 300,
+          }),
+        options
+      )
     } catch (error) {
-      const code = isAxiosError(error) ? error.code : undefined
-      const message =
-        error instanceof Error ? error.message : "KIS request failed"
-
-      if (code === "ECONNABORTED" || code === "ETIMEDOUT") {
-        return err({
-          service: "kis",
-          code: "timeout",
-          message,
-          endpoint: api.path,
-          upstreamCode: code,
-          cause: error,
-        })
+      if (!(error instanceof HttpRequestError)) {
+        throw error
       }
 
-      return err({
-        service: "kis",
-        code: "unavailable",
-        message,
-        endpoint: api.path,
-        upstreamCode: code,
-        cause: error,
-      })
+      const upstreamStatus = error.response?.status ?? null
+      const upstreamCode = error.code ?? null
+
+      switch (error.kind) {
+        case "timeout":
+          return err(
+            marketErrors.providerTimeout({
+              provider: "kis",
+              endpoint: api.path,
+              upstreamStatus,
+              upstreamCode,
+            })
+          )
+        case "response":
+          return err(
+            (upstreamStatus === 401 || upstreamStatus === 403
+              ? marketErrors.providerAuthUnavailable
+              : marketErrors.providerUnavailable)({
+              provider: "kis",
+              endpoint: api.path,
+              upstreamStatus,
+              upstreamCode,
+            })
+          )
+        case "cancelled":
+        case "network":
+        case "client":
+          return err(
+            marketErrors.providerUnavailable({
+              provider: "kis",
+              endpoint: api.path,
+              upstreamStatus,
+              upstreamCode,
+            })
+          )
+      }
     }
 
-    return dataFromResponse(response, api.path, schema, "market-data")
+    const meta = responseMetaSchema.safeParse(response.data)
+
+    if (meta.success && meta.data.rt_cd !== "0") {
+      const upstreamCode = meta.data.msg_cd ?? null
+      const upstreamMessage = meta.data.msg1 ?? null
+
+      return err(
+        (/token|auth|인증|토큰|만료|expired|unauthorized/.test(
+          `${upstreamCode ?? ""} ${upstreamMessage ?? ""}`.toLowerCase()
+        )
+          ? marketErrors.providerAuthUnavailable
+          : marketErrors.providerUnavailable)({
+          provider: "kis",
+          endpoint: api.path,
+          upstreamStatus: response.status,
+          upstreamCode,
+        })
+      )
+    }
+
+    const parsed = schema.safeParse(response.data)
+
+    if (!parsed.success) {
+      return err(
+        marketErrors.providerInvalidResponse({
+          provider: "kis",
+          endpoint: api.path,
+          upstreamStatus: response.status,
+          upstreamCode: null,
+        })
+      )
+    }
+
+    return ok(parsed.data)
   }
 
   private get restBaseUrl(): string {

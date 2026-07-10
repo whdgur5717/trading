@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common"
 import { err, ok, type Result } from "neverthrow"
-import type { MarketDataProviderError } from "../../market-data.error"
+import { marketErrors, type MarketDataError } from "../../market-data.error"
 import type {
   Candle,
   CandlesQuery,
@@ -10,32 +10,28 @@ import type {
   PriceQuery,
   TradingDate,
 } from "../../port/data"
-import type { MarketDataPort } from "../../port/data"
-import { toMarketDataError } from "./error"
 import { quotationMarketCode, rest } from "./protocol"
 import { RequestProvider } from "./request.provider"
 import { candlesSchema, marketDaySchema, priceSchema } from "./schema"
 
 @Injectable()
-export class MarketDataAdaptor implements MarketDataPort {
+export class KisMarketDataAdaptor {
   constructor(private readonly requestProvider: RequestProvider) {}
 
-  price(query: PriceQuery): Promise<Result<Price, MarketDataProviderError>> {
-    return this.requestProvider
-      .get(
-        rest.price,
-        {
-          FID_COND_MRKT_DIV_CODE: quotationMarketCode[query.quotationMarket],
-          FID_INPUT_ISCD: query.symbol,
-        },
-        priceSchema
-      )
-      .then((result) => result.mapErr(toMarketDataError))
+  price(query: PriceQuery): Promise<Result<Price, MarketDataError>> {
+    return this.requestProvider.get(
+      rest.price,
+      {
+        FID_COND_MRKT_DIV_CODE: quotationMarketCode[query.quotationMarket],
+        FID_INPUT_ISCD: query.symbol,
+      },
+      priceSchema
+    )
   }
 
   async candles(
     query: CandlesQuery
-  ): Promise<Result<Candle[], MarketDataProviderError>> {
+  ): Promise<Result<Candle[], MarketDataError>> {
     const startDate = this.tradingDateDaysBefore(
       query.before,
       Math.max(30, query.count * 3)
@@ -53,18 +49,16 @@ export class MarketDataAdaptor implements MarketDataPort {
       candlesSchema
     )
 
-    return candles
-      .mapErr(toMarketDataError)
-      .map((items) =>
-        items
-          .filter((candle) => candle.date <= query.before)
-          .slice(0, query.count)
-      )
+    return candles.map((items) =>
+      items
+        .filter((candle) => candle.date <= query.before)
+        .slice(0, query.count)
+    )
   }
 
   async marketDay(
     query: MarketDayQuery
-  ): Promise<Result<MarketDay, MarketDataProviderError>> {
+  ): Promise<Result<MarketDay, MarketDataError>> {
     const days = await this.requestProvider.get(
       rest.marketDay,
       {
@@ -76,18 +70,18 @@ export class MarketDataAdaptor implements MarketDataPort {
     )
 
     if (days.isErr()) {
-      return err(toMarketDataError(days.error))
+      return err(days.error)
     }
 
     const day = days.value.find((item) => item.date === query.date)
 
     if (!day) {
       return err(
-        toMarketDataError({
-          service: "kis",
-          code: "invalid-response",
-          message: "KIS market day is missing",
+        marketErrors.dataNotFound({
+          provider: "kis",
           endpoint: rest.marketDay.path,
+          upstreamStatus: null,
+          upstreamCode: null,
         })
       )
     }

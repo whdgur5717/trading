@@ -10,7 +10,6 @@ import {
 import { Result } from "neverthrow"
 import { of, type Observable } from "rxjs"
 import { apiErrorBody, SkipApiResponse } from "../common/api/response"
-import { apiErrorMapper } from "../common/error/mapper"
 import { StocksService } from "../stocks/stocks.service"
 import {
   RealtimeDisconnectedDto,
@@ -106,22 +105,40 @@ export class RealtimeController {
                       {
                         type: "object",
                         properties: {
+                          type: {
+                            type: "string",
+                            enum: ["common.invalid_request"],
+                          },
                           status: { type: "number", enum: [400] },
-                          code: { type: "string", enum: ["invalid-request"] },
                           message: { type: "string" },
-                          details: {},
+                          data: {
+                            type: "object",
+                            properties: {
+                              issues: {
+                                type: "array",
+                                items: {},
+                              },
+                            },
+                            required: ["issues"],
+                          },
                         },
-                        required: ["status", "code", "message"],
+                        required: ["type", "status", "message", "data"],
                       },
                       {
                         type: "object",
                         properties: {
+                          type: { type: "string", enum: ["stock.unsupported"] },
                           status: { type: "number", enum: [404] },
-                          code: { type: "string", enum: ["unsupported-stock"] },
                           message: { type: "string" },
-                          details: {},
+                          data: {
+                            type: "object",
+                            properties: {
+                              symbol: { type: "string" },
+                            },
+                            required: ["symbol"],
+                          },
                         },
-                        required: ["status", "code", "message"],
+                        required: ["type", "status", "message", "data"],
                       },
                       { $ref: getSchemaPath(RealtimeErrorDto) },
                       { type: "string" },
@@ -139,6 +156,17 @@ export class RealtimeController {
   @ApiBadRequestResponse({
     description:
       "The symbols query is missing or does not match the stream request contract.",
+    example: {
+      success: false,
+      error: {
+        type: "common.invalid_request",
+        status: 400,
+        message: "Validation failed",
+        data: {
+          issues: [{ path: ["symbols"], message: "Required" }],
+        },
+      },
+    },
     content: {
       "application/json": {
         schema: {
@@ -148,12 +176,21 @@ export class RealtimeController {
             success: { type: "boolean", enum: [false] },
             error: {
               type: "object",
-              required: ["status", "code", "message"],
+              required: ["type", "status", "message", "data"],
               properties: {
+                type: { type: "string", enum: ["common.invalid_request"] },
                 status: { type: "number", enum: [400] },
-                code: { type: "string", enum: ["invalid-request"] },
                 message: { type: "string" },
-                details: {},
+                data: {
+                  type: "object",
+                  properties: {
+                    issues: {
+                      type: "array",
+                      items: {},
+                    },
+                  },
+                  required: ["issues"],
+                },
               },
             },
           },
@@ -175,7 +212,7 @@ export class RealtimeController {
         (error) =>
           of({
             type: "error",
-            data: apiErrorBody(apiErrorMapper.toApiError(error)),
+            data: apiErrorBody(error),
           })
       )
   }

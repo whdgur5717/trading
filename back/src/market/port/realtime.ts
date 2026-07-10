@@ -1,6 +1,6 @@
 import { z } from "zod"
 import type { Result } from "neverthrow"
-import type { MarketDataProviderError } from "../market-data.error"
+import type { MarketDataError } from "../market-data.error"
 import { stockSymbolSchema, tradingDateSchema } from "./data"
 
 export const feedEndpointSchema = z
@@ -64,7 +64,7 @@ export const REALTIME_TRADE_FEED_PORT = Symbol("REALTIME_TRADE_FEED_PORT")
 
 export interface RealtimeTradeFeedPort {
   endpoint(): FeedEndpoint
-  authorize(): Promise<Result<FeedCredential, MarketDataProviderError>>
+  authorize(): Promise<Result<FeedCredential, MarketDataError>>
   subscribe(subscription: TradeSubscription): FeedFrame
   unsubscribe(subscription: TradeSubscription): FeedFrame
   decode(raw: string): TradeTick | null

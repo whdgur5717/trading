@@ -6,7 +6,6 @@ import {
   HttpRequestProviderMock,
   HttpRequestTestingModule,
 } from "../../../common/http/testing/httpRequestTesting.module"
-import { MARKET_DATA_ERRORS } from "../../market-data.error"
 import { OpendartAdaptor } from "./opendart.adaptor"
 import { OPENDART_BASE_URL, opendartRest } from "./opendart.protocol"
 
@@ -34,17 +33,29 @@ describe("OpendartAdaptor", () => {
 
     if (invalid.isErr()) {
       expect(invalid.error).toEqual({
-        type: "market-data-not-found",
-        message: MARKET_DATA_ERRORS["market-data-not-found"].message,
-        details: { service: "opendart", stockCode: "not-a-secret-symbol" },
+        type: "market.data_not_found",
+        status: 404,
+        message: "Market data was not found",
+        data: {
+          provider: "opendart",
+          endpoint: "corp-code-map",
+          upstreamStatus: null,
+          upstreamCode: null,
+        },
       })
     }
 
     if (missing.isErr()) {
       expect(missing.error).toEqual({
-        type: "market-data-not-found",
-        message: MARKET_DATA_ERRORS["market-data-not-found"].message,
-        details: { service: "opendart", stockCode: "000000" },
+        type: "market.data_not_found",
+        status: 404,
+        message: "Market data was not found",
+        data: {
+          provider: "opendart",
+          endpoint: "corp-code-map",
+          upstreamStatus: null,
+          upstreamCode: null,
+        },
       })
     }
   })
@@ -84,14 +95,47 @@ describe("OpendartAdaptor", () => {
       establishedDate: "19690113",
       settlementMonth: "12",
     })
-    expect(request).toHaveBeenCalledWith({
-      method: "GET",
-      url: `${OPENDART_BASE_URL}${opendartRest.company}`,
-      query: {
-        crtfc_key: "dart-key",
-        corp_code: "00126380",
+    expect(request).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: "GET",
+        url: `${OPENDART_BASE_URL}${opendartRest.company}`,
+        query: {
+          crtfc_key: "dart-key",
+          corp_code: "00126380",
+        },
+        validateStatus: expect.any(Function),
+      })
+    )
+  })
+
+  it("OpenDART 회사 개요 조회에서 데이터 없음 응답은 시장 데이터 없음 오류로 반환한다", async () => {
+    const request = vi.fn<HttpRequestProvider["request"]>().mockResolvedValue({
+      status: 200,
+      statusText: "OK",
+      data: {
+        status: "013",
+        message: "조회된 데이타가 없습니다.",
       },
     })
+    const adaptor = await createAdaptor(request)
+
+    const result = await adaptor.company("00126380")
+
+    expect(result.isErr()).toBe(true)
+
+    if (result.isErr()) {
+      expect(result.error).toEqual({
+        type: "market.data_not_found",
+        status: 404,
+        message: "Market data was not found",
+        data: {
+          provider: "opendart",
+          endpoint: opendartRest.company,
+          upstreamStatus: 200,
+          upstreamCode: "013",
+        },
+      })
+    }
   })
 
   it("returns an empty list when OpenDART list response has no data", async () => {

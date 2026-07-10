@@ -1,11 +1,16 @@
-import type { ApplicationError } from "../common/error/error"
+import { z } from "zod"
+import { defineErrors, type ErrorOf } from "../common/error/define"
 
-export const STOCK_ERRORS = {
-  "unsupported-stock": {
+export const stockErrors = defineErrors({
+  unsupported: {
+    type: "stock.unsupported",
+    status: 404,
     message: "Unsupported stock symbol",
     description: "The requested stock symbol is not supported by this service.",
+    data: z.object({
+      symbol: z.string().meta({ example: "005930" }),
+    }),
   },
-} as const
+})
 
-export type StockErrorCode = keyof typeof STOCK_ERRORS
-export type StockError = ApplicationError<StockErrorCode>
+export type StockError = ErrorOf<typeof stockErrors>

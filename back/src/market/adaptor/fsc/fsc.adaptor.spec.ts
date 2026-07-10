@@ -78,16 +78,19 @@ describe("FscAdaptor", () => {
         marketCap: 447733691250000,
       },
     ])
-    expect(http.request).toHaveBeenCalledWith({
-      method: "GET",
-      url: `${FSC_BASE_URL}${fscRest.stockPriceInfo}`,
-      query: {
-        serviceKey: "public-data-key",
-        resultType: "json",
-        basDt: "20240614",
-        numOfRows: "5000",
-        pageNo: "1",
-      },
-    })
+    expect(http.request).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: "GET",
+        url: `${FSC_BASE_URL}${fscRest.stockPriceInfo}`,
+        query: {
+          serviceKey: "public-data-key",
+          resultType: "json",
+          basDt: "20240614",
+          numOfRows: "5000",
+          pageNo: "1",
+        },
+        validateStatus: expect.any(Function),
+      })
+    )
   })
 })

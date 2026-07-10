@@ -6,6 +6,12 @@ export class MarketDataPortMock {
   price = vi.fn<MarketDataPort["price"]>()
   candles = vi.fn<MarketDataPort["candles"]>()
   marketDay = vi.fn<MarketDataPort["marketDay"]>()
+  dailyStocks = vi.fn<MarketDataPort["dailyStocks"]>()
+  dailyIndexes = vi.fn<MarketDataPort["dailyIndexes"]>()
+  corpCode = vi.fn<MarketDataPort["corpCode"]>()
+  company = vi.fn<MarketDataPort["company"]>()
+  disclosures = vi.fn<MarketDataPort["disclosures"]>()
+  financialAccounts = vi.fn<MarketDataPort["financialAccounts"]>()
 }
 
 @Module({

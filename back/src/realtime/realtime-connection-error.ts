@@ -1,9 +1,9 @@
-import type { MarketDataProviderError } from "../market/market-data.error"
+import type { MarketDataError } from "../market/market-data.error"
 
 export type RealtimeConnectionError =
   | {
       readonly type: "feed-authorization"
-      readonly error: MarketDataProviderError
+      readonly error: MarketDataError
     }
   | {
       readonly type: "websocket-timeout"
