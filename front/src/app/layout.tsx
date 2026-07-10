@@ -14,12 +14,12 @@ const pretendard = localFont({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.APP_ORIGIN!),
-  title: "그때 샀다면",
-  description: "그때 그 종목을 샀다면 지금 얼마였을지 계산해보세요.",
+  title: "이때 살걸",
+  description: "이때 그 종목을 샀다면 지금 얼마였을지 계산해보세요.",
   openGraph: {
-    title: "그때 샀다면",
-    description: "그때 그 종목을 샀다면 지금 얼마였을지 계산해보세요.",
-    siteName: "그때 샀다면",
+    title: "이때 살걸",
+    description: "이때 이 종목을 샀다면 지금 얼마였을지 계산해보세요.",
+    siteName: "이때 살걸",
     locale: "ko_KR",
     type: "website",
   },
