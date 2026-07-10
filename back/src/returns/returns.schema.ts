@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { candlesSchema } from "../candles/candles.schema"
 import { pastOrTodayIsoDateSchema } from "../common/validation/date"
 import { priceSchema } from "../prices/prices.schema"
 import { stockSchema } from "../stocks/stock.schema"
@@ -33,8 +34,16 @@ export const returnSummarySchema = z.object({
   result: returnCalculationSchema,
 })
 
+export const returnChartSchema = returnSummarySchema.extend({
+  chart: candlesSchema.pick({
+    interval: true,
+    candles: true,
+  }),
+})
+
 export type ReturnsQuery = z.infer<typeof returnsQuerySchema>
 export type ReturnBuy = z.infer<typeof returnBuySchema>
 export type ReturnCurrent = z.infer<typeof returnCurrentSchema>
 export type ReturnCalculation = z.infer<typeof returnCalculationSchema>
 export type ReturnSummary = z.infer<typeof returnSummarySchema>
+export type ReturnChart = z.infer<typeof returnChartSchema>

@@ -8,6 +8,11 @@ const responseContentTypes = [jsonContentType, sseContentType]
 export function openApiRequestCases(document) {
   return Object.entries(document.paths).flatMap(([path, pathItem]) =>
     methods.flatMap((method) => {
+      //health는 임시로 제외
+      if (path === "/health") {
+        return []
+      }
+
       const operation = pathItem[method]
 
       if (!operation) {

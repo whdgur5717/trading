@@ -14,4 +14,13 @@ export class ReturnsController {
       query.quantity
     )
   }
+
+  @Get("chart")
+  chart(@Query() query: ReturnsQueryDto) {
+    return this.returnsService.chart(
+      query.symbol,
+      query.buyDate,
+      query.quantity
+    )
+  }
 }
