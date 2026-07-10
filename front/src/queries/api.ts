@@ -1,6 +1,5 @@
-import ky, { isHTTPError } from "ky"
+import ky from "ky"
 import type { ZodError } from "zod"
-import { ApiErrorDtoSchema } from "./generated/schemas"
 
 export const apiBaseUrl =
   typeof window === "undefined" ? `${process.env.APP_ORIGIN}/api` : "/api"
@@ -40,24 +39,5 @@ export class ApiUnexpectedStatusError extends Error {
 
 export const api = ky.create({
   prefix: apiBaseUrl,
-  throwHttpErrors: (status) => status >= 500,
-  hooks: {
-    beforeError: [
-      ({ error }) => {
-        if (!isHTTPError(error)) {
-          return error
-        }
-
-        const result = ApiErrorDtoSchema.safeParse(error.data)
-
-        if (!result.success) {
-          return error
-        }
-
-        error.message = result.data.error.message
-
-        return error
-      },
-    ],
-  },
+  throwHttpErrors: false,
 })

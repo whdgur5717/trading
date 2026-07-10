@@ -1,21 +1,9 @@
 import { apiBaseUrl } from "../api"
-import { type RealtimeControllerStreamResponse400 } from "./schemas"
-export {
-  RealtimeControllerStreamEventSchema,
-  RealtimeControllerStreamResponse400Schema,
-} from "./schemas"
-export type {
-  RealtimeControllerStreamEvent,
-  RealtimeControllerStreamResponse400,
-} from "./schemas"
+export { RealtimeControllerStreamEventSchema } from "./schemas"
+export type { RealtimeControllerStreamEvent } from "./schemas"
 
 export type RealtimeControllerStreamParams = {
   symbols: string
-}
-
-export type RealtimeControllerStreamFailure = {
-  status: 400
-  body: RealtimeControllerStreamResponse400
 }
 
 /**

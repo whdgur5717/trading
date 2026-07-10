@@ -3,10 +3,12 @@ import { ResultAsync, err, ok, type Result } from "neverthrow"
 import {
   PricesControllerPriceResponse200Schema,
   type PricesControllerPriceResponse200,
-  PricesControllerPriceResponse400Schema,
-  type PricesControllerPriceResponse400,
   PricesControllerPriceResponse404Schema,
   type PricesControllerPriceResponse404,
+  PricesControllerPriceResponse502Schema,
+  type PricesControllerPriceResponse502,
+  PricesControllerPriceResponse504Schema,
+  type PricesControllerPriceResponse504,
 } from "./schemas"
 
 export type PricesControllerPriceParams = {
@@ -19,8 +21,9 @@ export type PricesControllerPriceSuccess = {
 }
 
 export type PricesControllerPriceFailure =
-  | { status: 400; body: PricesControllerPriceResponse400 }
   | { status: 404; body: PricesControllerPriceResponse404 }
+  | { status: 502; body: PricesControllerPriceResponse502 }
+  | { status: 504; body: PricesControllerPriceResponse504 }
 
 /**
  * @example
@@ -33,7 +36,7 @@ export type PricesControllerPriceFailure =
 export function PRICES_CONTROLLER_PRICE(
   params: PricesControllerPriceParams
 ): ResultAsync<PricesControllerPriceSuccess, PricesControllerPriceFailure> {
-  return new ResultAsync(
+  return ResultAsync.fromSafePromise(
     (async (): Promise<
       Result<PricesControllerPriceSuccess, PricesControllerPriceFailure>
     > => {
@@ -64,25 +67,6 @@ export function PRICES_CONTROLLER_PRICE(
 
           return ok(value)
         }
-        case 400: {
-          const result = PricesControllerPriceResponse400Schema.safeParse(body)
-
-          if (!result.success) {
-            throw new ApiSchemaError({
-              status: response.status,
-              schemaName: "PricesControllerPriceResponse400Schema",
-              body,
-              zodError: result.error,
-            })
-          }
-
-          const value: PricesControllerPriceFailure = {
-            status: 400,
-            body: result.data,
-          }
-
-          return err(value)
-        }
         case 404: {
           const result = PricesControllerPriceResponse404Schema.safeParse(body)
 
@@ -102,9 +86,47 @@ export function PRICES_CONTROLLER_PRICE(
 
           return err(value)
         }
+        case 502: {
+          const result = PricesControllerPriceResponse502Schema.safeParse(body)
+
+          if (!result.success) {
+            throw new ApiSchemaError({
+              status: response.status,
+              schemaName: "PricesControllerPriceResponse502Schema",
+              body,
+              zodError: result.error,
+            })
+          }
+
+          const value: PricesControllerPriceFailure = {
+            status: 502,
+            body: result.data,
+          }
+
+          return err(value)
+        }
+        case 504: {
+          const result = PricesControllerPriceResponse504Schema.safeParse(body)
+
+          if (!result.success) {
+            throw new ApiSchemaError({
+              status: response.status,
+              schemaName: "PricesControllerPriceResponse504Schema",
+              body,
+              zodError: result.error,
+            })
+          }
+
+          const value: PricesControllerPriceFailure = {
+            status: 504,
+            body: result.data,
+          }
+
+          return err(value)
+        }
       }
 
       throw new ApiUnexpectedStatusError(response.status, body)
     })()
-  )
+  ).andThen((result) => result)
 }

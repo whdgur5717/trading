@@ -155,8 +155,7 @@ function operationModels(document) {
           const hasNumericStatus = Number.isInteger(statusCode)
           const success =
             hasNumericStatus && statusCode >= 200 && statusCode < 300
-          const handledByClient =
-            success || !hasNumericStatus || statusCode < 500
+          const handledByClient = true
           const responseTypeName = `${pascalCase(operationId)}Response${pascalCase(
             status
           )}`
@@ -347,6 +346,9 @@ function tagModels(operations) {
       fileName,
       usesHttp: tagOperations.some((operation) => !operation.isSse),
       usesSse: tagOperations.some((operation) => operation.isSse),
+      usesErr: tagOperations.some(
+        (operation) => !operation.isSse && operation.failureResponses.length > 0
+      ),
       schemaImports: uniq(
         tagOperations.flatMap((operation) =>
           operation.isSse

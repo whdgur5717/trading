@@ -3,16 +3,10 @@ import { ResultAsync, err, ok, type Result } from "neverthrow"
 import {
   StocksControllerSuggestionResponse200Schema,
   type StocksControllerSuggestionResponse200,
-  StocksControllerSuggestionResponse400Schema,
-  type StocksControllerSuggestionResponse400,
   StocksControllerSearchResponse200Schema,
   type StocksControllerSearchResponse200,
-  StocksControllerSearchResponse400Schema,
-  type StocksControllerSearchResponse400,
   StocksControllerGetResponse200Schema,
   type StocksControllerGetResponse200,
-  StocksControllerGetResponse400Schema,
-  type StocksControllerGetResponse400,
   StocksControllerGetResponse404Schema,
   type StocksControllerGetResponse404,
 } from "./schemas"
@@ -27,10 +21,7 @@ export type StocksControllerSuggestionSuccess = {
   body: StocksControllerSuggestionResponse200
 }
 
-export type StocksControllerSuggestionFailure = {
-  status: 400
-  body: StocksControllerSuggestionResponse400
-}
+export type StocksControllerSuggestionFailure = never
 
 /**
  * @example
@@ -47,7 +38,7 @@ export function STOCKS_CONTROLLER_SUGGESTION(
   StocksControllerSuggestionSuccess,
   StocksControllerSuggestionFailure
 > {
-  return new ResultAsync(
+  return ResultAsync.fromSafePromise(
     (async (): Promise<
       Result<
         StocksControllerSuggestionSuccess,
@@ -83,31 +74,11 @@ export function STOCKS_CONTROLLER_SUGGESTION(
 
           return ok(value)
         }
-        case 400: {
-          const result =
-            StocksControllerSuggestionResponse400Schema.safeParse(body)
-
-          if (!result.success) {
-            throw new ApiSchemaError({
-              status: response.status,
-              schemaName: "StocksControllerSuggestionResponse400Schema",
-              body,
-              zodError: result.error,
-            })
-          }
-
-          const value: StocksControllerSuggestionFailure = {
-            status: 400,
-            body: result.data,
-          }
-
-          return err(value)
-        }
       }
 
       throw new ApiUnexpectedStatusError(response.status, body)
     })()
-  )
+  ).andThen((result) => result)
 }
 
 export type StocksControllerSearchParams = {
@@ -119,10 +90,7 @@ export type StocksControllerSearchSuccess = {
   body: StocksControllerSearchResponse200
 }
 
-export type StocksControllerSearchFailure = {
-  status: 400
-  body: StocksControllerSearchResponse400
-}
+export type StocksControllerSearchFailure = never
 
 /**
  * @example
@@ -135,7 +103,7 @@ export type StocksControllerSearchFailure = {
 export function STOCKS_CONTROLLER_SEARCH(
   params: StocksControllerSearchParams
 ): ResultAsync<StocksControllerSearchSuccess, StocksControllerSearchFailure> {
-  return new ResultAsync(
+  return ResultAsync.fromSafePromise(
     (async (): Promise<
       Result<StocksControllerSearchSuccess, StocksControllerSearchFailure>
     > => {
@@ -166,30 +134,11 @@ export function STOCKS_CONTROLLER_SEARCH(
 
           return ok(value)
         }
-        case 400: {
-          const result = StocksControllerSearchResponse400Schema.safeParse(body)
-
-          if (!result.success) {
-            throw new ApiSchemaError({
-              status: response.status,
-              schemaName: "StocksControllerSearchResponse400Schema",
-              body,
-              zodError: result.error,
-            })
-          }
-
-          const value: StocksControllerSearchFailure = {
-            status: 400,
-            body: result.data,
-          }
-
-          return err(value)
-        }
       }
 
       throw new ApiUnexpectedStatusError(response.status, body)
     })()
-  )
+  ).andThen((result) => result)
 }
 
 export type StocksControllerGetParams = {
@@ -201,9 +150,10 @@ export type StocksControllerGetSuccess = {
   body: StocksControllerGetResponse200
 }
 
-export type StocksControllerGetFailure =
-  | { status: 400; body: StocksControllerGetResponse400 }
-  | { status: 404; body: StocksControllerGetResponse404 }
+export type StocksControllerGetFailure = {
+  status: 404
+  body: StocksControllerGetResponse404
+}
 
 /**
  * @example
@@ -216,7 +166,7 @@ export type StocksControllerGetFailure =
 export function STOCKS_CONTROLLER_GET(
   params: StocksControllerGetParams
 ): ResultAsync<StocksControllerGetSuccess, StocksControllerGetFailure> {
-  return new ResultAsync(
+  return ResultAsync.fromSafePromise(
     (async (): Promise<
       Result<StocksControllerGetSuccess, StocksControllerGetFailure>
     > => {
@@ -246,25 +196,6 @@ export function STOCKS_CONTROLLER_GET(
 
           return ok(value)
         }
-        case 400: {
-          const result = StocksControllerGetResponse400Schema.safeParse(body)
-
-          if (!result.success) {
-            throw new ApiSchemaError({
-              status: response.status,
-              schemaName: "StocksControllerGetResponse400Schema",
-              body,
-              zodError: result.error,
-            })
-          }
-
-          const value: StocksControllerGetFailure = {
-            status: 400,
-            body: result.data,
-          }
-
-          return err(value)
-        }
         case 404: {
           const result = StocksControllerGetResponse404Schema.safeParse(body)
 
@@ -288,5 +219,5 @@ export function STOCKS_CONTROLLER_GET(
 
       throw new ApiUnexpectedStatusError(response.status, body)
     })()
-  )
+  ).andThen((result) => result)
 }

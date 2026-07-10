@@ -185,6 +185,80 @@ export const ReturnSummaryDtoSchema = z.object({
 })
 export type ReturnSummaryDto = z.infer<typeof ReturnSummaryDtoSchema>
 
+export const ReturnChartDtoSchema = z.object({
+  stock: z.object({
+    symbol: z.string().regex(new RegExp("^[A-Z0-9]{1,9}$")),
+    name: z.string(),
+    marketName: z.string(),
+    quotationMarket: z.enum(["KRX", "NXT", "CONSOLIDATED"]),
+    standardCode: z.string().optional(),
+    securityGroupCode: z.string().optional(),
+    rawEtpType: z.union([z.string(), z.null()]).optional(),
+    preferredStockType: z.union([z.string(), z.null()]).optional(),
+    productType: z
+      .enum([
+        "STOCK",
+        "PREFERRED",
+        "ETF",
+        "ETN",
+        "REIT",
+        "BENEFICIARY_CERTIFICATE",
+        "SPAC",
+        "OTHER",
+      ])
+      .optional(),
+    isPreferred: z.boolean().optional(),
+    isEtf: z.boolean().optional(),
+    isEtn: z.boolean().optional(),
+    isSpac: z.boolean().optional(),
+    isReit: z.boolean().optional(),
+    isTradingHalted: z.boolean().optional(),
+    isUnderAdministration: z.boolean().optional(),
+    isLowLiquidity: z.boolean().optional(),
+    marketCap: z
+      .union([z.number().int().min(0).max(9007199254740991), z.null()])
+      .optional(),
+    previousVolume: z
+      .union([z.number().int().min(0).max(9007199254740991), z.null()])
+      .optional(),
+    listedDate: z
+      .union([z.string().regex(new RegExp("^\\d{8}$")), z.null()])
+      .optional(),
+    isKospi100: z.boolean().optional(),
+    isKospi50: z.boolean().optional(),
+    isKrx300: z.boolean().optional(),
+    warningLevel: z.union([z.string(), z.null()]).optional(),
+  }),
+  buy: z.object({
+    date: z.string(),
+    price: z.string(),
+    quantity: z.number(),
+  }),
+  current: z.object({
+    currentPrice: z.string().min(1),
+  }),
+  result: z.object({
+    buyAmount: z.number(),
+    currentValue: z.number(),
+    profit: z.number(),
+    profitRate: z.number(),
+  }),
+  chart: z.object({
+    interval: z.literal("1d"),
+    candles: z.array(
+      z.object({
+        timestamp: z.string(),
+        openPrice: z.string().min(1),
+        highPrice: z.string().min(1),
+        lowPrice: z.string().min(1),
+        closePrice: z.string().min(1),
+        volume: z.string().min(1),
+      })
+    ),
+  }),
+})
+export type ReturnChartDto = z.infer<typeof ReturnChartDtoSchema>
+
 export const RealtimeDisconnectedDtoSchema = z.object({
   closeCode: z.number(),
   reason: z.string(),
@@ -239,38 +313,12 @@ export type StocksControllerSuggestionResponse200 = z.infer<
   typeof StocksControllerSuggestionResponse200Schema
 >
 
-export const StocksControllerSuggestionResponse400Schema = z.object({
-  success: z.literal(false),
-  error: z.object({
-    status: z.literal(400),
-    code: z.literal("invalid-request"),
-    message: z.string(),
-    details: z.unknown().optional(),
-  }),
-})
-export type StocksControllerSuggestionResponse400 = z.infer<
-  typeof StocksControllerSuggestionResponse400Schema
->
-
 export const StocksControllerSearchResponse200Schema = z.object({
   success: z.literal(true),
   data: z.array(StockDtoSchema),
 })
 export type StocksControllerSearchResponse200 = z.infer<
   typeof StocksControllerSearchResponse200Schema
->
-
-export const StocksControllerSearchResponse400Schema = z.object({
-  success: z.literal(false),
-  error: z.object({
-    status: z.literal(400),
-    code: z.literal("invalid-request"),
-    message: z.string(),
-    details: z.unknown().optional(),
-  }),
-})
-export type StocksControllerSearchResponse400 = z.infer<
-  typeof StocksControllerSearchResponse400Schema
 >
 
 export const StocksControllerGetResponse200Schema = z.object({
@@ -281,26 +329,15 @@ export type StocksControllerGetResponse200 = z.infer<
   typeof StocksControllerGetResponse200Schema
 >
 
-export const StocksControllerGetResponse400Schema = z.object({
-  success: z.literal(false),
-  error: z.object({
-    status: z.literal(400),
-    code: z.literal("invalid-request"),
-    message: z.string(),
-    details: z.unknown().optional(),
-  }),
-})
-export type StocksControllerGetResponse400 = z.infer<
-  typeof StocksControllerGetResponse400Schema
->
-
 export const StocksControllerGetResponse404Schema = z.object({
   success: z.literal(false),
   error: z.object({
+    type: z.literal("stock.unsupported"),
     status: z.literal(404),
-    code: z.literal("unsupported-stock"),
     message: z.string(),
-    details: z.unknown().optional(),
+    data: z.object({
+      symbol: z.string(),
+    }),
   }),
 })
 export type StocksControllerGetResponse404 = z.infer<
@@ -315,41 +352,116 @@ export type PricesControllerPriceResponse200 = z.infer<
   typeof PricesControllerPriceResponse200Schema
 >
 
-export const PricesControllerPriceResponse400Schema = z.object({
-  success: z.literal(false),
-  error: z.object({
-    status: z.literal(400),
-    code: z.literal("invalid-request"),
-    message: z.string(),
-    details: z.unknown().optional(),
-  }),
-})
-export type PricesControllerPriceResponse400 = z.infer<
-  typeof PricesControllerPriceResponse400Schema
->
-
 export const PricesControllerPriceResponse404Schema = z.union([
   z.object({
     success: z.literal(false),
     error: z.object({
+      type: z.literal("stock.unsupported"),
       status: z.literal(404),
-      code: z.literal("unsupported-stock"),
       message: z.string(),
-      details: z.unknown().optional(),
+      data: z.object({
+        symbol: z.string(),
+      }),
     }),
   }),
   z.object({
     success: z.literal(false),
     error: z.object({
+      type: z.literal("market.data_not_found"),
       status: z.literal(404),
-      code: z.literal("market-data-not-found"),
       message: z.string(),
-      details: z.unknown().optional(),
+      data: z.object({
+        provider: z.enum(["kis", "fsc", "opendart"]),
+        endpoint: z.string(),
+        upstreamStatus: z.union([
+          z.number().int().min(-9007199254740991).max(9007199254740991),
+          z.null(),
+        ]),
+        upstreamCode: z.union([z.string(), z.null()]),
+      }),
     }),
   }),
 ])
 export type PricesControllerPriceResponse404 = z.infer<
   typeof PricesControllerPriceResponse404Schema
+>
+
+export const PricesControllerPriceResponse502Schema = z.union([
+  z.object({
+    success: z.literal(false),
+    error: z.object({
+      type: z.literal("market.provider_unavailable"),
+      status: z.literal(502),
+      message: z.string(),
+      data: z.object({
+        provider: z.enum(["kis", "fsc", "opendart"]),
+        endpoint: z.string(),
+        upstreamStatus: z.union([
+          z.number().int().min(-9007199254740991).max(9007199254740991),
+          z.null(),
+        ]),
+        upstreamCode: z.union([z.string(), z.null()]),
+      }),
+    }),
+  }),
+  z.object({
+    success: z.literal(false),
+    error: z.object({
+      type: z.literal("market.provider_auth_unavailable"),
+      status: z.literal(502),
+      message: z.string(),
+      data: z.object({
+        provider: z.enum(["kis", "fsc", "opendart"]),
+        endpoint: z.string(),
+        upstreamStatus: z.union([
+          z.number().int().min(-9007199254740991).max(9007199254740991),
+          z.null(),
+        ]),
+        upstreamCode: z.union([z.string(), z.null()]),
+      }),
+    }),
+  }),
+  z.object({
+    success: z.literal(false),
+    error: z.object({
+      type: z.literal("market.provider_invalid_response"),
+      status: z.literal(502),
+      message: z.string(),
+      data: z.object({
+        provider: z.enum(["kis", "fsc", "opendart"]),
+        endpoint: z.string(),
+        upstreamStatus: z.union([
+          z.number().int().min(-9007199254740991).max(9007199254740991),
+          z.null(),
+        ]),
+        upstreamCode: z.union([z.string(), z.null()]),
+      }),
+    }),
+  }),
+])
+export type PricesControllerPriceResponse502 = z.infer<
+  typeof PricesControllerPriceResponse502Schema
+>
+
+export const PricesControllerPriceResponse504Schema = z.object({
+  success: z.literal(false),
+  error: z.object({
+    type: z.literal("market.provider_timeout"),
+    status: z.literal(504),
+    message: z.string(),
+    data: z.object({
+      provider: z.enum(["kis", "fsc", "opendart"]),
+      endpoint: z.string(),
+      upstreamStatus: z.union([
+        z.number().int().min(-9007199254740991).max(9007199254740991),
+        z.null(),
+      ]),
+      upstreamCode: z.union([z.string(), z.null()]),
+    }),
+  }),
+})
+export type PricesControllerPriceResponse504 = z.infer<
+  typeof PricesControllerPriceResponse504Schema
 >
 
 export const CandlesControllerCandlesResponse200Schema = z.object({
@@ -360,41 +472,116 @@ export type CandlesControllerCandlesResponse200 = z.infer<
   typeof CandlesControllerCandlesResponse200Schema
 >
 
-export const CandlesControllerCandlesResponse400Schema = z.object({
-  success: z.literal(false),
-  error: z.object({
-    status: z.literal(400),
-    code: z.literal("invalid-request"),
-    message: z.string(),
-    details: z.unknown().optional(),
-  }),
-})
-export type CandlesControllerCandlesResponse400 = z.infer<
-  typeof CandlesControllerCandlesResponse400Schema
->
-
 export const CandlesControllerCandlesResponse404Schema = z.union([
   z.object({
     success: z.literal(false),
     error: z.object({
+      type: z.literal("stock.unsupported"),
       status: z.literal(404),
-      code: z.literal("unsupported-stock"),
       message: z.string(),
-      details: z.unknown().optional(),
+      data: z.object({
+        symbol: z.string(),
+      }),
     }),
   }),
   z.object({
     success: z.literal(false),
     error: z.object({
+      type: z.literal("market.data_not_found"),
       status: z.literal(404),
-      code: z.literal("market-data-not-found"),
       message: z.string(),
-      details: z.unknown().optional(),
+      data: z.object({
+        provider: z.enum(["kis", "fsc", "opendart"]),
+        endpoint: z.string(),
+        upstreamStatus: z.union([
+          z.number().int().min(-9007199254740991).max(9007199254740991),
+          z.null(),
+        ]),
+        upstreamCode: z.union([z.string(), z.null()]),
+      }),
     }),
   }),
 ])
 export type CandlesControllerCandlesResponse404 = z.infer<
   typeof CandlesControllerCandlesResponse404Schema
+>
+
+export const CandlesControllerCandlesResponse502Schema = z.union([
+  z.object({
+    success: z.literal(false),
+    error: z.object({
+      type: z.literal("market.provider_unavailable"),
+      status: z.literal(502),
+      message: z.string(),
+      data: z.object({
+        provider: z.enum(["kis", "fsc", "opendart"]),
+        endpoint: z.string(),
+        upstreamStatus: z.union([
+          z.number().int().min(-9007199254740991).max(9007199254740991),
+          z.null(),
+        ]),
+        upstreamCode: z.union([z.string(), z.null()]),
+      }),
+    }),
+  }),
+  z.object({
+    success: z.literal(false),
+    error: z.object({
+      type: z.literal("market.provider_auth_unavailable"),
+      status: z.literal(502),
+      message: z.string(),
+      data: z.object({
+        provider: z.enum(["kis", "fsc", "opendart"]),
+        endpoint: z.string(),
+        upstreamStatus: z.union([
+          z.number().int().min(-9007199254740991).max(9007199254740991),
+          z.null(),
+        ]),
+        upstreamCode: z.union([z.string(), z.null()]),
+      }),
+    }),
+  }),
+  z.object({
+    success: z.literal(false),
+    error: z.object({
+      type: z.literal("market.provider_invalid_response"),
+      status: z.literal(502),
+      message: z.string(),
+      data: z.object({
+        provider: z.enum(["kis", "fsc", "opendart"]),
+        endpoint: z.string(),
+        upstreamStatus: z.union([
+          z.number().int().min(-9007199254740991).max(9007199254740991),
+          z.null(),
+        ]),
+        upstreamCode: z.union([z.string(), z.null()]),
+      }),
+    }),
+  }),
+])
+export type CandlesControllerCandlesResponse502 = z.infer<
+  typeof CandlesControllerCandlesResponse502Schema
+>
+
+export const CandlesControllerCandlesResponse504Schema = z.object({
+  success: z.literal(false),
+  error: z.object({
+    type: z.literal("market.provider_timeout"),
+    status: z.literal(504),
+    message: z.string(),
+    data: z.object({
+      provider: z.enum(["kis", "fsc", "opendart"]),
+      endpoint: z.string(),
+      upstreamStatus: z.union([
+        z.number().int().min(-9007199254740991).max(9007199254740991),
+        z.null(),
+      ]),
+      upstreamCode: z.union([z.string(), z.null()]),
+    }),
+  }),
+})
+export type CandlesControllerCandlesResponse504 = z.infer<
+  typeof CandlesControllerCandlesResponse504Schema
 >
 
 export const ReturnsControllerCalculateResponse200Schema = z.object({
@@ -405,41 +592,260 @@ export type ReturnsControllerCalculateResponse200 = z.infer<
   typeof ReturnsControllerCalculateResponse200Schema
 >
 
-export const ReturnsControllerCalculateResponse400Schema = z.object({
-  success: z.literal(false),
-  error: z.object({
-    status: z.literal(400),
-    code: z.literal("invalid-request"),
-    message: z.string(),
-    details: z.unknown().optional(),
-  }),
-})
-export type ReturnsControllerCalculateResponse400 = z.infer<
-  typeof ReturnsControllerCalculateResponse400Schema
->
-
 export const ReturnsControllerCalculateResponse404Schema = z.union([
   z.object({
     success: z.literal(false),
     error: z.object({
+      type: z.literal("stock.unsupported"),
       status: z.literal(404),
-      code: z.literal("unsupported-stock"),
       message: z.string(),
-      details: z.unknown().optional(),
+      data: z.object({
+        symbol: z.string(),
+      }),
     }),
   }),
   z.object({
     success: z.literal(false),
     error: z.object({
+      type: z.literal("market.data_not_found"),
       status: z.literal(404),
-      code: z.literal("market-data-not-found"),
       message: z.string(),
-      details: z.unknown().optional(),
+      data: z.object({
+        provider: z.enum(["kis", "fsc", "opendart"]),
+        endpoint: z.string(),
+        upstreamStatus: z.union([
+          z.number().int().min(-9007199254740991).max(9007199254740991),
+          z.null(),
+        ]),
+        upstreamCode: z.union([z.string(), z.null()]),
+      }),
+    }),
+  }),
+  z.object({
+    success: z.literal(false),
+    error: z.object({
+      type: z.literal("returns.buy_price_not_found"),
+      status: z.literal(404),
+      message: z.string(),
+      data: z.object({
+        symbol: z.string(),
+        buyDate: z.string(),
+      }),
     }),
   }),
 ])
 export type ReturnsControllerCalculateResponse404 = z.infer<
   typeof ReturnsControllerCalculateResponse404Schema
+>
+
+export const ReturnsControllerCalculateResponse502Schema = z.union([
+  z.object({
+    success: z.literal(false),
+    error: z.object({
+      type: z.literal("market.provider_unavailable"),
+      status: z.literal(502),
+      message: z.string(),
+      data: z.object({
+        provider: z.enum(["kis", "fsc", "opendart"]),
+        endpoint: z.string(),
+        upstreamStatus: z.union([
+          z.number().int().min(-9007199254740991).max(9007199254740991),
+          z.null(),
+        ]),
+        upstreamCode: z.union([z.string(), z.null()]),
+      }),
+    }),
+  }),
+  z.object({
+    success: z.literal(false),
+    error: z.object({
+      type: z.literal("market.provider_auth_unavailable"),
+      status: z.literal(502),
+      message: z.string(),
+      data: z.object({
+        provider: z.enum(["kis", "fsc", "opendart"]),
+        endpoint: z.string(),
+        upstreamStatus: z.union([
+          z.number().int().min(-9007199254740991).max(9007199254740991),
+          z.null(),
+        ]),
+        upstreamCode: z.union([z.string(), z.null()]),
+      }),
+    }),
+  }),
+  z.object({
+    success: z.literal(false),
+    error: z.object({
+      type: z.literal("market.provider_invalid_response"),
+      status: z.literal(502),
+      message: z.string(),
+      data: z.object({
+        provider: z.enum(["kis", "fsc", "opendart"]),
+        endpoint: z.string(),
+        upstreamStatus: z.union([
+          z.number().int().min(-9007199254740991).max(9007199254740991),
+          z.null(),
+        ]),
+        upstreamCode: z.union([z.string(), z.null()]),
+      }),
+    }),
+  }),
+])
+export type ReturnsControllerCalculateResponse502 = z.infer<
+  typeof ReturnsControllerCalculateResponse502Schema
+>
+
+export const ReturnsControllerCalculateResponse504Schema = z.object({
+  success: z.literal(false),
+  error: z.object({
+    type: z.literal("market.provider_timeout"),
+    status: z.literal(504),
+    message: z.string(),
+    data: z.object({
+      provider: z.enum(["kis", "fsc", "opendart"]),
+      endpoint: z.string(),
+      upstreamStatus: z.union([
+        z.number().int().min(-9007199254740991).max(9007199254740991),
+        z.null(),
+      ]),
+      upstreamCode: z.union([z.string(), z.null()]),
+    }),
+  }),
+})
+export type ReturnsControllerCalculateResponse504 = z.infer<
+  typeof ReturnsControllerCalculateResponse504Schema
+>
+
+export const ReturnsControllerChartResponse200Schema = z.object({
+  success: z.literal(true),
+  data: ReturnChartDtoSchema,
+})
+export type ReturnsControllerChartResponse200 = z.infer<
+  typeof ReturnsControllerChartResponse200Schema
+>
+
+export const ReturnsControllerChartResponse404Schema = z.union([
+  z.object({
+    success: z.literal(false),
+    error: z.object({
+      type: z.literal("stock.unsupported"),
+      status: z.literal(404),
+      message: z.string(),
+      data: z.object({
+        symbol: z.string(),
+      }),
+    }),
+  }),
+  z.object({
+    success: z.literal(false),
+    error: z.object({
+      type: z.literal("market.data_not_found"),
+      status: z.literal(404),
+      message: z.string(),
+      data: z.object({
+        provider: z.enum(["kis", "fsc", "opendart"]),
+        endpoint: z.string(),
+        upstreamStatus: z.union([
+          z.number().int().min(-9007199254740991).max(9007199254740991),
+          z.null(),
+        ]),
+        upstreamCode: z.union([z.string(), z.null()]),
+      }),
+    }),
+  }),
+  z.object({
+    success: z.literal(false),
+    error: z.object({
+      type: z.literal("returns.buy_price_not_found"),
+      status: z.literal(404),
+      message: z.string(),
+      data: z.object({
+        symbol: z.string(),
+        buyDate: z.string(),
+      }),
+    }),
+  }),
+])
+export type ReturnsControllerChartResponse404 = z.infer<
+  typeof ReturnsControllerChartResponse404Schema
+>
+
+export const ReturnsControllerChartResponse502Schema = z.union([
+  z.object({
+    success: z.literal(false),
+    error: z.object({
+      type: z.literal("market.provider_unavailable"),
+      status: z.literal(502),
+      message: z.string(),
+      data: z.object({
+        provider: z.enum(["kis", "fsc", "opendart"]),
+        endpoint: z.string(),
+        upstreamStatus: z.union([
+          z.number().int().min(-9007199254740991).max(9007199254740991),
+          z.null(),
+        ]),
+        upstreamCode: z.union([z.string(), z.null()]),
+      }),
+    }),
+  }),
+  z.object({
+    success: z.literal(false),
+    error: z.object({
+      type: z.literal("market.provider_auth_unavailable"),
+      status: z.literal(502),
+      message: z.string(),
+      data: z.object({
+        provider: z.enum(["kis", "fsc", "opendart"]),
+        endpoint: z.string(),
+        upstreamStatus: z.union([
+          z.number().int().min(-9007199254740991).max(9007199254740991),
+          z.null(),
+        ]),
+        upstreamCode: z.union([z.string(), z.null()]),
+      }),
+    }),
+  }),
+  z.object({
+    success: z.literal(false),
+    error: z.object({
+      type: z.literal("market.provider_invalid_response"),
+      status: z.literal(502),
+      message: z.string(),
+      data: z.object({
+        provider: z.enum(["kis", "fsc", "opendart"]),
+        endpoint: z.string(),
+        upstreamStatus: z.union([
+          z.number().int().min(-9007199254740991).max(9007199254740991),
+          z.null(),
+        ]),
+        upstreamCode: z.union([z.string(), z.null()]),
+      }),
+    }),
+  }),
+])
+export type ReturnsControllerChartResponse502 = z.infer<
+  typeof ReturnsControllerChartResponse502Schema
+>
+
+export const ReturnsControllerChartResponse504Schema = z.object({
+  success: z.literal(false),
+  error: z.object({
+    type: z.literal("market.provider_timeout"),
+    status: z.literal(504),
+    message: z.string(),
+    data: z.object({
+      provider: z.enum(["kis", "fsc", "opendart"]),
+      endpoint: z.string(),
+      upstreamStatus: z.union([
+        z.number().int().min(-9007199254740991).max(9007199254740991),
+        z.null(),
+      ]),
+      upstreamCode: z.union([z.string(), z.null()]),
+    }),
+  }),
+})
+export type ReturnsControllerChartResponse504 = z.infer<
+  typeof ReturnsControllerChartResponse504Schema
 >
 
 export const RealtimeControllerStreamEventSchema = z.union([
@@ -474,16 +880,20 @@ export const RealtimeControllerStreamEventSchema = z.union([
     retry: z.number().optional(),
     data: z.union([
       z.object({
+        type: z.literal("common.invalid_request"),
         status: z.literal(400),
-        code: z.literal("invalid-request"),
         message: z.string(),
-        details: z.unknown().optional(),
+        data: z.object({
+          issues: z.array(z.unknown()),
+        }),
       }),
       z.object({
+        type: z.literal("stock.unsupported"),
         status: z.literal(404),
-        code: z.literal("unsupported-stock"),
         message: z.string(),
-        details: z.unknown().optional(),
+        data: z.object({
+          symbol: z.string(),
+        }),
       }),
       RealtimeErrorDtoSchema,
       z.string(),
@@ -494,85 +904,50 @@ export type RealtimeControllerStreamEvent = z.infer<
   typeof RealtimeControllerStreamEventSchema
 >
 
-export const RealtimeControllerStreamResponse400Schema = z.object({
-  success: z.literal(false),
-  error: z.object({
-    status: z.literal(400),
-    code: z.literal("invalid-request"),
-    message: z.string(),
-    details: z.unknown().optional(),
-  }),
-})
-export type RealtimeControllerStreamResponse400 = z.infer<
-  typeof RealtimeControllerStreamResponse400Schema
->
-
-export const HealthControllerCheckResponse200Schema = z.object({
-  success: z.literal(true),
-  data: HealthCheckDtoSchema,
-})
+export const HealthControllerCheckResponse200Schema = HealthCheckDtoSchema
 export type HealthControllerCheckResponse200 = z.infer<
   typeof HealthControllerCheckResponse200Schema
->
-
-export const HealthControllerCheckResponse400Schema = z.object({
-  success: z.literal(false),
-  error: z.object({
-    status: z.literal(400),
-    code: z.literal("invalid-request"),
-    message: z.string(),
-    details: z.unknown().optional(),
-  }),
-})
-export type HealthControllerCheckResponse400 = z.infer<
-  typeof HealthControllerCheckResponse400Schema
 >
 
 export const ApiErrorDtoSchema = z.union([
   z.object({
     success: z.literal(false),
     error: z.object({
-      status: z.literal(400),
-      code: z.literal("invalid-request"),
-      message: z.string(),
-      details: z.unknown().optional(),
-    }),
-  }),
-  z.object({
-    success: z.literal(false),
-    error: z.object({
-      status: z.literal(500),
-      code: z.literal("internal-error"),
-      message: z.string(),
-      details: z.unknown().optional(),
-    }),
-  }),
-  z.object({
-    success: z.literal(false),
-    error: z.object({
+      type: z.literal("stock.unsupported"),
       status: z.literal(404),
-      code: z.literal("unsupported-stock"),
       message: z.string(),
-      details: z.unknown().optional(),
+      data: z.object({
+        symbol: z.string(),
+      }),
     }),
   }),
   z.union([
     z.object({
       success: z.literal(false),
       error: z.object({
+        type: z.literal("stock.unsupported"),
         status: z.literal(404),
-        code: z.literal("unsupported-stock"),
         message: z.string(),
-        details: z.unknown().optional(),
+        data: z.object({
+          symbol: z.string(),
+        }),
       }),
     }),
     z.object({
       success: z.literal(false),
       error: z.object({
+        type: z.literal("market.data_not_found"),
         status: z.literal(404),
-        code: z.literal("market-data-not-found"),
         message: z.string(),
-        details: z.unknown().optional(),
+        data: z.object({
+          provider: z.enum(["kis", "fsc", "opendart"]),
+          endpoint: z.string(),
+          upstreamStatus: z.union([
+            z.number().int().min(-9007199254740991).max(9007199254740991),
+            z.null(),
+          ]),
+          upstreamCode: z.union([z.string(), z.null()]),
+        }),
       }),
     }),
   ]),
@@ -580,39 +955,113 @@ export const ApiErrorDtoSchema = z.union([
     z.object({
       success: z.literal(false),
       error: z.object({
+        type: z.literal("market.provider_unavailable"),
         status: z.literal(502),
-        code: z.literal("market-data-unavailable"),
         message: z.string(),
-        details: z.unknown().optional(),
+        data: z.object({
+          provider: z.enum(["kis", "fsc", "opendart"]),
+          endpoint: z.string(),
+          upstreamStatus: z.union([
+            z.number().int().min(-9007199254740991).max(9007199254740991),
+            z.null(),
+          ]),
+          upstreamCode: z.union([z.string(), z.null()]),
+        }),
       }),
     }),
     z.object({
       success: z.literal(false),
       error: z.object({
+        type: z.literal("market.provider_auth_unavailable"),
         status: z.literal(502),
-        code: z.literal("market-data-auth-unavailable"),
         message: z.string(),
-        details: z.unknown().optional(),
+        data: z.object({
+          provider: z.enum(["kis", "fsc", "opendart"]),
+          endpoint: z.string(),
+          upstreamStatus: z.union([
+            z.number().int().min(-9007199254740991).max(9007199254740991),
+            z.null(),
+          ]),
+          upstreamCode: z.union([z.string(), z.null()]),
+        }),
       }),
     }),
     z.object({
       success: z.literal(false),
       error: z.object({
+        type: z.literal("market.provider_invalid_response"),
         status: z.literal(502),
-        code: z.literal("market-data-invalid-response"),
         message: z.string(),
-        details: z.unknown().optional(),
+        data: z.object({
+          provider: z.enum(["kis", "fsc", "opendart"]),
+          endpoint: z.string(),
+          upstreamStatus: z.union([
+            z.number().int().min(-9007199254740991).max(9007199254740991),
+            z.null(),
+          ]),
+          upstreamCode: z.union([z.string(), z.null()]),
+        }),
       }),
     }),
   ]),
   z.object({
     success: z.literal(false),
     error: z.object({
+      type: z.literal("market.provider_timeout"),
       status: z.literal(504),
-      code: z.literal("market-data-timeout"),
       message: z.string(),
-      details: z.unknown().optional(),
+      data: z.object({
+        provider: z.enum(["kis", "fsc", "opendart"]),
+        endpoint: z.string(),
+        upstreamStatus: z.union([
+          z.number().int().min(-9007199254740991).max(9007199254740991),
+          z.null(),
+        ]),
+        upstreamCode: z.union([z.string(), z.null()]),
+      }),
     }),
   }),
+  z.union([
+    z.object({
+      success: z.literal(false),
+      error: z.object({
+        type: z.literal("stock.unsupported"),
+        status: z.literal(404),
+        message: z.string(),
+        data: z.object({
+          symbol: z.string(),
+        }),
+      }),
+    }),
+    z.object({
+      success: z.literal(false),
+      error: z.object({
+        type: z.literal("market.data_not_found"),
+        status: z.literal(404),
+        message: z.string(),
+        data: z.object({
+          provider: z.enum(["kis", "fsc", "opendart"]),
+          endpoint: z.string(),
+          upstreamStatus: z.union([
+            z.number().int().min(-9007199254740991).max(9007199254740991),
+            z.null(),
+          ]),
+          upstreamCode: z.union([z.string(), z.null()]),
+        }),
+      }),
+    }),
+    z.object({
+      success: z.literal(false),
+      error: z.object({
+        type: z.literal("returns.buy_price_not_found"),
+        status: z.literal(404),
+        message: z.string(),
+        data: z.object({
+          symbol: z.string(),
+          buyDate: z.string(),
+        }),
+      }),
+    }),
+  ]),
 ])
 export type ApiErrorDto = z.infer<typeof ApiErrorDtoSchema>

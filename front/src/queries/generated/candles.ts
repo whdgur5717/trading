@@ -3,10 +3,12 @@ import { ResultAsync, err, ok, type Result } from "neverthrow"
 import {
   CandlesControllerCandlesResponse200Schema,
   type CandlesControllerCandlesResponse200,
-  CandlesControllerCandlesResponse400Schema,
-  type CandlesControllerCandlesResponse400,
   CandlesControllerCandlesResponse404Schema,
   type CandlesControllerCandlesResponse404,
+  CandlesControllerCandlesResponse502Schema,
+  type CandlesControllerCandlesResponse502,
+  CandlesControllerCandlesResponse504Schema,
+  type CandlesControllerCandlesResponse504,
 } from "./schemas"
 
 export type CandlesControllerCandlesParams = {
@@ -22,8 +24,9 @@ export type CandlesControllerCandlesSuccess = {
 }
 
 export type CandlesControllerCandlesFailure =
-  | { status: 400; body: CandlesControllerCandlesResponse400 }
   | { status: 404; body: CandlesControllerCandlesResponse404 }
+  | { status: 502; body: CandlesControllerCandlesResponse502 }
+  | { status: 504; body: CandlesControllerCandlesResponse504 }
 
 /**
  * @example
@@ -42,7 +45,7 @@ export function CANDLES_CONTROLLER_CANDLES(
   CandlesControllerCandlesSuccess,
   CandlesControllerCandlesFailure
 > {
-  return new ResultAsync(
+  return ResultAsync.fromSafePromise(
     (async (): Promise<
       Result<CandlesControllerCandlesSuccess, CandlesControllerCandlesFailure>
     > => {
@@ -77,26 +80,6 @@ export function CANDLES_CONTROLLER_CANDLES(
 
           return ok(value)
         }
-        case 400: {
-          const result =
-            CandlesControllerCandlesResponse400Schema.safeParse(body)
-
-          if (!result.success) {
-            throw new ApiSchemaError({
-              status: response.status,
-              schemaName: "CandlesControllerCandlesResponse400Schema",
-              body,
-              zodError: result.error,
-            })
-          }
-
-          const value: CandlesControllerCandlesFailure = {
-            status: 400,
-            body: result.data,
-          }
-
-          return err(value)
-        }
         case 404: {
           const result =
             CandlesControllerCandlesResponse404Schema.safeParse(body)
@@ -117,9 +100,49 @@ export function CANDLES_CONTROLLER_CANDLES(
 
           return err(value)
         }
+        case 502: {
+          const result =
+            CandlesControllerCandlesResponse502Schema.safeParse(body)
+
+          if (!result.success) {
+            throw new ApiSchemaError({
+              status: response.status,
+              schemaName: "CandlesControllerCandlesResponse502Schema",
+              body,
+              zodError: result.error,
+            })
+          }
+
+          const value: CandlesControllerCandlesFailure = {
+            status: 502,
+            body: result.data,
+          }
+
+          return err(value)
+        }
+        case 504: {
+          const result =
+            CandlesControllerCandlesResponse504Schema.safeParse(body)
+
+          if (!result.success) {
+            throw new ApiSchemaError({
+              status: response.status,
+              schemaName: "CandlesControllerCandlesResponse504Schema",
+              body,
+              zodError: result.error,
+            })
+          }
+
+          const value: CandlesControllerCandlesFailure = {
+            status: 504,
+            body: result.data,
+          }
+
+          return err(value)
+        }
       }
 
       throw new ApiUnexpectedStatusError(response.status, body)
     })()
-  )
+  ).andThen((result) => result)
 }
