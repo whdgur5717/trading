@@ -2,6 +2,7 @@ import "./globals.css"
 import { DevelopmentTools } from "./development-tools"
 import { Providers } from "./providers"
 import localFont from "next/font/local"
+import type { Metadata } from "next"
 import { NuqsAdapter } from "nuqs/adapters/next/app"
 
 const pretendard = localFont({
@@ -10,6 +11,19 @@ const pretendard = localFont({
   display: "swap",
   weight: "45 920",
 })
+
+export const metadata: Metadata = {
+  metadataBase: new URL(process.env.APP_ORIGIN!),
+  title: "그때 샀다면",
+  description: "그때 그 종목을 샀다면 지금 얼마였을지 계산해보세요.",
+  openGraph: {
+    title: "그때 샀다면",
+    description: "그때 그 종목을 샀다면 지금 얼마였을지 계산해보세요.",
+    siteName: "그때 샀다면",
+    locale: "ko_KR",
+    type: "website",
+  },
+}
 
 export default function RootLayout({
   children,

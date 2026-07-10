@@ -1,8 +1,48 @@
-import { RETURNS_CONTROLLER_CALCULATE } from "@/queries/generated"
+import { RETURNS_CONTROLLER_CHART } from "@/queries/generated"
+import type { Metadata } from "next"
 import { stockReturnSearchParamsCache } from "./searchParams"
-import { numberFormatter } from "../components/formatter"
-import { ResultCard } from "./component/resultCard"
-import { ResultCardValue } from "./component/resultCard/value"
+import { ResultView } from "./component/view"
+
+export async function generateMetadata({
+  searchParams,
+}: PageProps<"/result">): Promise<Metadata> {
+  const { code, buyDate, quantity } =
+    await stockReturnSearchParamsCache.parse(searchParams)
+  const query = new URLSearchParams({
+    code,
+    buyDate,
+    quantity: String(quantity),
+  })
+  const imageUrl = `/result/og?${query.toString()}`
+  const title = "그때 샀다면"
+  const description =
+    code && buyDate && quantity > 0
+      ? `${buyDate}에 ${code} ${quantity.toLocaleString("ko-KR")}주를 샀다면?`
+      : "그때 그 종목을 샀다면 지금 얼마였을지 계산해보세요."
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: "그때 샀다면 결과 카드",
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [imageUrl],
+    },
+  }
+}
 
 export default async function ResultPage({
   searchParams,
@@ -10,7 +50,7 @@ export default async function ResultPage({
   const { code, buyDate, quantity } =
     await stockReturnSearchParamsCache.parse(searchParams)
 
-  const result = await RETURNS_CONTROLLER_CALCULATE({
+  const result = await RETURNS_CONTROLLER_CHART({
     symbol: code,
     buyDate,
     quantity,
@@ -21,44 +61,5 @@ export default async function ResultPage({
     }
   )
 
-  const profit = result.result.currentValue - result.result.buyAmount
-  const status = profit > 0 ? "gain" : profit < 0 ? "loss" : "flat"
-  const buyDateLabel = new Intl.DateTimeFormat("ko-KR", {
-    dateStyle: "long",
-    timeZone: "Asia/Seoul",
-  }).format(new Date(`${result.buy.date}T00:00:00+09:00`))
-
-  return (
-    <ResultCard status={status}>
-      <div className="flex flex-col items-center gap-2">
-        <p className="text-center type-body text-muted">
-          <span className="font-semibold text-ink">{buyDateLabel}</span> 종가에{" "}
-          <span className="font-semibold text-primary">
-            {result.stock.name}
-          </span>
-          를 샀다면
-        </p>
-        <ResultCardValue result={result} />
-      </div>
-      <ResultCard.Summary>
-        <ResultCard.SummaryItem
-          label="매수가"
-          value={`${numberFormatter.format(Math.round(Number(result.buy.price)))}원`}
-        />
-        <ResultCard.SummaryItem
-          label="수량"
-          value={`${numberFormatter.format(result.buy.quantity)}주`}
-        />
-        <ResultCard.SummaryItem
-          label="매수 금액"
-          value={`${numberFormatter.format(Math.round(result.result.buyAmount))}원`}
-        />
-        <ResultCard.SummaryItem
-          label="현재 평가액"
-          value={`${numberFormatter.format(Math.round(result.result.currentValue))}원`}
-          caption={`현재가 ${numberFormatter.format(Math.round(Number(result.current.currentPrice)))}원`}
-        />
-      </ResultCard.Summary>
-    </ResultCard>
-  )
+  return <ResultView result={result} />
 }
