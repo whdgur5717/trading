@@ -3,6 +3,8 @@
 ## 프로젝트 구조
 
 이 저장소는 pnpm workspace 기반 모노레포이며, 패키지는 서로 독립적으로 다룹니다.
+`front`, `back`, `packages/api-client`는 각각 자기 작업 규칙을 가진 패키지로
+취급합니다.
 
 ## 관련 문서
 
@@ -12,29 +14,36 @@
 - `DESIGN.md`는 색상, 타이포그래피, 표면, 컴포넌트, 레이아웃 규칙을 담은
   디자인 시스템 문서입니다. UI, 스타일, 컴포넌트, 레이아웃과 관련된 작업을 할
   때 먼저 읽습니다.
-- `docs/ai/`는 AI 작업 기록입니다. 새 작업을 시작할 때
-  `docs/ai/START_HERE.md`, `docs/ai/active-context.md`,
-  `docs/ai/progress.md`, `docs/ai/tasks/_index.md`를 확인하고, 작업 종료 전 다음
-  세션에 필요한 맥락을 갱신합니다.
+- `Glossary.md`는 프로젝트 용어 사전입니다. 구현 세부사항이나 작업 계획을 넣지
+  않습니다.
+- `docs/adr/`는 기술/구조 결정의 이유를 남기는 곳입니다.
+- `packages/api-client/AGENTS.md`는 OpenAPI 기반 프론트 생성 클라이언트 작업
+  규칙을 담고 있습니다.
 
 ## 에이전트 작업 규칙
 
-- `front`와 `back`은 독립 패키지로 취급합니다.
+- `front`, `back`, `packages/api-client`는 독립 패키지로 취급합니다.
 - 한 패키지 안의 문제를 해결하려고 다른 패키지를 임의로 탐색하거나 수정하지
   않습니다.
 - 작업상 필요하면 먼저 교차 패키지 변경이 필요한 이유를 제안합니다.
 
 - `pnpm.lock.yaml` 파일을 임의로 내용을 수정하지 말것(수동 패치 금지), 변경이 필요하다면 `pnpm install`을 진행
 
-## AI 운영 기록 규칙
+## 에이전트 스킬
 
-- 단순 질의나 아주 작은 수정이 아니라면 `.agents/skills/project-operating-system`을
-  사용해 작업을 진행합니다.
-- 작업 중 다음 세션에서 알아야 할 결정, 제약, 검증 결과, 남은 일을 발견하면
-  `docs/ai/active-context.md`, `docs/ai/progress.md`, 관련 `docs/ai/tasks/` 파일 중
-  알맞은 곳을 갱신합니다.
-- 기능의 목적, 사용자 흐름, 수용 기준은 `docs/ai/features/`에 남깁니다.
-- UI 화면, 컴포넌트, 디자인 판단, 접근성 기준은 `docs/ai/design/`에 남깁니다.
-- 되돌아보면 이유가 필요할 제품, 디자인, 기술 결정은 `docs/ai/decisions/`에
-  남깁니다.
-- 비밀값, 토큰, 계정 정보, 개인 데이터는 AI 작업 기록에 남기지 않습니다.
+### 이슈 트래커
+
+이슈와 PRD는 GitHub Issues에 둔다. 외부 PR은 트리아지 입력으로 쓰지 않는다.
+자세한 기준은 `docs/agents/issue-tracker.md`를 본다.
+
+### 트리아지 라벨
+
+mattpocock/skills의 기본 트리아지 라벨을 사용한다. 실제 라벨 값은
+`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`다.
+자세한 기준은 `docs/agents/triage-labels.md`를 본다.
+
+### 도메인 문서
+
+도메인 문서는 단일 맥락 기준으로 관리한다. 루트 `Glossary.md`는 도메인 용어,
+`docs/adr/`는 구조적 결정을 담는다. 자세한 기준은 `docs/agents/domain.md`를
+본다.
