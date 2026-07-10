@@ -1,19 +1,28 @@
 import { err, ok, type Result } from "neverthrow"
-import type { ApplicationError } from "../common/error/error"
+import {
+  commonErrors,
+  type CommonInvalidRequestError,
+} from "../common/error/common.errors"
 
 const MAX_REALTIME_STOCK_CODES = 10
 const STOCK_CODE_PATTERN = /^\d{6}$/
 
 export function parseRealtimeSymbols(
   symbols: string
-): Result<string[], ApplicationError<"invalid-request">> {
+): Result<string[], CommonInvalidRequestError> {
   const segments = symbols.split(",").map((symbol) => symbol.trim())
 
   if (segments.some((symbol) => symbol.length === 0)) {
-    return err({
-      type: "invalid-request",
-      message: "symbols must be comma-separated stock symbols",
-    })
+    return err(
+      commonErrors.invalidRequest({
+        issues: [
+          {
+            path: ["symbols"],
+            message: "symbols must be comma-separated stock symbols",
+          },
+        ],
+      })
+    )
   }
 
   const invalidSymbol = segments.find(
@@ -21,19 +30,31 @@ export function parseRealtimeSymbols(
   )
 
   if (invalidSymbol) {
-    return err({
-      type: "invalid-request",
-      message: `Invalid stock symbol: ${invalidSymbol}`,
-    })
+    return err(
+      commonErrors.invalidRequest({
+        issues: [
+          {
+            path: ["symbols"],
+            message: `Invalid stock symbol: ${invalidSymbol}`,
+          },
+        ],
+      })
+    )
   }
 
   const stockCodes = Array.from(new Set(segments))
 
   if (stockCodes.length > MAX_REALTIME_STOCK_CODES) {
-    return err({
-      type: "invalid-request",
-      message: `symbols must include ${MAX_REALTIME_STOCK_CODES} or fewer stock symbols`,
-    })
+    return err(
+      commonErrors.invalidRequest({
+        issues: [
+          {
+            path: ["symbols"],
+            message: `symbols must include ${MAX_REALTIME_STOCK_CODES} or fewer stock symbols`,
+          },
+        ],
+      })
+    )
   }
 
   return ok(stockCodes)

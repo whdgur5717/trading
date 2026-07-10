@@ -2,6 +2,7 @@ node_modules
 .env*
 !.env.example
 !.env.test
+.dev.vars*
 dist
 .turbo
 deploy/codedeploy/image-uri.txt

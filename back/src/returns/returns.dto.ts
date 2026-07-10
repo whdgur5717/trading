@@ -2,6 +2,7 @@ import { createZodDto } from "nestjs-zod"
 import {
   returnBuySchema,
   returnCalculationSchema,
+  returnChartSchema,
   returnCurrentSchema,
   returnSummarySchema,
   returnsQuerySchema,
@@ -18,3 +19,5 @@ export class ReturnCalculationDto extends createZodDto(
 ) {}
 
 export class ReturnSummaryDto extends createZodDto(returnSummarySchema) {}
+
+export class ReturnChartDto extends createZodDto(returnChartSchema) {}

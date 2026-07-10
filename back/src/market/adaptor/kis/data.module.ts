@@ -1,21 +1,18 @@
 import { Module } from "@nestjs/common"
 import { HttpRequestModule } from "../../../common/http/httpRequest.module"
-import { MARKET_DATA_PORT } from "../../port/data"
 import { AuthorizationProvider } from "./authorization.provider"
-import { MarketDataAdaptor } from "./marketData.adaptor"
+import { KisMarketDataAdaptor } from "./marketData.adaptor"
+import { RequestQueueProvider } from "./request-queue.provider"
 import { RequestProvider } from "./request.provider"
 
 @Module({
   imports: [HttpRequestModule],
   providers: [
     AuthorizationProvider,
+    RequestQueueProvider,
     RequestProvider,
-    MarketDataAdaptor,
-    {
-      provide: MARKET_DATA_PORT,
-      useExisting: MarketDataAdaptor,
-    },
+    KisMarketDataAdaptor,
   ],
-  exports: [MARKET_DATA_PORT],
+  exports: [KisMarketDataAdaptor],
 })
 export class KisMarketDataModule {}

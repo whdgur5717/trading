@@ -50,6 +50,11 @@ const fscHeaderSchema = z.object({
   resultMsg: z.string().optional(),
 })
 
+const fscSuccessHeaderSchema = z.object({
+  resultCode: z.literal("00"),
+  resultMsg: z.string().optional(),
+})
+
 const stockRowSchema = z
   .object({
     basDt: compactDateSchema,
@@ -117,23 +122,25 @@ function itemsItemArraySchema<TSchema extends z.ZodType>(itemSchema: TSchema) {
 }
 
 function fscResponseSchema<TSchema extends z.ZodType>(itemSchema: TSchema) {
-  return z.object({
-    response: z.object({
-      header: fscHeaderSchema,
-      body: z.object({
-        items: z
-          .object({
-            item: itemsItemArraySchema(itemSchema),
-          })
-          .optional(),
+  return z
+    .object({
+      response: z.object({
+        header: fscSuccessHeaderSchema,
+        body: z.object({
+          items: z
+            .object({
+              item: itemsItemArraySchema(itemSchema),
+            })
+            .optional(),
+        }),
       }),
-    }),
-  })
+    })
+    .transform(({ response }) => response.body.items?.item ?? [])
 }
 
 export const fscStockPriceResponseSchema = fscResponseSchema(stockRowSchema)
 export const fscMarketIndexResponseSchema = fscResponseSchema(indexRowSchema)
-export const fscErrorHeaderSchema = z.object({
+export const fscResponseHeaderSchema = z.object({
   response: z.object({
     header: fscHeaderSchema,
   }),

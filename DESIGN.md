@@ -1,6 +1,6 @@
 ---
 name: "If I Bought Then"
-description: "A playful black-canvas stock regret picker for shareable what-if results."
+description: "공유하기 좋은 주식 회고 결과를 만드는 검은 캔버스 기반 인터페이스."
 colors:
   bg: "oklch(0.055 0 0)"
   surface: "oklch(0.125 0.012 294)"
@@ -78,158 +78,106 @@ spacing:
   container-result: "20rem"
 ---
 
-# Design System: If I Bought Then
+# 디자인 시스템
 
-## 1. Overview
+## 방향
 
-**Creative North Star: "Midnight Group Chat Receipt"**
+이 제품은 검은 캔버스에서 시작한다. 밝은 UI의 다크 모드가 아니라, 공유용 결과
+이미지처럼 보이는 검은 배경이 기본 정체성이다. 화면은 투자 도구가 아니라 “놓친
+종목 영수증”처럼 읽혀야 한다. 숫자는 즉시 이해되고, 문장은 짧고, 결과는 친구에게
+보여줄 수 있어야 한다.
 
-This interface starts on black. It is not a light UI with a dark-mode variant, and it is not a trading terminal cosplay. The black canvas should feel like a screenshot-ready social object: a missed-stock receipt floating in a group chat, with one sharp joke and one number that lands immediately.
+컨트롤은 익숙해야 한다. 개성은 높은 대비의 색, 짧은 한국어 문구, 결과 카드에서
+나온다. 과한 금융 대시보드처럼 보이면 안 된다.
 
-Controls stay familiar because this is still a product surface. The personality comes from high-contrast sticker color, compact Korean copy, and the final result card. The screen should feel playful at night, not serious like an investment tool.
+## 색상
 
-**Key Characteristics:**
+검은 배경, 차콜 표면, 라임 액션, 포도색 포인트, 수익/손실 보조색으로 구성한다.
 
-- Single black-canvas theme from the first screen.
-- Charcoal picker surfaces with state handled by tonal steps and opacity modifiers.
-- Named layout width tokens for page, form, and result surfaces. Do not use generic max-width defaults for core layout.
-- Lime primary actions for instant social energy.
-- Grape accent used as brand flavor, not as a full purple fintech theme.
-- Result cards designed to read as a shareable screenshot.
-- Semantic stock colors used sparingly and never as the only meaning carrier.
+| 역할          | 토큰              | 규칙                                                                        |
+| ------------- | ----------------- | --------------------------------------------------------------------------- |
+| 배경          | `bg`              | 제품의 기본 캔버스다. 다크 모드 토글처럼 다루지 않는다.                     |
+| 기본 표면     | `surface`         | 조용한 구획, 모달 상단/하단, 보조 영역에 쓴다.                              |
+| 눌린 표면     | `surface-muted`   | 입력 row, 비활성 chip, 밀도 높은 컨트롤에 쓴다.                             |
+| 떠 있는 표면  | `surface-raised`  | 결과 카드, popover, 핵심 패널에 쓴다.                                       |
+| 본문 글자     | `ink`             | 반드시 읽혀야 하는 텍스트에 쓴다.                                           |
+| 보조 글자     | `muted`, `subtle` | 보조 설명과 placeholder에 쓴다. 대비를 낮추기 위해 남용하지 않는다.         |
+| 주요 액션     | `primary`         | 선택 상태, 주요 버튼, 공유 유도에 쓴다.                                     |
+| 브랜드 포인트 | `accent`          | focus ring, 보조 액션, 가벼운 강조에만 쓴다.                                |
+| 농담 포인트   | `tease`           | 결과의 한 줄 놀림처럼 드물게 쓰는 강조색이다.                               |
+| 수익/손실     | `gain`, `loss`    | 수익/손실 표시용이다. 텍스트나 아이콘 없이 색만으로 의미를 전달하지 않는다. |
+| 주의          | `warning`         | 비거래일, 데이터 한계, 추정 안내에 쓴다.                                    |
 
-## 2. Colors
+빨강과 파랑이 화면을 지배하면 증권사 화면처럼 보인다. 수익/손실을 표시할 때만
+제한적으로 사용한다. 라임과 포도색도 장식용 gradient로 쓰지 않는다.
 
-The palette is a black product system with sticker-like contrast: near-black canvas, charcoal surfaces, lime action, grape brand flavor, and small semantic flashes for gain or loss.
+## 타이포그래피
 
-### Primary
+기본 글꼴은 Pretendard 계열이다. 한국어 UI에서는 글자 간격을 `0`으로 유지한다.
+글꼴 종류를 늘리지 말고 굵기와 크기로 위계를 만든다.
 
-- **Lime Punch** (`primary`, `primary-foreground`): The main action family for selected state, primary buttons, share prompts, and the obvious next step. It uses dark text, not white text.
+| 단계       | 용도                                                               |
+| ---------- | ------------------------------------------------------------------ |
+| `display`  | 최종 결과의 농담, 공유 카드의 가장 큰 문장에만 쓴다.               |
+| `headline` | 화면 제목, 결과 요약에 쓴다.                                       |
+| `title`    | 선택 그룹 제목, 모달 제목, 결과 하위 영역에 쓴다.                  |
+| `body`     | 설명, 보조 문장, 데이터 안내에 쓴다. 긴 문장은 65ch 안에서 끊는다. |
+| `label`    | field label, chip, button, badge, 달력 보조 정보에 쓴다.           |
 
-### Secondary
+입력 화면에서 hero급 글자를 남용하지 않는다. 큰 글자는 결과의 punchline을 위해
+남겨둔다.
 
-- **Grape Flash** (`accent`, `accent-foreground`): Brand flavor for secondary actions, active outlines, focus support, and occasional result emphasis. It must not flood the screen.
-- **Tomato Tease** (`tease`, `tease-foreground`): A sparing filled accent for punchline moments such as “이걸 놓쳤네”. Use white text only.
+## 표면
 
-### Tertiary
+깊이는 그림자나 선보다 표면 톤과 간격으로 만든다. 검은 배경 위에서는 표면 단계가
+충분히 달라야 한다.
 
-- **Gain Blue** (`gain`, `gain-foreground`): Positive result indicators in the share card. Pair with the explicit “수익” label.
-- **Loss Red** (`loss`, `loss-foreground`): Negative result indicators in the share card. Pair with the explicit “손실” label.
-- **Gain Green** (`success`): General success and confirmation states outside the stock result color system.
-- **Caution Yellow** (`warning`): Data caveats, unavailable dates, market holidays, or estimate labels.
+| 표면             | 용도                               |
+| ---------------- | ---------------------------------- |
+| `bg`             | 페이지 전체 배경                   |
+| `surface`        | 차분한 보조 구획                   |
+| `surface-muted`  | 입력, 비활성 선택지, 밀도 높은 row |
+| `surface-raised` | 결과 카드, popover, 핵심 panel     |
 
-### Neutral
+색 있는 side stripe로 구조를 만들지 않는다.
 
-- **Black Canvas** (`bg`): The permanent page background. This is the default theme, not a toggle state.
-- **Charcoal Slip** (`surface`): The quiet base for picker panels and page bands.
-- **Pressed Charcoal** (`surface-muted`): Input rows, inactive chips, and dense control surfaces.
-- **Raised Charcoal Receipt** (`surface-raised`): Result cards and shareable summary surfaces.
-- **Soft Ink** (`ink`): Primary text. Use for all body copy and labels that must be read.
-- **Dim Ink** (`muted`): Secondary text. It remains bright enough for UI labels.
-- **Ghost Ink** (`subtle`): Placeholder text and low-priority hints. Never use below body contrast requirements.
-- **Disabled Night** (`disabled`, `disabled-foreground`): Disabled control background and text. Disabled controls remain visible but clearly unavailable.
-- **Violet Veil** (`overlay`): Modal and popover backdrop over the black canvas. It is a tinted veil, not a black dimmer, because black-on-black does not create enough separation.
+## 컴포넌트
 
-### Named Rules
+### 버튼
 
-**The Black-First Rule.** Do not describe this as dark mode. The product identity begins with a black canvas.
+- 기본 모양은 `8px` radius의 사각형이다. 기본 버튼을 pill로 만들지 않는다.
+- 주요 버튼은 라임 배경과 어두운 글자를 쓴다.
+- 높이는 최소 `44px`이다.
+- focus는 보이는 포도색 ring을 쓴다.
 
-**The No-HTS Rule.** Red and blue never dominate the screen. They can mark gain and loss, but the screen must not read as a trading terminal.
+### 칩
 
-**The Sticker Rule.** Lime is for action and jokes. Grape is for brand flavor. Neither color becomes a decorative gradient.
+- 빠른 수량, preset 날짜, 최근 본 종목에는 pill chip을 쓸 수 있다.
+- 선택 전은 차콜 표면과 보조 글자, 선택 후는 라임 배경과 어두운 글자를 쓴다.
 
-**The State Modifier Rule.** Do not duplicate every color into hover and active tokens. Use opacity modifiers for filled colors (`hover:bg-primary/90`, `active:bg-primary/80`) and move neutral controls through existing surface levels (`bg-surface-muted`, `hover:bg-surface`, `active:bg-surface-raised`).
+### 카드
 
-**The Named Layout Rule.** Core layout widths are named tokens: `container-page`, `container-form`, and `container-result`. Generic widths such as `max-w-lg` or `max-w-4xl` are allowed only for one-off local layout, not for the main product frame.
+- 결과 카드는 `16px`, 입력 그룹은 `12px` radius를 넘지 않는다.
+- 입력 영역은 `surface-muted`, 공유 결과 카드는 `surface-raised`를 쓴다.
+- 카드 안에 다시 장식용 카드를 중첩하지 않는다.
 
-## 3. Typography
+### 입력 필드
 
-**Display Font:** Pretendard Variable with system sans fallback  
-**Body Font:** Pretendard Variable with system sans fallback  
-**Label/Mono Font:** No separate mono family by default
+- label이 분명한 큰 row 형태를 기본으로 한다.
+- placeholder도 대비 기준을 만족해야 한다.
+- 오류는 색만 쓰지 말고 아이콘이나 문구로 함께 알린다.
+- disabled 상태는 검은 배경에 묻히지 않아야 한다.
 
-**Character:** Korean UI needs a single confident sans family. Weight contrast carries the hierarchy, while letter spacing stays at `0` to avoid cramped Korean labels.
+### 결과 카드
 
-### Hierarchy
+- 세로형 공유 카드처럼 읽혀야 한다.
+- 하나의 핵심 숫자, 하나의 짧은 문장, 하나의 공유 액션을 중심으로 구성한다.
+- 주변 페이지를 잘라내도 무슨 결과인지 이해되어야 한다.
 
-- **Display** (820, `2.75rem`, `1.02`): The final result punchline and share-card headline only.
-- **Headline** (760, `2rem`, `1.08`): Screen titles and major result summaries.
-- **Title** (720, `1.25rem`, `1.18`): Picker group titles, modal titles, and result subsections.
-- **Body** (450, `1rem`, `1.55`): Explanatory copy, helper text, and caveats. Cap long prose at 65ch.
-- **Label** (680, `0.875rem`, `1.28`): Field labels, chips, buttons, calendar day metadata, and badges.
+## 금지 사항
 
-### Named Rules
-
-**The Punchline Type Rule.** Display type is reserved for the result joke. Inputs and labels stay compact and functional.
-
-## 4. Surface Layering
-
-The system separates depth only through surface tone, spacing, and overlay. On black, the surface steps must be strong enough to read without strokes, keylines, or effect-based separation.
-
-### Surface Vocabulary
-
-- **Canvas** (`bg`): Permanent page base.
-- **Surface** (`surface`): Modal headers, footers, and calm secondary bands.
-- **Muted Surface** (`surface-muted`): Input rows, inactive chips, and dense control rows.
-- **Raised Surface** (`surface-raised`): Main panels, popovers, and result cards.
-
-### Named Rules
-
-**The Tone-Only Rule.** Static panels, floating panels, and result cards use surface steps and spacing for separation.
-
-## 5. Components
-
-### Buttons
-
-- **Shape:** Firm rectangle with softened corners (`8px`). Never pill by default.
-- **Primary:** Lime fill, dark text, `44px` minimum height, `12px 18px` padding.
-- **Hover / Focus:** Slightly deeper lime on hover. Focus uses a visible `2px` grape ring with `2px` offset.
-- **Accent:** Grape fill with white text for secondary brand moments and occasional result emphasis.
-
-### Chips
-
-- **Style:** Pill chips are allowed for quick quantities, preset dates, and “최근 본 종목”.
-- **State:** Unselected chips use pressed charcoal and dim ink. Selected chips use lime fill and dark text. Hover moves one tonal step.
-
-### Cards / Containers
-
-- **Corner Style:** Result cards use `16px`. Input groups use `12px`. Do not exceed `16px` for cards.
-- **Background:** Input areas use pressed charcoal. Share cards use raised charcoal receipt.
-- **Layer Strategy:** Use surface tone changes for structure. Never use a colored side stripe.
-- **Internal Padding:** Mobile cards start at `24px`; compact input rows use `14px 16px`.
-
-### Inputs / Fields
-
-- **Style:** Large row fields with clear labels, pressed charcoal background, and `12px` radius.
-- **Focus:** Grape focus halo plus lime outer ring. Placeholder text must meet contrast requirements.
-- **Error / Disabled:** Error text uses tomato tease with an icon or label. Disabled controls stay readable and should not disappear into black.
-
-### Navigation
-
-- **Style:** The primary flow should not need a heavy nav. Use a compact top area with brand text and optional share/history action.
-- **Mobile Treatment:** Keep the picker and primary action reachable without horizontal scrolling.
-
-### Share Result Card
-
-- **Style:** A portrait-oriented charcoal receipt with one headline, one major number, one short tease line, and one share action.
-- **Behavior:** The card should stand alone in a screenshot. It should not require surrounding page context to understand the joke.
-
-## 6. Do's and Don'ts
-
-### Do:
-
-- **Do** treat black as the default product identity, not as a theme variant.
-- **Do** open directly on stock and date selection. The user came to try a scenario, not read a pitch.
-- **Do** use lime for primary action states and shareable joke moments.
-- **Do** keep result summaries readable in a screenshot, with one major number and one sentence of context.
-- **Do** pair gain/loss colors with labels, arrows, icons, or explicit text.
-- **Do** keep every tap target at least `44px` high.
-
-### Don't:
-
-- **Don't** make the UI look like a 증권사 HTS, trading terminal, real-time market dashboard, or 전문 투자 리포트.
-- **Don't** make the black canvas feel like a developer terminal, cyberpunk dashboard, or crypto exchange.
-- **Don't** lead with dense candlestick charts, order-book layouts, ticker walls, or financial table chrome.
-- **Don't** use red and blue as the dominant identity palette.
-- **Don't** use gradient text, glassmorphism, colored side stripes, oversized rounded cards, or decorative chart noise.
-- **Don't** imply investment advice. The product is a playful what-if result, not a recommendation tool.
+- 증권사 HTS, 트레이딩 터미널, 실시간 매매 대시보드처럼 만들지 않는다.
+- 캔들 차트, 호가창, ticker wall, 금융 테이블을 첫 인상으로 만들지 않는다.
+- 빨강/파랑을 브랜드 주색처럼 쓰지 않는다.
+- gradient text, glassmorphism, 색 있는 side stripe, 과하게 둥근 카드, 장식용 차트 노이즈를 쓰지 않는다.
+- 투자 조언처럼 보이게 하지 않는다. 이 제품은 추천 도구가 아니라 회고형 계산기다.

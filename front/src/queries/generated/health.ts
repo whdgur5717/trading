@@ -1,10 +1,8 @@
 import { ApiSchemaError, ApiUnexpectedStatusError, api } from "../api"
-import { ResultAsync, err, ok, type Result } from "neverthrow"
+import { ResultAsync, ok, type Result } from "neverthrow"
 import {
   HealthControllerCheckResponse200Schema,
   type HealthControllerCheckResponse200,
-  HealthControllerCheckResponse400Schema,
-  type HealthControllerCheckResponse400,
 } from "./schemas"
 
 export type HealthControllerCheckSuccess = {
@@ -12,10 +10,7 @@ export type HealthControllerCheckSuccess = {
   body: HealthControllerCheckResponse200
 }
 
-export type HealthControllerCheckFailure = {
-  status: 400
-  body: HealthControllerCheckResponse400
-}
+export type HealthControllerCheckFailure = never
 
 /**
  * @example
@@ -27,7 +22,7 @@ export function HEALTH_CONTROLLER_CHECK(): ResultAsync<
   HealthControllerCheckSuccess,
   HealthControllerCheckFailure
 > {
-  return new ResultAsync(
+  return ResultAsync.fromSafePromise(
     (async (): Promise<
       Result<HealthControllerCheckSuccess, HealthControllerCheckFailure>
     > => {
@@ -54,28 +49,9 @@ export function HEALTH_CONTROLLER_CHECK(): ResultAsync<
 
           return ok(value)
         }
-        case 400: {
-          const result = HealthControllerCheckResponse400Schema.safeParse(body)
-
-          if (!result.success) {
-            throw new ApiSchemaError({
-              status: response.status,
-              schemaName: "HealthControllerCheckResponse400Schema",
-              body,
-              zodError: result.error,
-            })
-          }
-
-          const value: HealthControllerCheckFailure = {
-            status: 400,
-            body: result.data,
-          }
-
-          return err(value)
-        }
       }
 
       throw new ApiUnexpectedStatusError(response.status, body)
     })()
-  )
+  ).andThen((result) => result)
 }

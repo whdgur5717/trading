@@ -13,7 +13,6 @@ import {
   type RealtimeTradeFeedPort,
 } from "../../port/realtime"
 import { AuthorizationProvider } from "./authorization.provider"
-import { toMarketDataError } from "./error"
 import { tradeFrameSchema, tradeTickFrameSchema } from "./schema"
 
 @Injectable()
@@ -32,7 +31,7 @@ export class RealtimeAdaptor implements RealtimeTradeFeedPort {
   async authorize(): Promise<Result<FeedCredential, MarketDataProviderError>> {
     const approval = await this.authorizationProvider.approvalKey()
     if (approval.isErr()) {
-      return err(toMarketDataError(approval.error))
+      return err(approval.error)
     }
 
     return ok(

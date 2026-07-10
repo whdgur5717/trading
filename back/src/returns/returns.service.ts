@@ -4,7 +4,8 @@ import { CandlesService } from "../candles/candles.service"
 import { PricesService } from "../prices/prices.service"
 import { StocksService } from "../stocks/stocks.service"
 import { calculateReturnResult } from "./returns-calculation"
-import type { ReturnSummary } from "./returns.schema"
+import { returnsErrors } from "./returns.errors"
+import type { ReturnChart, ReturnSummary } from "./returns.schema"
 
 @Injectable()
 export class ReturnsService {
@@ -30,10 +31,7 @@ export class ReturnsService {
         )
 
         if (!buyCandle) {
-          return err({
-            type: "market-data-not-found",
-            message: `Market data was not found for ${symbol} on ${buyDate}`,
-          })
+          return err(returnsErrors.buyPriceNotFound({ symbol, buyDate }))
         }
 
         const result = calculateReturnResult({
@@ -54,6 +52,52 @@ export class ReturnsService {
           },
           result,
         } satisfies ReturnSummary)
+      })
+    )
+  }
+
+  chart(symbol: string, buyDate: string, quantity: number) {
+    return this.stocksService.getBySymbol(symbol).asyncAndThen((stock) =>
+      ResultAsync.combine([
+        ResultAsync.fromSafePromise(
+          this.candlesService.getCandlesFromDate({
+            symbol,
+            interval: "1d",
+            from: buyDate,
+          })
+        ).andThen((result) => result),
+        this.pricesService.getPrice(symbol),
+      ] as const).andThen(([chart, current]) => {
+        const buyCandle = chart.candles.find((candle) =>
+          candle.timestamp.startsWith(buyDate)
+        )
+
+        if (!buyCandle) {
+          return err(returnsErrors.buyPriceNotFound({ symbol, buyDate }))
+        }
+
+        const result = calculateReturnResult({
+          buyPrice: Number(buyCandle.closePrice),
+          currentPrice: Number(current.currentPrice),
+          quantity,
+        })
+
+        return ok({
+          stock,
+          buy: {
+            date: buyDate,
+            price: buyCandle.closePrice,
+            quantity,
+          },
+          current: {
+            currentPrice: current.currentPrice,
+          },
+          result,
+          chart: {
+            interval: chart.interval,
+            candles: chart.candles,
+          },
+        } satisfies ReturnChart)
       })
     )
   }

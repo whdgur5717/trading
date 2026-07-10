@@ -1,21 +1,20 @@
 import { Injectable } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
-import { isAxiosError } from "axios"
-import { err, type Result } from "neverthrow"
+import { err, ok, type Result } from "neverthrow"
 import type { z } from "zod"
 import {
+  HttpRequestError,
   HttpRequestProvider,
   type HttpResponse,
 } from "../../../common/http/httpRequest.provider"
 import type { DailyMarketIndex, DailyStockPrice } from "../../market.schema"
-import type { MarketDataError } from "../../market-data.error"
+import { marketErrors, type MarketDataError } from "../../market-data.error"
 import { FSC_BASE_URL, fscRest } from "./fsc.protocol"
 import {
   fscMarketIndexResponseSchema,
+  fscResponseHeaderSchema,
   fscStockPriceResponseSchema,
 } from "./fsc.schema"
-import { toFscMarketError } from "./fsc.error"
-import { dataFromFscResponse } from "./fsc.response"
 
 @Injectable()
 export class FscAdaptor {
@@ -31,8 +30,6 @@ export class FscAdaptor {
       fscRest.stockPriceInfo,
       { basDt: compactDate(date), numOfRows: "5000", pageNo: "1" },
       fscStockPriceResponseSchema
-    ).then((result) =>
-      result.map((response) => response.response.body.items?.item ?? [])
     )
   }
 
@@ -43,8 +40,6 @@ export class FscAdaptor {
       fscRest.marketIndexInfo,
       { basDt: compactDate(date), numOfRows: "200", pageNo: "1" },
       fscMarketIndexResponseSchema
-    ).then((result) =>
-      result.map((response) => response.response.body.items?.item ?? [])
     )
   }
 
@@ -64,29 +59,54 @@ export class FscAdaptor {
           resultType: "json",
           ...query,
         },
+        validateStatus: (status) => status >= 200 && status < 300,
       })
     } catch (error) {
-      const code = isAxiosError(error) ? error.code : undefined
-      const message =
-        error instanceof Error ? error.message : "FSC request failed"
-      const failureCode =
-        code === "ECONNABORTED" || code === "ETIMEDOUT"
-          ? "timeout"
-          : "unavailable"
+      if (!(error instanceof HttpRequestError)) {
+        throw error
+      }
 
+      const upstreamStatus = error.response?.status ?? null
+      const upstreamCode = error.code ?? null
       return err(
-        toFscMarketError({
-          service: "fsc",
-          code: failureCode,
-          message,
+        (error.kind === "timeout"
+          ? marketErrors.providerTimeout
+          : marketErrors.providerUnavailable)({
+          provider: "fsc",
           endpoint: path,
-          upstreamCode: code,
-          cause: error,
+          upstreamStatus,
+          upstreamCode,
         })
       )
     }
 
-    return dataFromFscResponse(response, path, schema).mapErr(toFscMarketError)
+    const header = fscResponseHeaderSchema.safeParse(response.data)
+
+    if (header.success && header.data.response.header.resultCode !== "00") {
+      return err(
+        marketErrors.providerUnavailable({
+          provider: "fsc",
+          endpoint: path,
+          upstreamStatus: response.status,
+          upstreamCode: header.data.response.header.resultCode,
+        })
+      )
+    }
+
+    const parsed = schema.safeParse(response.data)
+
+    if (!parsed.success) {
+      return err(
+        marketErrors.providerInvalidResponse({
+          provider: "fsc",
+          endpoint: path,
+          upstreamStatus: response.status,
+          upstreamCode: null,
+        })
+      )
+    }
+
+    return ok(parsed.data)
   }
 
   private get serviceKey(): string {

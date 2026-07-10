@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common"
-import { ResultAsync } from "neverthrow"
+import { ResultAsync, ok } from "neverthrow"
 import { MarketService } from "../market/market.service"
 import { StocksService } from "../stocks/stocks.service"
 import type { Candle, Candles, CandlesQuery } from "./candles.schema"
@@ -43,6 +43,50 @@ export class CandlesService {
             } satisfies Candles
           })
       })
+  }
+
+  async getCandlesFromDate(query: {
+    symbol: string
+    interval: "1d"
+    from: string
+  }) {
+    const candles: Candle[] = []
+    let before: string | undefined
+
+    for (;;) {
+      const result = await this.getCandles({
+        symbol: query.symbol,
+        interval: query.interval,
+        before,
+        count: 200,
+      })
+
+      if (result.isErr()) {
+        return result
+      }
+
+      candles.push(
+        ...result.value.candles.filter(
+          (candle) => candle.timestamp.slice(0, 10) >= query.from
+        )
+      )
+
+      if (
+        result.value.nextBefore === null ||
+        result.value.candles.some(
+          (candle) => candle.timestamp.slice(0, 10) <= query.from
+        )
+      ) {
+        return ok({
+          symbol: query.symbol,
+          interval: query.interval,
+          candles: candles.toReversed(),
+          nextBefore: null,
+        } satisfies Candles)
+      }
+
+      before = result.value.nextBefore
+    }
   }
 }
 

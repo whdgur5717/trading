@@ -4,7 +4,7 @@
   "private": true,
   "description": "Trading application workspace",
   "scripts": {
-    "generate:openapi": "pnpm --dir back generate:openapi",
+    "generate:openapi": "pnpm --dir back generate:openapi && prettier --write packages/api-client/openapi.json --ignore-path .prettierignore",
     "generate:api": "api-client generate front && prettier --write front/src/queries/generated --ignore-path .prettierignore",
     "prepare:api": "pnpm generate:openapi && pnpm generate:api",
     "build": "pnpm prepare:api && turbo run build",

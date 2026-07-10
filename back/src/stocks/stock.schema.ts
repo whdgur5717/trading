@@ -42,8 +42,20 @@ export const stockSchema = z.object({
   isTradingHalted: z.boolean().optional().meta({ example: false }),
   isUnderAdministration: z.boolean().optional().meta({ example: false }),
   isLowLiquidity: z.boolean().optional().meta({ example: false }),
-  marketCap: z.number().int().nonnegative().nullable().optional(),
-  previousVolume: z.number().int().nonnegative().nullable().optional(),
+  marketCap: z
+    .number()
+    .int()
+    .nonnegative()
+    .nullable()
+    .optional()
+    .meta({ example: 447733691250000 }),
+  previousVolume: z
+    .number()
+    .int()
+    .nonnegative()
+    .nullable()
+    .optional()
+    .meta({ example: 12345678 }),
   listedDate: z
     .string()
     .regex(/^\d{8}$/)

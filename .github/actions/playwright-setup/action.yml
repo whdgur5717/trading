@@ -1,0 +1,26 @@
+name: playwright-install
+description: Cache and install Playwright browsers for the project's Playwright version.
+
+runs:
+  using: composite
+
+  steps:
+    - name: Get playwright version
+      shell: bash
+      run: |
+        echo "PLAYWRIGHT_VERSION=$(pnpm --filter front exec node -e 'process.stdout.write(require("playwright/package.json").version)')" >> $GITHUB_OUTPUT
+      id: playwright-version
+
+    - name: Cache Playwright Browsers for Playwright's Version
+      uses: actions/cache@v5
+      with:
+        # https://playwright.dev/docs/browsers#managing-browser-binaries
+        path: ~/.cache/ms-playwright
+        key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.PLAYWRIGHT_VERSION }}
+        restore-keys: |
+          ${{ runner.os }}-playwright-
+      id: cache-playwright-browsers
+
+    - name: Setup Playwright
+      shell: bash
+      run: pnpm --filter front exec playwright install --with-deps chromium firefox webkit

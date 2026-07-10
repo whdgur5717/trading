@@ -1,18 +1,21 @@
 import { Injectable } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
-import { isAxiosError } from "axios"
 import { err, ok, type Result } from "neverthrow"
 import type { z } from "zod"
-import type { ExternalServiceError } from "../../../common/error/externalService/error"
 import {
+  HttpRequestError,
   HttpRequestProvider,
   type HttpResponse,
 } from "../../../common/http/httpRequest.provider"
+import {
+  marketErrors,
+  type MarketDataProviderError,
+} from "../../market-data.error"
 import { rest } from "./protocol"
-import { dataFromResponse, type KisAuthorizationError } from "./response"
 import {
   accessTokenSchema,
   approvalKeySchema,
+  responseMetaSchema,
   type AccessToken,
   type ApprovalKey,
 } from "./schema"
@@ -22,9 +25,7 @@ interface TokenCache {
   expiresAtMs: number
 }
 
-type AuthorizationError =
-  | KisAuthorizationError
-  | ExternalServiceError<"timeout">
+type AuthorizationError = MarketDataProviderError
 
 @Injectable()
 export class AuthorizationProvider {
@@ -108,34 +109,68 @@ export class AuthorizationProvider {
         method: "POST",
         url: `${this.restBaseUrl}${path}`,
         body,
+        validateStatus: (status) => status >= 200 && status < 300,
       })
     } catch (error) {
-      const code = isAxiosError(error) ? error.code : undefined
-      const message =
-        error instanceof Error ? error.message : "KIS authorization failed"
-
-      if (code === "ECONNABORTED" || code === "ETIMEDOUT") {
-        return err({
-          service: "kis",
-          code: "timeout",
-          message,
-          endpoint: path,
-          upstreamCode: code,
-          cause: error,
-        })
+      if (!(error instanceof HttpRequestError)) {
+        throw error
       }
 
-      return err({
-        service: "kis",
-        code: "auth-unavailable",
-        message,
-        endpoint: path,
-        upstreamCode: code,
-        cause: error,
-      })
+      const upstreamStatus = error.response?.status ?? null
+      const upstreamCode = error.code ?? null
+
+      switch (error.kind) {
+        case "timeout":
+          return err(
+            marketErrors.providerTimeout({
+              provider: "kis",
+              endpoint: path,
+              upstreamStatus,
+              upstreamCode,
+            })
+          )
+        case "response":
+        case "cancelled":
+        case "network":
+        case "client":
+          return err(
+            marketErrors.providerAuthUnavailable({
+              provider: "kis",
+              endpoint: path,
+              upstreamStatus,
+              upstreamCode,
+            })
+          )
+      }
     }
 
-    return dataFromResponse(response, path, schema, "authorization")
+    const meta = responseMetaSchema.safeParse(response.data)
+
+    if (meta.success && meta.data.rt_cd !== "0") {
+      return err(
+        marketErrors.providerAuthUnavailable({
+          provider: "kis",
+          endpoint: path,
+          upstreamStatus: response.status,
+          upstreamCode: meta.data.msg_cd ?? null,
+        })
+      )
+    }
+
+    const parsed = schema.safeParse(response.data)
+
+    if (!parsed.success) {
+      return err(
+        marketErrors.providerInvalidResponse({
+          provider: "kis",
+          endpoint: path,
+          upstreamStatus: response.status,
+          upstreamCode: null,
+        })
+      )
+    }
+
+    return ok(parsed.data)
   }
 
   private expiresAtMs(token: AccessToken): number {

@@ -3,7 +3,7 @@ import { uniqBy } from "es-toolkit"
 import { err, ok, type Result } from "neverthrow"
 import type { Stock } from "./stock.schema"
 import { STOCK_MASTER_DATA, stockMasterData } from "./stocks.data"
-import type { StockError } from "./stocks.errors"
+import { stockErrors, type StockError } from "./stocks.errors"
 
 @Injectable()
 export class StocksService {
@@ -57,10 +57,7 @@ export class StocksService {
     const stock = this.stocks.find((item) => item.symbol === symbol)
 
     if (!stock) {
-      return err({
-        type: "unsupported-stock",
-        message: `Unsupported stock symbol: ${symbol}`,
-      })
+      return err(stockErrors.unsupported({ symbol }))
     }
 
     return ok(stock)

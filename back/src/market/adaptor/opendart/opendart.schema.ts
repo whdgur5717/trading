@@ -5,6 +5,11 @@ import {
   marketDisclosureSchema,
 } from "../../market.schema"
 import { stockSymbolSchema } from "../../port/data"
+import {
+  OPENDART_AUTH_FAILURE_STATUS,
+  OPENDART_NO_DATA_STATUS,
+  OPENDART_SUCCESS_STATUS,
+} from "./opendart.protocol"
 
 export const opendartCorpCodeSchema = z.string().regex(/^\d{8}$/)
 
@@ -13,8 +18,23 @@ export const corpCodeMapSchema = z.record(
   opendartCorpCodeSchema
 )
 
-export const opendartStatusSchema = z.object({
-  status: z.string(),
+const opendartSuccessStatusSchema = z.object({
+  status: z.literal(OPENDART_SUCCESS_STATUS),
+  message: z.string().optional(),
+})
+
+export const opendartNoDataResponseSchema = z.object({
+  status: z.literal(OPENDART_NO_DATA_STATUS),
+  message: z.string().optional(),
+})
+
+export const opendartAuthFailureResponseSchema = z.object({
+  status: z.enum(OPENDART_AUTH_FAILURE_STATUS),
+  message: z.string().optional(),
+})
+
+export const opendartFailureResponseSchema = z.object({
+  status: z.string().min(1),
   message: z.string().optional(),
 })
 
@@ -133,7 +153,7 @@ function singleOrManyArraySchema<TSchema extends z.ZodType>(
     })
 }
 
-export const companyResponseSchema = opendartStatusSchema
+export const companyResponseSchema = opendartSuccessStatusSchema
   .and(companyResponseRowSchema)
   .transform((row) => ({
     corpCode: row.corpCode,
@@ -147,14 +167,18 @@ export const companyResponseSchema = opendartStatusSchema
   }))
   .pipe(companyProfileSchema)
 
-export const disclosureListResponseSchema = opendartStatusSchema.and(
-  z.object({
-    list: singleOrManyArraySchema(disclosureRowSchema),
-  })
-)
+export const disclosureListResponseSchema = opendartSuccessStatusSchema
+  .and(
+    z.object({
+      list: singleOrManyArraySchema(disclosureRowSchema),
+    })
+  )
+  .transform(({ list }) => list)
 
-export const financialAccountsResponseSchema = opendartStatusSchema.and(
-  z.object({
-    list: singleOrManyArraySchema(financialAccountRowSchema),
-  })
-)
+export const financialAccountsResponseSchema = opendartSuccessStatusSchema
+  .and(
+    z.object({
+      list: singleOrManyArraySchema(financialAccountRowSchema),
+    })
+  )
+  .transform(({ list }) => list)

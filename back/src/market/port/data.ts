@@ -1,6 +1,15 @@
 import type { Result } from "neverthrow"
 import { z } from "zod"
-import type { MarketDataProviderError } from "../market-data.error"
+import type { MarketDataError } from "../market-data.error"
+import type {
+  CompanyProfile,
+  DailyMarketIndex,
+  DailyStockPrice,
+  DisclosureQuery,
+  FinancialAccount,
+  FinancialAccountsQuery,
+  MarketDisclosure,
+} from "../market.schema"
 
 export const stockSymbolSchema = z
   .string()
@@ -23,7 +32,7 @@ export const priceQuerySchema = z
   })
   .meta({ description: "Current stock price query" })
 
-export const candleIntervalSchema = z.literal("1d")
+export const candleIntervalSchema = z.literal("1d").meta({ example: "1d" })
 
 export const candlesQuerySchema = z
   .strictObject({
@@ -128,11 +137,19 @@ export type MarketDay = z.output<typeof marketDaySchema>
 export const MARKET_DATA_PORT = Symbol("MARKET_DATA_PORT")
 
 export interface MarketDataPort {
-  price(query: PriceQuery): Promise<Result<Price, MarketDataProviderError>>
-  candles(
-    query: CandlesQuery
-  ): Promise<Result<Candle[], MarketDataProviderError>>
-  marketDay(
-    query: MarketDayQuery
-  ): Promise<Result<MarketDay, MarketDataProviderError>>
+  price(query: PriceQuery): Promise<Result<Price, MarketDataError>>
+  candles(query: CandlesQuery): Promise<Result<Candle[], MarketDataError>>
+  marketDay(query: MarketDayQuery): Promise<Result<MarketDay, MarketDataError>>
+  dailyStocks(date: string): Promise<Result<DailyStockPrice[], MarketDataError>>
+  dailyIndexes(
+    date: string
+  ): Promise<Result<DailyMarketIndex[], MarketDataError>>
+  corpCode(stockCode: string): Result<string, MarketDataError>
+  company(corpCode: string): Promise<Result<CompanyProfile, MarketDataError>>
+  disclosures(
+    query: DisclosureQuery
+  ): Promise<Result<MarketDisclosure[], MarketDataError>>
+  financialAccounts(
+    query: FinancialAccountsQuery
+  ): Promise<Result<FinancialAccount[], MarketDataError>>
 }
