@@ -128,8 +128,7 @@ back/
 ## 명령어
 
 - `pnpm --filter back build`: 백엔드 컴파일
-- `pnpm --filter back start:dev`: 개발 서버 실행
-- `pnpm --filter back start:mock`: mock 엔트리로 개발 서버 실행
+- `pnpm --filter back start:dev`: mock 엔트리로 개발 서버 실행
 - `pnpm --filter back test`: 단위 테스트
 - `pnpm --filter back test:e2e`: e2e 테스트
 - `pnpm --filter back test:cov`: 커버리지 확인

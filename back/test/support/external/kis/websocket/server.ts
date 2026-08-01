@@ -71,9 +71,9 @@ export class Server {
     }
   }
 
-  close(): void {
+  reset(): void {
     for (const socket of this.sockets) {
-      socket.close()
+      socket.terminate()
     }
 
     for (const timers of this.subscriptions.values()) {
@@ -82,7 +82,13 @@ export class Server {
       }
     }
 
+    this.messages.length = 0
+    this.sockets.clear()
     this.subscriptions.clear()
+  }
+
+  close(): void {
+    this.reset()
     this.server.close()
   }
 

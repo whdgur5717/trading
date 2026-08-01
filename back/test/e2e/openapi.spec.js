@@ -1,8 +1,6 @@
-import { ConfigService } from "@nestjs/config"
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest"
+import { MockRuntime } from "../../src/mock/mock-runtime"
 import { createApp } from "../support/app"
-import { createExternalServer } from "../support/external/server"
-import { Server as KisWebSocketServer } from "../support/external/kis/websocket/server"
 import { readOpenApiDocument } from "../support/openapi/openApiDocument"
 import {
   jsonContentType,
@@ -15,45 +13,20 @@ const requestCases = openApiRequestCases(openapi)
 
 let app
 let appUrl
-let kisWebSocketServer
-let externalServer
 
 beforeAll(async () => {
-  kisWebSocketServer = new KisWebSocketServer()
-  await kisWebSocketServer.listen()
-
-  app = await createApp({
-    config: {
-      KIS_WS_URL: kisWebSocketServer.url,
-    },
-  })
-  const config = app.get(ConfigService)
-  externalServer = createExternalServer({
-    kisRestBaseUrl: config.getOrThrow("KIS_REST_BASE_URL"),
-  })
+  app = await createApp()
 
   await app.listen(0, "127.0.0.1")
   appUrl = await app.getUrl()
-
-  externalServer.listen({
-    onUnhandledRequest(request, print) {
-      if (new URL(request.url).origin === appUrl) {
-        return
-      }
-
-      print.error()
-    },
-  })
 }, 30_000)
 
 afterEach(() => {
-  externalServer?.resetHandlers()
+  app?.get(MockRuntime).reset()
 })
 
 afterAll(async () => {
   await app?.close()
-  kisWebSocketServer?.close()
-  externalServer?.close()
 })
 
 function urlFor(requestCase) {

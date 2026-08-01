@@ -3,6 +3,7 @@ import { ConfigModule } from "@nestjs/config"
 import type { NestExpressApplication } from "@nestjs/platform-express"
 import { configureApp } from "../../src/bootstrap/app-bootstrap"
 import { validateEnv, type AppEnv } from "../../src/config/env.validation"
+import { MockModule } from "../../src/mock/mock.module"
 
 interface CreateAppOptions {
   readonly config?: Partial<AppEnv>
@@ -21,6 +22,7 @@ export async function createApp(
         validate: validateEnv,
       }),
       AppCoreModule,
+      MockModule,
     ],
   }).compile()
 
