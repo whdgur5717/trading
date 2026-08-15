@@ -29,8 +29,11 @@ export class RequestProvider {
 
   async get<TSchema extends z.ZodType>(
     api: {
+      method: "get"
       path: string
-      headers: Record<string, string>
+      request: {
+        fixedHeaders: Record<string, string>
+      }
     },
     query: Record<string, string>,
     schema: TSchema,
@@ -75,8 +78,11 @@ export class RequestProvider {
 
   private async getWithAccessToken<TSchema extends z.ZodType>(
     api: {
+      method: "get"
       path: string
-      headers: Record<string, string>
+      request: {
+        fixedHeaders: Record<string, string>
+      }
     },
     query: Record<string, string>,
     accessToken: string,
@@ -89,13 +95,12 @@ export class RequestProvider {
       response = await this.requestQueueProvider.run(
         (signal) =>
           this.httpRequestProvider.request({
-            method: "GET",
+            method: api.method,
             url: `${this.restBaseUrl}${api.path}`,
             headers: {
               appkey: this.appKey,
               appsecret: this.appSecret,
-              custtype: "P",
-              ...api.headers,
+              ...api.request.fixedHeaders,
               authorization: `Bearer ${accessToken}`,
             },
             query,

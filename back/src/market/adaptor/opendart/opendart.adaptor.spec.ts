@@ -1,13 +1,18 @@
 import { ConfigService } from "@nestjs/config"
 import { Test } from "@nestjs/testing"
 import { describe, expect, it, vi } from "vitest"
+import { rest } from "../../../../openapi/opendart/rest/api"
 import { HttpRequestProvider } from "../../../common/http/httpRequest.provider"
 import {
   HttpRequestProviderMock,
   HttpRequestTestingModule,
 } from "../../../common/http/testing/httpRequestTesting.module"
 import { OpendartAdaptor } from "./opendart.adaptor"
-import { OPENDART_BASE_URL, opendartRest } from "./opendart.protocol"
+
+const config = {
+  DART_API_KEY: "dart-key",
+  OPENDART_REST_BASE_URL: "http://opendart.test",
+}
 
 describe("OpendartAdaptor", () => {
   it("resolves a stock code to the OpenDART corp code", async () => {
@@ -97,10 +102,10 @@ describe("OpendartAdaptor", () => {
     })
     expect(request).toHaveBeenCalledWith(
       expect.objectContaining({
-        method: "GET",
-        url: `${OPENDART_BASE_URL}${opendartRest.company}`,
+        method: "get",
+        url: `${config.OPENDART_REST_BASE_URL}${rest.opendartCompany.path}`,
         query: {
-          crtfc_key: "dart-key",
+          crtfc_key: config.DART_API_KEY,
           corp_code: "00126380",
         },
         validateStatus: expect.any(Function),
@@ -130,7 +135,7 @@ describe("OpendartAdaptor", () => {
         message: "Market data was not found",
         data: {
           provider: "opendart",
-          endpoint: opendartRest.company,
+          endpoint: rest.opendartCompany.path,
           upstreamStatus: 200,
           upstreamCode: "013",
         },
@@ -170,7 +175,9 @@ async function createAdaptor(request: HttpRequestProvider["request"]) {
       OpendartAdaptor,
       {
         provide: ConfigService,
-        useValue: { getOrThrow: () => "dart-key" },
+        useValue: {
+          getOrThrow: (key: keyof typeof config) => config[key],
+        },
       },
     ],
   }).compile()

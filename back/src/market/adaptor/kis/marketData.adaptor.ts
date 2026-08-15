@@ -1,18 +1,18 @@
 import { Injectable } from "@nestjs/common"
 import { err, ok, type Result } from "neverthrow"
+import { rest } from "../../../../openapi/kis/rest/api"
 import { marketErrors, type MarketDataError } from "../../market-data.error"
 import type {
   Candle,
   CandlesQuery,
   MarketDay,
-  MarketDayQuery,
   Price,
   PriceQuery,
   TradingDate,
 } from "../../port/data"
-import { quotationMarketCode, rest } from "./protocol"
+import { quotationMarketCode } from "./protocol"
 import { RequestProvider } from "./request.provider"
-import { candlesSchema, marketDaySchema, priceSchema } from "./schema"
+import { candlesMapper, marketDayMapper, priceMapper } from "./schema"
 
 @Injectable()
 export class KisMarketDataAdaptor {
@@ -20,12 +20,12 @@ export class KisMarketDataAdaptor {
 
   price(query: PriceQuery): Promise<Result<Price, MarketDataError>> {
     return this.requestProvider.get(
-      rest.price,
+      rest.domesticStockInquirePrice,
       {
         FID_COND_MRKT_DIV_CODE: quotationMarketCode[query.quotationMarket],
         FID_INPUT_ISCD: query.symbol,
       },
-      priceSchema
+      priceMapper
     )
   }
 
@@ -37,7 +37,7 @@ export class KisMarketDataAdaptor {
       Math.max(30, query.count * 3)
     )
     const candles = await this.requestProvider.get(
-      rest.candles,
+      rest.domesticStockInquireDailyItemChartPrice,
       {
         FID_COND_MRKT_DIV_CODE: quotationMarketCode[query.quotationMarket],
         FID_INPUT_ISCD: query.symbol,
@@ -46,7 +46,7 @@ export class KisMarketDataAdaptor {
         FID_PERIOD_DIV_CODE: "D",
         FID_ORG_ADJ_PRC: "0",
       },
-      candlesSchema
+      candlesMapper
     )
 
     return candles.map((items) =>
@@ -57,29 +57,29 @@ export class KisMarketDataAdaptor {
   }
 
   async marketDay(
-    query: MarketDayQuery
-  ): Promise<Result<MarketDay, MarketDataError>> {
+    date: TradingDate
+  ): Promise<Result<Omit<MarketDay, "quotationMarket">, MarketDataError>> {
     const days = await this.requestProvider.get(
-      rest.marketDay,
+      rest.domesticStockChkHoliday,
       {
-        BASS_DT: this.compactDate(query.date),
+        BASS_DT: this.compactDate(date),
         CTX_AREA_FK: "",
         CTX_AREA_NK: "",
       },
-      marketDaySchema(query.quotationMarket)
+      marketDayMapper
     )
 
     if (days.isErr()) {
       return err(days.error)
     }
 
-    const day = days.value.find((item) => item.date === query.date)
+    const day = days.value.find((item) => item.date === date)
 
     if (!day) {
       return err(
         marketErrors.dataNotFound({
           provider: "kis",
-          endpoint: rest.marketDay.path,
+          endpoint: rest.domesticStockChkHoliday.path,
           upstreamStatus: null,
           upstreamCode: null,
         })

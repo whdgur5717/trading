@@ -3,6 +3,10 @@ import { ConfigService } from "@nestjs/config"
 import { err, ok, type Result } from "neverthrow"
 import type { z } from "zod"
 import {
+  OpendartErrorResponse,
+  rest,
+} from "../../../../openapi/opendart/rest/api"
+import {
   HttpRequestError,
   HttpRequestProvider,
   type HttpResponse,
@@ -18,18 +22,14 @@ import type {
 import { stockSymbolSchema } from "../../port/data"
 import corpCodesJson from "./data/corp-codes.json"
 import {
-  OPENDART_BASE_URL,
+  OPENDART_AUTH_FAILURE_STATUS,
   OPENDART_NO_DATA_STATUS,
-  opendartRest,
 } from "./opendart.protocol"
 import {
-  companyResponseSchema,
+  companyMapper,
   corpCodeMapSchema,
-  disclosureListResponseSchema,
-  financialAccountsResponseSchema,
-  opendartAuthFailureResponseSchema,
-  opendartFailureResponseSchema,
-  opendartNoDataResponseSchema,
+  disclosureListMapper,
+  financialAccountsMapper,
 } from "./opendart.schema"
 
 const corpCodeMap = new Map(
@@ -76,7 +76,7 @@ export class OpendartAdaptor {
   async company(
     corpCode: string
   ): Promise<Result<CompanyProfile, MarketDataError>> {
-    const response = await this.get(opendartRest.company, {
+    const response = await this.get(rest.opendartCompany, {
       corp_code: corpCode,
     })
 
@@ -86,8 +86,8 @@ export class OpendartAdaptor {
 
     const company = this.parseBody(
       response.value,
-      opendartRest.company,
-      companyResponseSchema
+      rest.opendartCompany.path,
+      companyMapper
     )
 
     if (company.isErr()) {
@@ -98,7 +98,7 @@ export class OpendartAdaptor {
       return err(
         marketErrors.dataNotFound({
           provider: "opendart",
-          endpoint: opendartRest.company,
+          endpoint: rest.opendartCompany.path,
           upstreamStatus: response.value.status,
           upstreamCode: OPENDART_NO_DATA_STATUS,
         })
@@ -111,7 +111,7 @@ export class OpendartAdaptor {
   async disclosures(
     query: DisclosureQuery
   ): Promise<Result<MarketDisclosure[], MarketDataError>> {
-    const response = await this.get(opendartRest.disclosures, {
+    const response = await this.get(rest.opendartDisclosures, {
       corp_code: query.corpCode,
       bgn_de: query.beginDate,
       end_de: query.endDate,
@@ -126,8 +126,8 @@ export class OpendartAdaptor {
 
     const disclosures = this.parseBody(
       response.value,
-      opendartRest.disclosures,
-      disclosureListResponseSchema
+      rest.opendartDisclosures.path,
+      disclosureListMapper
     )
 
     if (disclosures.isErr()) {
@@ -144,7 +144,7 @@ export class OpendartAdaptor {
   async financialAccounts(
     query: FinancialAccountsQuery
   ): Promise<Result<FinancialAccount[], MarketDataError>> {
-    const response = await this.get(opendartRest.financialAccounts, {
+    const response = await this.get(rest.opendartFinancialAccounts, {
       corp_code: query.corpCode,
       bsns_year: query.businessYear,
       reprt_code: query.reportCode,
@@ -156,8 +156,8 @@ export class OpendartAdaptor {
 
     const accounts = this.parseBody(
       response.value,
-      opendartRest.financialAccounts,
-      financialAccountsResponseSchema
+      rest.opendartFinancialAccounts.path,
+      financialAccountsMapper
     )
 
     if (accounts.isErr()) {
@@ -182,32 +182,30 @@ export class OpendartAdaptor {
       return ok(success.data)
     }
 
-    const noData = opendartNoDataResponseSchema.safeParse(response.data)
+    const failure = OpendartErrorResponse.safeParse(response.data)
 
-    if (noData.success) {
-      return ok(null)
-    }
-
-    const authFailure = opendartAuthFailureResponseSchema.safeParse(
-      response.data
-    )
-
-    if (authFailure.success) {
+    if (!failure.success) {
       return err(
-        marketErrors.providerAuthUnavailable({
+        marketErrors.providerInvalidResponse({
           provider: "opendart",
           endpoint,
           upstreamStatus: response.status,
-          upstreamCode: authFailure.data.status,
+          upstreamCode: null,
         })
       )
     }
 
-    const failure = opendartFailureResponseSchema.safeParse(response.data)
+    if (failure.data.status === OPENDART_NO_DATA_STATUS) {
+      return ok(null)
+    }
 
-    if (failure.success) {
+    if (
+      OPENDART_AUTH_FAILURE_STATUS.some(
+        (status) => status === failure.data.status
+      )
+    ) {
       return err(
-        marketErrors.providerUnavailable({
+        marketErrors.providerAuthUnavailable({
           provider: "opendart",
           endpoint,
           upstreamStatus: response.status,
@@ -217,25 +215,25 @@ export class OpendartAdaptor {
     }
 
     return err(
-      marketErrors.providerInvalidResponse({
+      marketErrors.providerUnavailable({
         provider: "opendart",
         endpoint,
         upstreamStatus: response.status,
-        upstreamCode: null,
+        upstreamCode: failure.data.status,
       })
     )
   }
 
   private async get(
-    path: string,
+    api: { method: "get"; path: string },
     query: Record<string, string>
   ): Promise<Result<HttpResponse, MarketDataError>> {
     let response: HttpResponse
 
     try {
       response = await this.httpRequestProvider.request({
-        method: "GET",
-        url: `${OPENDART_BASE_URL}${path}`,
+        method: api.method,
+        url: `${this.restBaseUrl}${api.path}`,
         query: {
           crtfc_key: this.apiKey,
           ...query,
@@ -254,7 +252,7 @@ export class OpendartAdaptor {
         return err(
           marketErrors.providerAuthUnavailable({
             provider: "opendart",
-            endpoint: path,
+            endpoint: api.path,
             upstreamStatus,
             upstreamCode,
           })
@@ -265,7 +263,7 @@ export class OpendartAdaptor {
         return err(
           marketErrors.providerTimeout({
             provider: "opendart",
-            endpoint: path,
+            endpoint: api.path,
             upstreamStatus,
             upstreamCode,
           })
@@ -275,7 +273,7 @@ export class OpendartAdaptor {
       return err(
         marketErrors.providerUnavailable({
           provider: "opendart",
-          endpoint: path,
+          endpoint: api.path,
           upstreamStatus,
           upstreamCode,
         })
@@ -287,5 +285,9 @@ export class OpendartAdaptor {
 
   private get apiKey(): string {
     return this.config.getOrThrow<string>("DART_API_KEY")
+  }
+
+  private get restBaseUrl(): string {
+    return this.config.getOrThrow<string>("OPENDART_REST_BASE_URL")
   }
 }

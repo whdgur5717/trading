@@ -1,9 +1,12 @@
 import { z } from "zod"
 import {
+  DomesticStockChkHolidayResponse,
+  DomesticStockInquireDailyItemChartPriceResponse,
+  DomesticStockInquirePriceResponse,
+} from "../../../../openapi/kis/rest/api"
+import {
   candleSchema as portCandleSchema,
-  marketDaySchema as portMarketDaySchema,
   priceSchema as portPriceSchema,
-  type QuotationMarket,
 } from "../../port/data"
 import { feedFrameSchema, tradeTickSchema } from "../../port/realtime"
 
@@ -30,88 +33,51 @@ export type ApprovalKey = z.output<typeof approvalKeySchema>
 const numberTextSchema = z.string().min(1).pipe(z.coerce.number())
 const compactDateSchema = z.string().regex(/^\d{8}$/)
 
-function tradingDate(value: string) {
-  return `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}`
-}
-
-const candleSchema = z
-  .object({
-    stck_bsop_date: compactDateSchema,
-    stck_oprc: numberTextSchema,
-    stck_hgpr: numberTextSchema,
-    stck_lwpr: numberTextSchema,
-    stck_clpr: numberTextSchema,
-    acml_vol: numberTextSchema,
-  })
-  .transform((candle) => ({
-    date: tradingDate(candle.stck_bsop_date),
-    openPrice: candle.stck_oprc,
-    highPrice: candle.stck_hgpr,
-    lowPrice: candle.stck_lwpr,
-    closePrice: candle.stck_clpr,
-    volume: candle.acml_vol,
-  }))
-  .pipe(portCandleSchema)
-
-const marketDayRowSchema = z.object({
-  bass_dt: compactDateSchema,
-  bzdy_yn: z.enum(["Y", "N"]),
-  tr_day_yn: z.enum(["Y", "N"]),
-  opnd_yn: z.enum(["Y", "N"]),
-  sttl_day_yn: z.enum(["Y", "N"]),
-})
-
-export const priceSchema = z
-  .object({
-    output: z.object({
-      stck_prpr: numberTextSchema,
-      stck_oprc: numberTextSchema,
-      stck_hgpr: numberTextSchema,
-      stck_lwpr: numberTextSchema,
-      acml_vol: numberTextSchema,
-      prdy_vrss: numberTextSchema,
-      prdy_ctrt: numberTextSchema,
-    }),
-  })
-  .transform(({ output }) => ({
-    currentPrice: output.stck_prpr,
-    openPrice: output.stck_oprc,
-    highPrice: output.stck_hgpr,
-    lowPrice: output.stck_lwpr,
-    volume: output.acml_vol,
-    changePrice: output.prdy_vrss,
-    changeRate: output.prdy_ctrt,
-  }))
+export const priceMapper = z
+  .pipe(
+    DomesticStockInquirePriceResponse,
+    z.transform(({ output }) => ({
+      currentPrice: Number(output.stck_prpr),
+      openPrice: Number(output.stck_oprc),
+      highPrice: Number(output.stck_hgpr),
+      lowPrice: Number(output.stck_lwpr),
+      volume: Number(output.acml_vol),
+      changePrice: Number(output.prdy_vrss),
+      changeRate: Number(output.prdy_ctrt),
+    }))
+  )
   .pipe(portPriceSchema)
 
-export const candlesSchema = z
-  .object({
-    output2: z.array(candleSchema).optional(),
-  })
-  .transform(({ output2 }) =>
-    (output2 ?? [])
-      .slice()
-      .sort((left, right) => right.date.localeCompare(left.date))
+export const candlesMapper = z
+  .pipe(
+    DomesticStockInquireDailyItemChartPriceResponse,
+    z.transform(({ output2 }) =>
+      output2
+        .map((candle) => ({
+          date: `${candle.stck_bsop_date.slice(0, 4)}-${candle.stck_bsop_date.slice(4, 6)}-${candle.stck_bsop_date.slice(6, 8)}`,
+          openPrice: Number(candle.stck_oprc),
+          highPrice: Number(candle.stck_hgpr),
+          lowPrice: Number(candle.stck_lwpr),
+          closePrice: Number(candle.stck_clpr),
+          volume: Number(candle.acml_vol),
+        }))
+        .sort((left, right) => right.date.localeCompare(left.date))
+    )
   )
   .pipe(z.array(portCandleSchema))
 
-export function marketDaySchema(quotationMarket: QuotationMarket) {
-  return z
-    .object({
-      output: z.array(marketDayRowSchema),
-    })
-    .transform(({ output }) =>
-      output.map((day) => ({
-        date: tradingDate(day.bass_dt),
-        quotationMarket,
-        isBusinessDay: day.bzdy_yn === "Y",
-        isTradingDay: day.tr_day_yn === "Y",
-        isOpenDay: day.opnd_yn === "Y",
-        isSettlementDay: day.sttl_day_yn === "Y",
-      }))
-    )
-    .pipe(z.array(portMarketDaySchema))
-}
+export const marketDayMapper = z.pipe(
+  DomesticStockChkHolidayResponse,
+  z.transform(({ output }) =>
+    output.map((day) => ({
+      date: `${day.bass_dt.slice(0, 4)}-${day.bass_dt.slice(4, 6)}-${day.bass_dt.slice(6, 8)}`,
+      isBusinessDay: day.bzdy_yn === "Y",
+      isTradingDay: day.tr_day_yn === "Y",
+      isOpenDay: day.opnd_yn === "Y",
+      isSettlementDay: day.sttl_day_yn === "Y",
+    }))
+  )
+)
 
 export const tradeFrameSchema = feedFrameSchema
 
@@ -145,7 +111,7 @@ export const tradeTickFrameSchema = z
       trId,
       tradeTime,
       price: price.data,
-      businessDate: tradingDate(businessDate.data),
+      businessDate: `${businessDate.data.slice(0, 4)}-${businessDate.data.slice(4, 6)}-${businessDate.data.slice(6, 8)}`,
     }
   })
   .pipe(tradeTickSchema.nullable())

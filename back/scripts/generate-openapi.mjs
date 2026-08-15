@@ -6,8 +6,8 @@ const outputPath = resolve(
   process.cwd(),
   process.argv[2] ?? "../packages/api-client/openapi.json"
 )
-const { AppModule } = await import("../dist/app.module.js")
-const { configureApp } = await import("../dist/bootstrap/app-bootstrap.js")
+const { AppModule } = await import("../dist/src/app.module.js")
+const { configureApp } = await import("../dist/src/bootstrap/app-bootstrap.js")
 const { createOpenApiDocument } =
   await import("../openapi/create-openapi-document.mjs")
 const app = await NestFactory.create(AppModule, { logger: false })

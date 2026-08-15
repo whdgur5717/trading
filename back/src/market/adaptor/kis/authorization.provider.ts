@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
 import { err, ok, type Result } from "neverthrow"
 import type { z } from "zod"
+import { rest } from "../../../../openapi/kis/rest/api"
 import {
   HttpRequestError,
   HttpRequestProvider,
@@ -11,7 +12,6 @@ import {
   marketErrors,
   type MarketDataProviderError,
 } from "../../market-data.error"
-import { rest } from "./protocol"
 import {
   accessTokenSchema,
   approvalKeySchema,
@@ -62,7 +62,7 @@ export class AuthorizationProvider {
 
   approvalKey(): Promise<Result<ApprovalKey, AuthorizationError>> {
     return this.post(
-      rest.approvalKey,
+      rest.authWsToken,
       {
         grant_type: "client_credentials",
         appkey: this.appKey,
@@ -76,7 +76,7 @@ export class AuthorizationProvider {
     Result<string, AuthorizationError>
   > {
     const token = await this.post(
-      rest.accessToken,
+      rest.authToken,
       {
         grant_type: "client_credentials",
         appkey: this.appKey,
@@ -98,7 +98,7 @@ export class AuthorizationProvider {
   }
 
   private async post<TSchema extends z.ZodType>(
-    path: string,
+    api: { method: "post"; path: string },
     body: Record<string, string>,
     schema: TSchema
   ): Promise<Result<z.output<TSchema>, AuthorizationError>> {
@@ -106,8 +106,8 @@ export class AuthorizationProvider {
 
     try {
       response = await this.httpRequestProvider.request({
-        method: "POST",
-        url: `${this.restBaseUrl}${path}`,
+        method: api.method,
+        url: `${this.restBaseUrl}${api.path}`,
         body,
         validateStatus: (status) => status >= 200 && status < 300,
       })
@@ -124,7 +124,7 @@ export class AuthorizationProvider {
           return err(
             marketErrors.providerTimeout({
               provider: "kis",
-              endpoint: path,
+              endpoint: api.path,
               upstreamStatus,
               upstreamCode,
             })
@@ -136,7 +136,7 @@ export class AuthorizationProvider {
           return err(
             marketErrors.providerAuthUnavailable({
               provider: "kis",
-              endpoint: path,
+              endpoint: api.path,
               upstreamStatus,
               upstreamCode,
             })
@@ -150,7 +150,7 @@ export class AuthorizationProvider {
       return err(
         marketErrors.providerAuthUnavailable({
           provider: "kis",
-          endpoint: path,
+          endpoint: api.path,
           upstreamStatus: response.status,
           upstreamCode: meta.data.msg_cd ?? null,
         })
@@ -163,7 +163,7 @@ export class AuthorizationProvider {
       return err(
         marketErrors.providerInvalidResponse({
           provider: "kis",
-          endpoint: path,
+          endpoint: api.path,
           upstreamStatus: response.status,
           upstreamCode: null,
         })

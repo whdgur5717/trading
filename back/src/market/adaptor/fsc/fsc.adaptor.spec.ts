@@ -1,13 +1,18 @@
 import { ConfigService } from "@nestjs/config"
 import { Test } from "@nestjs/testing"
 import { describe, expect, it } from "vitest"
+import { rest } from "../../../../openapi/fsc/rest/api"
 import { HttpRequestProvider } from "../../../common/http/httpRequest.provider"
 import {
   HttpRequestProviderMock,
   HttpRequestTestingModule,
 } from "../../../common/http/testing/httpRequestTesting.module"
 import { FscAdaptor } from "./fsc.adaptor"
-import { FSC_BASE_URL, fscRest } from "./fsc.protocol"
+
+const config = {
+  FSC_REST_BASE_URL: "http://fsc.test",
+  PUBLIC_DATA_SERVICE_KEY: "public-data-key",
+}
 
 describe("FscAdaptor", () => {
   it("returns daily stock rows when the public data response contains one item", async () => {
@@ -17,7 +22,9 @@ describe("FscAdaptor", () => {
         FscAdaptor,
         {
           provide: ConfigService,
-          useValue: { getOrThrow: () => "public-data-key" },
+          useValue: {
+            getOrThrow: (key: keyof typeof config) => config[key],
+          },
         },
       ],
     }).compile()
@@ -80,10 +87,10 @@ describe("FscAdaptor", () => {
     ])
     expect(http.request).toHaveBeenCalledWith(
       expect.objectContaining({
-        method: "GET",
-        url: `${FSC_BASE_URL}${fscRest.stockPriceInfo}`,
+        method: "get",
+        url: `${config.FSC_REST_BASE_URL}${rest.fscStockPriceInfo.path}`,
         query: {
-          serviceKey: "public-data-key",
+          serviceKey: config.PUBLIC_DATA_SERVICE_KEY,
           resultType: "json",
           basDt: "20240614",
           numOfRows: "5000",

@@ -1,147 +1,83 @@
 import { z } from "zod"
 import {
+  FscMarketIndexResponse,
+  FscStockPriceResponse,
+} from "../../../../openapi/fsc/rest/api"
+import {
   dailyMarketIndexSchema,
   dailyStockPriceSchema,
 } from "../../market.schema"
 
-const numberTextSchema = z
-  .union([z.string(), z.number()])
-  .transform((value) => String(value).replaceAll(",", "").trim())
-  .transform((value) => (value.startsWith(".") ? `0${value}` : value))
-  .transform((value) =>
-    value.startsWith("-.") ? value.replace("-.", "-0.") : value
-  )
-  .transform((value) => Number(value))
-  .pipe(z.number())
+function numberText(value: string | number): number {
+  const normalized = String(value).replaceAll(",", "").trim()
 
-const optionalNumberTextSchema = z
-  .union([z.string(), z.number(), z.null(), z.undefined()])
-  .transform((value) => {
-    if (value === null || value === undefined) {
-      return null
-    }
+  if (normalized.startsWith("-.")) {
+    return Number(normalized.replace("-.", "-0."))
+  }
 
-    const normalized = String(value).replaceAll(",", "").trim()
-    return normalized === "" ? null : normalized
-  })
-  .transform((value) => {
-    if (value === null) {
-      return null
-    }
-
-    if (value.startsWith(".")) {
-      return `0${value}`
-    }
-
-    return value.startsWith("-.") ? value.replace("-.", "-0.") : value
-  })
-  .transform((value) => (value === null ? null : Number(value)))
-  .pipe(z.number().nullable())
-
-const compactDateSchema = z
-  .string()
-  .regex(/^\d{8}$/)
-  .transform(
-    (value) => `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}`
-  )
-
-const fscHeaderSchema = z.object({
-  resultCode: z.string(),
-  resultMsg: z.string().optional(),
-})
-
-const fscSuccessHeaderSchema = z.object({
-  resultCode: z.literal("00"),
-  resultMsg: z.string().optional(),
-})
-
-const stockRowSchema = z
-  .object({
-    basDt: compactDateSchema,
-    srtnCd: z.string().min(1),
-    isinCd: z.string().min(1).optional(),
-    itmsNm: z.string().min(1),
-    mrktCtg: z.string().min(1),
-    clpr: numberTextSchema,
-    fltRt: numberTextSchema,
-    mkp: numberTextSchema,
-    hipr: numberTextSchema,
-    lopr: numberTextSchema,
-    trqu: numberTextSchema,
-    trPrc: numberTextSchema,
-    lstgStCnt: numberTextSchema,
-    mrktTotAmt: numberTextSchema,
-  })
-  .transform((row) => ({
-    date: row.basDt,
-    stockCode: row.srtnCd,
-    isinCode: row.isinCd ?? null,
-    stockName: row.itmsNm,
-    market: row.mrktCtg,
-    closePrice: row.clpr,
-    dailyReturnPct: row.fltRt,
-    openPrice: row.mkp,
-    highPrice: row.hipr,
-    lowPrice: row.lopr,
-    volume: row.trqu,
-    tradeValue: row.trPrc,
-    listedShares: row.lstgStCnt,
-    marketCap: row.mrktTotAmt,
-  }))
-  .pipe(dailyStockPriceSchema)
-
-const indexRowSchema = z
-  .object({
-    basDt: compactDateSchema,
-    idxNm: z.string().min(1),
-    clpr: numberTextSchema,
-    fltRt: numberTextSchema,
-    trPrc: optionalNumberTextSchema,
-    lstgMrktTotAmt: optionalNumberTextSchema,
-  })
-  .transform((row) => ({
-    date: row.basDt,
-    indexName: row.idxNm,
-    closePrice: row.clpr,
-    changeRate: row.fltRt,
-    tradeValue: row.trPrc,
-    marketCap: row.lstgMrktTotAmt,
-  }))
-  .pipe(dailyMarketIndexSchema)
-
-function itemsItemArraySchema<TSchema extends z.ZodType>(itemSchema: TSchema) {
-  return z
-    .union([z.array(itemSchema), itemSchema, z.undefined()])
-    .transform((item) => {
-      if (!item) {
-        return []
-      }
-
-      return Array.isArray(item) ? item : [item]
-    })
+  return Number(normalized.startsWith(".") ? `0${normalized}` : normalized)
 }
 
-function fscResponseSchema<TSchema extends z.ZodType>(itemSchema: TSchema) {
-  return z
-    .object({
-      response: z.object({
-        header: fscSuccessHeaderSchema,
-        body: z.object({
-          items: z
-            .object({
-              item: itemsItemArraySchema(itemSchema),
-            })
-            .optional(),
-        }),
-      }),
-    })
-    .transform(({ response }) => response.body.items?.item ?? [])
+function optionalNumberText(
+  value: string | number | null | undefined
+): number | null {
+  if (value === null || value === undefined) {
+    return null
+  }
+
+  const normalized = String(value).replaceAll(",", "").trim()
+
+  if (normalized === "") {
+    return null
+  }
+
+  if (normalized.startsWith("-.")) {
+    return Number(normalized.replace("-.", "-0."))
+  }
+
+  return Number(normalized.startsWith(".") ? `0${normalized}` : normalized)
 }
 
-export const fscStockPriceResponseSchema = fscResponseSchema(stockRowSchema)
-export const fscMarketIndexResponseSchema = fscResponseSchema(indexRowSchema)
-export const fscResponseHeaderSchema = z.object({
-  response: z.object({
-    header: fscHeaderSchema,
-  }),
-})
+export const fscStockPriceMapper = z
+  .pipe(
+    FscStockPriceResponse,
+    z.transform(({ response }) => {
+      const item = response.body.items?.item
+
+      return (item ? (Array.isArray(item) ? item : [item]) : []).map((row) => ({
+        date: `${row.basDt.slice(0, 4)}-${row.basDt.slice(4, 6)}-${row.basDt.slice(6, 8)}`,
+        stockCode: row.srtnCd,
+        isinCode: row.isinCd ?? null,
+        stockName: row.itmsNm,
+        market: row.mrktCtg,
+        closePrice: numberText(row.clpr),
+        dailyReturnPct: numberText(row.fltRt),
+        openPrice: numberText(row.mkp),
+        highPrice: numberText(row.hipr),
+        lowPrice: numberText(row.lopr),
+        volume: numberText(row.trqu),
+        tradeValue: numberText(row.trPrc),
+        listedShares: numberText(row.lstgStCnt),
+        marketCap: numberText(row.mrktTotAmt),
+      }))
+    })
+  )
+  .pipe(z.array(dailyStockPriceSchema))
+
+export const fscMarketIndexMapper = z
+  .pipe(
+    FscMarketIndexResponse,
+    z.transform(({ response }) => {
+      const item = response.body.items?.item
+
+      return (item ? (Array.isArray(item) ? item : [item]) : []).map((row) => ({
+        date: `${row.basDt.slice(0, 4)}-${row.basDt.slice(4, 6)}-${row.basDt.slice(6, 8)}`,
+        indexName: row.idxNm,
+        closePrice: numberText(row.clpr),
+        changeRate: numberText(row.fltRt),
+        tradeValue: optionalNumberText(row.trPrc),
+        marketCap: optionalNumberText(row.lstgMrktTotAmt),
+      }))
+    })
+  )
+  .pipe(z.array(dailyMarketIndexSchema))

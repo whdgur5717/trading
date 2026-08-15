@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
 import { err, ok, type Result } from "neverthrow"
 import type { z } from "zod"
+import { FscErrorResponse, rest } from "../../../../openapi/fsc/rest/api"
 import {
   HttpRequestError,
   HttpRequestProvider,
@@ -9,12 +10,7 @@ import {
 } from "../../../common/http/httpRequest.provider"
 import type { DailyMarketIndex, DailyStockPrice } from "../../market.schema"
 import { marketErrors, type MarketDataError } from "../../market-data.error"
-import { FSC_BASE_URL, fscRest } from "./fsc.protocol"
-import {
-  fscMarketIndexResponseSchema,
-  fscResponseHeaderSchema,
-  fscStockPriceResponseSchema,
-} from "./fsc.schema"
+import { fscMarketIndexMapper, fscStockPriceMapper } from "./fsc.schema"
 
 @Injectable()
 export class FscAdaptor {
@@ -27,9 +23,9 @@ export class FscAdaptor {
     date: string
   ): Promise<Result<DailyStockPrice[], MarketDataError>> {
     return this.get(
-      fscRest.stockPriceInfo,
+      rest.fscStockPriceInfo,
       { basDt: compactDate(date), numOfRows: "5000", pageNo: "1" },
-      fscStockPriceResponseSchema
+      fscStockPriceMapper
     )
   }
 
@@ -37,14 +33,14 @@ export class FscAdaptor {
     date: string
   ): Promise<Result<DailyMarketIndex[], MarketDataError>> {
     return this.get(
-      fscRest.marketIndexInfo,
+      rest.fscMarketIndexInfo,
       { basDt: compactDate(date), numOfRows: "200", pageNo: "1" },
-      fscMarketIndexResponseSchema
+      fscMarketIndexMapper
     )
   }
 
   private async get<TSchema extends z.ZodType>(
-    path: string,
+    api: { method: "get"; path: string },
     query: Record<string, string>,
     schema: TSchema
   ): Promise<Result<z.output<TSchema>, MarketDataError>> {
@@ -52,8 +48,8 @@ export class FscAdaptor {
 
     try {
       response = await this.httpRequestProvider.request({
-        method: "GET",
-        url: `${FSC_BASE_URL}${path}`,
+        method: api.method,
+        url: `${this.restBaseUrl}${api.path}`,
         query: {
           serviceKey: this.serviceKey,
           resultType: "json",
@@ -73,20 +69,20 @@ export class FscAdaptor {
           ? marketErrors.providerTimeout
           : marketErrors.providerUnavailable)({
           provider: "fsc",
-          endpoint: path,
+          endpoint: api.path,
           upstreamStatus,
           upstreamCode,
         })
       )
     }
 
-    const header = fscResponseHeaderSchema.safeParse(response.data)
+    const header = FscErrorResponse.safeParse(response.data)
 
     if (header.success && header.data.response.header.resultCode !== "00") {
       return err(
         marketErrors.providerUnavailable({
           provider: "fsc",
-          endpoint: path,
+          endpoint: api.path,
           upstreamStatus: response.status,
           upstreamCode: header.data.response.header.resultCode,
         })
@@ -99,7 +95,7 @@ export class FscAdaptor {
       return err(
         marketErrors.providerInvalidResponse({
           provider: "fsc",
-          endpoint: path,
+          endpoint: api.path,
           upstreamStatus: response.status,
           upstreamCode: null,
         })
@@ -111,6 +107,10 @@ export class FscAdaptor {
 
   private get serviceKey(): string {
     return this.config.getOrThrow<string>("PUBLIC_DATA_SERVICE_KEY")
+  }
+
+  private get restBaseUrl(): string {
+    return this.config.getOrThrow<string>("FSC_REST_BASE_URL")
   }
 }
 

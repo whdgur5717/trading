@@ -27,8 +27,13 @@ export class MarketDataAdaptor implements MarketDataPort {
     return this.kis.candles(query)
   }
 
-  marketDay(query: MarketDayQuery) {
-    return this.kis.marketDay(query)
+  async marketDay(query: MarketDayQuery) {
+    const day = await this.kis.marketDay(query.date)
+
+    return day.map((value) => ({
+      ...value,
+      quotationMarket: query.quotationMarket,
+    }))
   }
 
   dailyStocks(date: string) {
