@@ -15,7 +15,9 @@ async function bootstrap() {
 
   if (process.env.NODE_ENV !== "production") {
     const { createOpenApiDocument } = (await import(
-      pathToFileURL(resolve(process.cwd(), "openapi/document.mjs")).href
+      pathToFileURL(
+        resolve(process.cwd(), "openapi/create-openapi-document.mjs")
+      ).href
     )) as {
       createOpenApiDocument: (app: NestExpressApplication) => OpenAPIObject
     }

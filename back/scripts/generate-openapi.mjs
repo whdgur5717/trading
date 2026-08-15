@@ -8,7 +8,8 @@ const outputPath = resolve(
 )
 const { AppModule } = await import("../dist/app.module.js")
 const { configureApp } = await import("../dist/bootstrap/app-bootstrap.js")
-const { createOpenApiDocument } = await import("../openapi/document.mjs")
+const { createOpenApiDocument } =
+  await import("../openapi/create-openapi-document.mjs")
 const app = await NestFactory.create(AppModule, { logger: false })
 
 try {

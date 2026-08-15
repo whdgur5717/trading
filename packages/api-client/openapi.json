@@ -35,16 +35,25 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["success", "data"],
                   "properties": {
                     "success": {
                       "type": "boolean",
-                      "enum": [true]
+                      "const": true,
+                      "example": true
                     },
                     "data": {
                       "$ref": "#/components/schemas/SuggestionDto"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
                     }
-                  }
+                  },
+                  "required": ["success", "data"],
+                  "additionalProperties": false
                 }
               }
             }
@@ -75,19 +84,28 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["success", "data"],
                   "properties": {
                     "success": {
                       "type": "boolean",
-                      "enum": [true]
+                      "const": true,
+                      "example": true
                     },
                     "data": {
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/StockDto"
                       }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
                     }
-                  }
+                  },
+                  "required": ["success", "data"],
+                  "additionalProperties": false
                 }
               }
             }
@@ -119,16 +137,25 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["success", "data"],
                   "properties": {
                     "success": {
                       "type": "boolean",
-                      "enum": [true]
+                      "const": true,
+                      "example": true
                     },
                     "data": {
                       "$ref": "#/components/schemas/StockDto"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
                     }
-                  }
+                  },
+                  "required": ["success", "data"],
+                  "additionalProperties": false
                 }
               }
             }
@@ -141,23 +168,26 @@
                   "oneOf": [
                     {
                       "type": "object",
-                      "required": ["success", "error"],
                       "properties": {
                         "success": {
                           "type": "boolean",
-                          "enum": [false]
+                          "const": false,
+                          "example": false
                         },
                         "error": {
                           "type": "object",
-                          "required": ["type", "status", "message", "data"],
                           "properties": {
+                            "status": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991,
+                              "example": 404,
+                              "enum": [404]
+                            },
                             "type": {
                               "type": "string",
+                              "example": "stock.unsupported",
                               "enum": ["stock.unsupported"]
-                            },
-                            "status": {
-                              "type": "number",
-                              "enum": [404]
                             },
                             "message": {
                               "type": "string",
@@ -174,9 +204,13 @@
                               "required": ["symbol"],
                               "additionalProperties": false
                             }
-                          }
+                          },
+                          "required": ["status", "type", "message", "data"],
+                          "additionalProperties": false
                         }
-                      }
+                      },
+                      "required": ["success", "error"],
+                      "additionalProperties": false
                     }
                   ]
                 }
@@ -210,16 +244,25 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["success", "data"],
                   "properties": {
                     "success": {
                       "type": "boolean",
-                      "enum": [true]
+                      "const": true,
+                      "example": true
                     },
                     "data": {
                       "$ref": "#/components/schemas/PriceDto"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
                     }
-                  }
+                  },
+                  "required": ["success", "data"],
+                  "additionalProperties": false
                 }
               }
             }
@@ -232,23 +275,26 @@
                   "oneOf": [
                     {
                       "type": "object",
-                      "required": ["success", "error"],
                       "properties": {
                         "success": {
                           "type": "boolean",
-                          "enum": [false]
+                          "const": false,
+                          "example": false
                         },
                         "error": {
                           "type": "object",
-                          "required": ["type", "status", "message", "data"],
                           "properties": {
+                            "status": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991,
+                              "example": 404,
+                              "enum": [404]
+                            },
                             "type": {
                               "type": "string",
+                              "example": "stock.unsupported",
                               "enum": ["stock.unsupported"]
-                            },
-                            "status": {
-                              "type": "number",
-                              "enum": [404]
                             },
                             "message": {
                               "type": "string",
@@ -265,29 +311,36 @@
                               "required": ["symbol"],
                               "additionalProperties": false
                             }
-                          }
+                          },
+                          "required": ["status", "type", "message", "data"],
+                          "additionalProperties": false
                         }
-                      }
+                      },
+                      "required": ["success", "error"],
+                      "additionalProperties": false
                     },
                     {
                       "type": "object",
-                      "required": ["success", "error"],
                       "properties": {
                         "success": {
                           "type": "boolean",
-                          "enum": [false]
+                          "const": false,
+                          "example": false
                         },
                         "error": {
                           "type": "object",
-                          "required": ["type", "status", "message", "data"],
                           "properties": {
+                            "status": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991,
+                              "example": 404,
+                              "enum": [404]
+                            },
                             "type": {
                               "type": "string",
+                              "example": "market.data_not_found",
                               "enum": ["market.data_not_found"]
-                            },
-                            "status": {
-                              "type": "number",
-                              "enum": [404]
                             },
                             "message": {
                               "type": "string",
@@ -338,9 +391,13 @@
                               ],
                               "additionalProperties": false
                             }
-                          }
+                          },
+                          "required": ["status", "type", "message", "data"],
+                          "additionalProperties": false
                         }
-                      }
+                      },
+                      "required": ["success", "error"],
+                      "additionalProperties": false
                     }
                   ]
                 }
@@ -355,23 +412,26 @@
                   "oneOf": [
                     {
                       "type": "object",
-                      "required": ["success", "error"],
                       "properties": {
                         "success": {
                           "type": "boolean",
-                          "enum": [false]
+                          "const": false,
+                          "example": false
                         },
                         "error": {
                           "type": "object",
-                          "required": ["type", "status", "message", "data"],
                           "properties": {
+                            "status": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991,
+                              "example": 502,
+                              "enum": [502]
+                            },
                             "type": {
                               "type": "string",
+                              "example": "market.provider_unavailable",
                               "enum": ["market.provider_unavailable"]
-                            },
-                            "status": {
-                              "type": "number",
-                              "enum": [502]
                             },
                             "message": {
                               "type": "string",
@@ -422,29 +482,36 @@
                               ],
                               "additionalProperties": false
                             }
-                          }
+                          },
+                          "required": ["status", "type", "message", "data"],
+                          "additionalProperties": false
                         }
-                      }
+                      },
+                      "required": ["success", "error"],
+                      "additionalProperties": false
                     },
                     {
                       "type": "object",
-                      "required": ["success", "error"],
                       "properties": {
                         "success": {
                           "type": "boolean",
-                          "enum": [false]
+                          "const": false,
+                          "example": false
                         },
                         "error": {
                           "type": "object",
-                          "required": ["type", "status", "message", "data"],
                           "properties": {
+                            "status": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991,
+                              "example": 502,
+                              "enum": [502]
+                            },
                             "type": {
                               "type": "string",
+                              "example": "market.provider_auth_unavailable",
                               "enum": ["market.provider_auth_unavailable"]
-                            },
-                            "status": {
-                              "type": "number",
-                              "enum": [502]
                             },
                             "message": {
                               "type": "string",
@@ -495,29 +562,36 @@
                               ],
                               "additionalProperties": false
                             }
-                          }
+                          },
+                          "required": ["status", "type", "message", "data"],
+                          "additionalProperties": false
                         }
-                      }
+                      },
+                      "required": ["success", "error"],
+                      "additionalProperties": false
                     },
                     {
                       "type": "object",
-                      "required": ["success", "error"],
                       "properties": {
                         "success": {
                           "type": "boolean",
-                          "enum": [false]
+                          "const": false,
+                          "example": false
                         },
                         "error": {
                           "type": "object",
-                          "required": ["type", "status", "message", "data"],
                           "properties": {
+                            "status": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991,
+                              "example": 502,
+                              "enum": [502]
+                            },
                             "type": {
                               "type": "string",
+                              "example": "market.provider_invalid_response",
                               "enum": ["market.provider_invalid_response"]
-                            },
-                            "status": {
-                              "type": "number",
-                              "enum": [502]
                             },
                             "message": {
                               "type": "string",
@@ -568,9 +642,13 @@
                               ],
                               "additionalProperties": false
                             }
-                          }
+                          },
+                          "required": ["status", "type", "message", "data"],
+                          "additionalProperties": false
                         }
-                      }
+                      },
+                      "required": ["success", "error"],
+                      "additionalProperties": false
                     }
                   ]
                 }
@@ -585,23 +663,26 @@
                   "oneOf": [
                     {
                       "type": "object",
-                      "required": ["success", "error"],
                       "properties": {
                         "success": {
                           "type": "boolean",
-                          "enum": [false]
+                          "const": false,
+                          "example": false
                         },
                         "error": {
                           "type": "object",
-                          "required": ["type", "status", "message", "data"],
                           "properties": {
+                            "status": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991,
+                              "example": 504,
+                              "enum": [504]
+                            },
                             "type": {
                               "type": "string",
+                              "example": "market.provider_timeout",
                               "enum": ["market.provider_timeout"]
-                            },
-                            "status": {
-                              "type": "number",
-                              "enum": [504]
                             },
                             "message": {
                               "type": "string",
@@ -652,9 +733,13 @@
                               ],
                               "additionalProperties": false
                             }
-                          }
+                          },
+                          "required": ["status", "type", "message", "data"],
+                          "additionalProperties": false
                         }
-                      }
+                      },
+                      "required": ["success", "error"],
+                      "additionalProperties": false
                     }
                   ]
                 }
@@ -721,16 +806,25 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["success", "data"],
                   "properties": {
                     "success": {
                       "type": "boolean",
-                      "enum": [true]
+                      "const": true,
+                      "example": true
                     },
                     "data": {
                       "$ref": "#/components/schemas/CandlesDto"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
                     }
-                  }
+                  },
+                  "required": ["success", "data"],
+                  "additionalProperties": false
                 }
               }
             }
@@ -743,23 +837,26 @@
                   "oneOf": [
                     {
                       "type": "object",
-                      "required": ["success", "error"],
                       "properties": {
                         "success": {
                           "type": "boolean",
-                          "enum": [false]
+                          "const": false,
+                          "example": false
                         },
                         "error": {
                           "type": "object",
-                          "required": ["type", "status", "message", "data"],
                           "properties": {
+                            "status": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991,
+                              "example": 404,
+                              "enum": [404]
+                            },
                             "type": {
                               "type": "string",
+                              "example": "stock.unsupported",
                               "enum": ["stock.unsupported"]
-                            },
-                            "status": {
-                              "type": "number",
-                              "enum": [404]
                             },
                             "message": {
                               "type": "string",
@@ -776,29 +873,36 @@
                               "required": ["symbol"],
                               "additionalProperties": false
                             }
-                          }
+                          },
+                          "required": ["status", "type", "message", "data"],
+                          "additionalProperties": false
                         }
-                      }
+                      },
+                      "required": ["success", "error"],
+                      "additionalProperties": false
                     },
                     {
                       "type": "object",
-                      "required": ["success", "error"],
                       "properties": {
                         "success": {
                           "type": "boolean",
-                          "enum": [false]
+                          "const": false,
+                          "example": false
                         },
                         "error": {
                           "type": "object",
-                          "required": ["type", "status", "message", "data"],
                           "properties": {
+                            "status": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991,
+                              "example": 404,
+                              "enum": [404]
+                            },
                             "type": {
                               "type": "string",
+                              "example": "market.data_not_found",
                               "enum": ["market.data_not_found"]
-                            },
-                            "status": {
-                              "type": "number",
-                              "enum": [404]
                             },
                             "message": {
                               "type": "string",
@@ -849,9 +953,13 @@
                               ],
                               "additionalProperties": false
                             }
-                          }
+                          },
+                          "required": ["status", "type", "message", "data"],
+                          "additionalProperties": false
                         }
-                      }
+                      },
+                      "required": ["success", "error"],
+                      "additionalProperties": false
                     }
                   ]
                 }
@@ -866,23 +974,26 @@
                   "oneOf": [
                     {
                       "type": "object",
-                      "required": ["success", "error"],
                       "properties": {
                         "success": {
                           "type": "boolean",
-                          "enum": [false]
+                          "const": false,
+                          "example": false
                         },
                         "error": {
                           "type": "object",
-                          "required": ["type", "status", "message", "data"],
                           "properties": {
+                            "status": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991,
+                              "example": 502,
+                              "enum": [502]
+                            },
                             "type": {
                               "type": "string",
+                              "example": "market.provider_unavailable",
                               "enum": ["market.provider_unavailable"]
-                            },
-                            "status": {
-                              "type": "number",
-                              "enum": [502]
                             },
                             "message": {
                               "type": "string",
@@ -933,29 +1044,36 @@
                               ],
                               "additionalProperties": false
                             }
-                          }
+                          },
+                          "required": ["status", "type", "message", "data"],
+                          "additionalProperties": false
                         }
-                      }
+                      },
+                      "required": ["success", "error"],
+                      "additionalProperties": false
                     },
                     {
                       "type": "object",
-                      "required": ["success", "error"],
                       "properties": {
                         "success": {
                           "type": "boolean",
-                          "enum": [false]
+                          "const": false,
+                          "example": false
                         },
                         "error": {
                           "type": "object",
-                          "required": ["type", "status", "message", "data"],
                           "properties": {
+                            "status": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991,
+                              "example": 502,
+                              "enum": [502]
+                            },
                             "type": {
                               "type": "string",
+                              "example": "market.provider_auth_unavailable",
                               "enum": ["market.provider_auth_unavailable"]
-                            },
-                            "status": {
-                              "type": "number",
-                              "enum": [502]
                             },
                             "message": {
                               "type": "string",
@@ -1006,29 +1124,36 @@
                               ],
                               "additionalProperties": false
                             }
-                          }
+                          },
+                          "required": ["status", "type", "message", "data"],
+                          "additionalProperties": false
                         }
-                      }
+                      },
+                      "required": ["success", "error"],
+                      "additionalProperties": false
                     },
                     {
                       "type": "object",
-                      "required": ["success", "error"],
                       "properties": {
                         "success": {
                           "type": "boolean",
-                          "enum": [false]
+                          "const": false,
+                          "example": false
                         },
                         "error": {
                           "type": "object",
-                          "required": ["type", "status", "message", "data"],
                           "properties": {
+                            "status": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991,
+                              "example": 502,
+                              "enum": [502]
+                            },
                             "type": {
                               "type": "string",
+                              "example": "market.provider_invalid_response",
                               "enum": ["market.provider_invalid_response"]
-                            },
-                            "status": {
-                              "type": "number",
-                              "enum": [502]
                             },
                             "message": {
                               "type": "string",
@@ -1079,9 +1204,13 @@
                               ],
                               "additionalProperties": false
                             }
-                          }
+                          },
+                          "required": ["status", "type", "message", "data"],
+                          "additionalProperties": false
                         }
-                      }
+                      },
+                      "required": ["success", "error"],
+                      "additionalProperties": false
                     }
                   ]
                 }
@@ -1096,23 +1225,26 @@
                   "oneOf": [
                     {
                       "type": "object",
-                      "required": ["success", "error"],
                       "properties": {
                         "success": {
                           "type": "boolean",
-                          "enum": [false]
+                          "const": false,
+                          "example": false
                         },
                         "error": {
                           "type": "object",
-                          "required": ["type", "status", "message", "data"],
                           "properties": {
+                            "status": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991,
+                              "example": 504,
+                              "enum": [504]
+                            },
                             "type": {
                               "type": "string",
+                              "example": "market.provider_timeout",
                               "enum": ["market.provider_timeout"]
-                            },
-                            "status": {
-                              "type": "number",
-                              "enum": [504]
                             },
                             "message": {
                               "type": "string",
@@ -1163,9 +1295,13 @@
                               ],
                               "additionalProperties": false
                             }
-                          }
+                          },
+                          "required": ["status", "type", "message", "data"],
+                          "additionalProperties": false
                         }
-                      }
+                      },
+                      "required": ["success", "error"],
+                      "additionalProperties": false
                     }
                   ]
                 }
@@ -1221,16 +1357,25 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["success", "data"],
                   "properties": {
                     "success": {
                       "type": "boolean",
-                      "enum": [true]
+                      "const": true,
+                      "example": true
                     },
                     "data": {
                       "$ref": "#/components/schemas/ReturnSummaryDto"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
                     }
-                  }
+                  },
+                  "required": ["success", "data"],
+                  "additionalProperties": false
                 }
               }
             }
@@ -1243,23 +1388,26 @@
                   "oneOf": [
                     {
                       "type": "object",
-                      "required": ["success", "error"],
                       "properties": {
                         "success": {
                           "type": "boolean",
-                          "enum": [false]
+                          "const": false,
+                          "example": false
                         },
                         "error": {
                           "type": "object",
-                          "required": ["type", "status", "message", "data"],
                           "properties": {
+                            "status": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991,
+                              "example": 404,
+                              "enum": [404]
+                            },
                             "type": {
                               "type": "string",
+                              "example": "stock.unsupported",
                               "enum": ["stock.unsupported"]
-                            },
-                            "status": {
-                              "type": "number",
-                              "enum": [404]
                             },
                             "message": {
                               "type": "string",
@@ -1276,29 +1424,36 @@
                               "required": ["symbol"],
                               "additionalProperties": false
                             }
-                          }
+                          },
+                          "required": ["status", "type", "message", "data"],
+                          "additionalProperties": false
                         }
-                      }
+                      },
+                      "required": ["success", "error"],
+                      "additionalProperties": false
                     },
                     {
                       "type": "object",
-                      "required": ["success", "error"],
                       "properties": {
                         "success": {
                           "type": "boolean",
-                          "enum": [false]
+                          "const": false,
+                          "example": false
                         },
                         "error": {
                           "type": "object",
-                          "required": ["type", "status", "message", "data"],
                           "properties": {
+                            "status": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991,
+                              "example": 404,
+                              "enum": [404]
+                            },
                             "type": {
                               "type": "string",
+                              "example": "market.data_not_found",
                               "enum": ["market.data_not_found"]
-                            },
-                            "status": {
-                              "type": "number",
-                              "enum": [404]
                             },
                             "message": {
                               "type": "string",
@@ -1349,29 +1504,36 @@
                               ],
                               "additionalProperties": false
                             }
-                          }
+                          },
+                          "required": ["status", "type", "message", "data"],
+                          "additionalProperties": false
                         }
-                      }
+                      },
+                      "required": ["success", "error"],
+                      "additionalProperties": false
                     },
                     {
                       "type": "object",
-                      "required": ["success", "error"],
                       "properties": {
                         "success": {
                           "type": "boolean",
-                          "enum": [false]
+                          "const": false,
+                          "example": false
                         },
                         "error": {
                           "type": "object",
-                          "required": ["type", "status", "message", "data"],
                           "properties": {
+                            "status": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991,
+                              "example": 404,
+                              "enum": [404]
+                            },
                             "type": {
                               "type": "string",
+                              "example": "returns.buy_price_not_found",
                               "enum": ["returns.buy_price_not_found"]
-                            },
-                            "status": {
-                              "type": "number",
-                              "enum": [404]
                             },
                             "message": {
                               "type": "string",
@@ -1392,9 +1554,13 @@
                               "required": ["symbol", "buyDate"],
                               "additionalProperties": false
                             }
-                          }
+                          },
+                          "required": ["status", "type", "message", "data"],
+                          "additionalProperties": false
                         }
-                      }
+                      },
+                      "required": ["success", "error"],
+                      "additionalProperties": false
                     }
                   ]
                 }
@@ -1409,23 +1575,26 @@
                   "oneOf": [
                     {
                       "type": "object",
-                      "required": ["success", "error"],
                       "properties": {
                         "success": {
                           "type": "boolean",
-                          "enum": [false]
+                          "const": false,
+                          "example": false
                         },
                         "error": {
                           "type": "object",
-                          "required": ["type", "status", "message", "data"],
                           "properties": {
+                            "status": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991,
+                              "example": 502,
+                              "enum": [502]
+                            },
                             "type": {
                               "type": "string",
+                              "example": "market.provider_unavailable",
                               "enum": ["market.provider_unavailable"]
-                            },
-                            "status": {
-                              "type": "number",
-                              "enum": [502]
                             },
                             "message": {
                               "type": "string",
@@ -1476,29 +1645,36 @@
                               ],
                               "additionalProperties": false
                             }
-                          }
+                          },
+                          "required": ["status", "type", "message", "data"],
+                          "additionalProperties": false
                         }
-                      }
+                      },
+                      "required": ["success", "error"],
+                      "additionalProperties": false
                     },
                     {
                       "type": "object",
-                      "required": ["success", "error"],
                       "properties": {
                         "success": {
                           "type": "boolean",
-                          "enum": [false]
+                          "const": false,
+                          "example": false
                         },
                         "error": {
                           "type": "object",
-                          "required": ["type", "status", "message", "data"],
                           "properties": {
+                            "status": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991,
+                              "example": 502,
+                              "enum": [502]
+                            },
                             "type": {
                               "type": "string",
+                              "example": "market.provider_auth_unavailable",
                               "enum": ["market.provider_auth_unavailable"]
-                            },
-                            "status": {
-                              "type": "number",
-                              "enum": [502]
                             },
                             "message": {
                               "type": "string",
@@ -1549,29 +1725,36 @@
                               ],
                               "additionalProperties": false
                             }
-                          }
+                          },
+                          "required": ["status", "type", "message", "data"],
+                          "additionalProperties": false
                         }
-                      }
+                      },
+                      "required": ["success", "error"],
+                      "additionalProperties": false
                     },
                     {
                       "type": "object",
-                      "required": ["success", "error"],
                       "properties": {
                         "success": {
                           "type": "boolean",
-                          "enum": [false]
+                          "const": false,
+                          "example": false
                         },
                         "error": {
                           "type": "object",
-                          "required": ["type", "status", "message", "data"],
                           "properties": {
+                            "status": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991,
+                              "example": 502,
+                              "enum": [502]
+                            },
                             "type": {
                               "type": "string",
+                              "example": "market.provider_invalid_response",
                               "enum": ["market.provider_invalid_response"]
-                            },
-                            "status": {
-                              "type": "number",
-                              "enum": [502]
                             },
                             "message": {
                               "type": "string",
@@ -1622,9 +1805,13 @@
                               ],
                               "additionalProperties": false
                             }
-                          }
+                          },
+                          "required": ["status", "type", "message", "data"],
+                          "additionalProperties": false
                         }
-                      }
+                      },
+                      "required": ["success", "error"],
+                      "additionalProperties": false
                     }
                   ]
                 }
@@ -1639,23 +1826,26 @@
                   "oneOf": [
                     {
                       "type": "object",
-                      "required": ["success", "error"],
                       "properties": {
                         "success": {
                           "type": "boolean",
-                          "enum": [false]
+                          "const": false,
+                          "example": false
                         },
                         "error": {
                           "type": "object",
-                          "required": ["type", "status", "message", "data"],
                           "properties": {
+                            "status": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991,
+                              "example": 504,
+                              "enum": [504]
+                            },
                             "type": {
                               "type": "string",
+                              "example": "market.provider_timeout",
                               "enum": ["market.provider_timeout"]
-                            },
-                            "status": {
-                              "type": "number",
-                              "enum": [504]
                             },
                             "message": {
                               "type": "string",
@@ -1706,9 +1896,13 @@
                               ],
                               "additionalProperties": false
                             }
-                          }
+                          },
+                          "required": ["status", "type", "message", "data"],
+                          "additionalProperties": false
                         }
-                      }
+                      },
+                      "required": ["success", "error"],
+                      "additionalProperties": false
                     }
                   ]
                 }
@@ -1764,16 +1958,25 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["success", "data"],
                   "properties": {
                     "success": {
                       "type": "boolean",
-                      "enum": [true]
+                      "const": true,
+                      "example": true
                     },
                     "data": {
                       "$ref": "#/components/schemas/ReturnChartDto"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
                     }
-                  }
+                  },
+                  "required": ["success", "data"],
+                  "additionalProperties": false
                 }
               }
             }
@@ -1786,23 +1989,26 @@
                   "oneOf": [
                     {
                       "type": "object",
-                      "required": ["success", "error"],
                       "properties": {
                         "success": {
                           "type": "boolean",
-                          "enum": [false]
+                          "const": false,
+                          "example": false
                         },
                         "error": {
                           "type": "object",
-                          "required": ["type", "status", "message", "data"],
                           "properties": {
+                            "status": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991,
+                              "example": 404,
+                              "enum": [404]
+                            },
                             "type": {
                               "type": "string",
+                              "example": "stock.unsupported",
                               "enum": ["stock.unsupported"]
-                            },
-                            "status": {
-                              "type": "number",
-                              "enum": [404]
                             },
                             "message": {
                               "type": "string",
@@ -1819,29 +2025,36 @@
                               "required": ["symbol"],
                               "additionalProperties": false
                             }
-                          }
+                          },
+                          "required": ["status", "type", "message", "data"],
+                          "additionalProperties": false
                         }
-                      }
+                      },
+                      "required": ["success", "error"],
+                      "additionalProperties": false
                     },
                     {
                       "type": "object",
-                      "required": ["success", "error"],
                       "properties": {
                         "success": {
                           "type": "boolean",
-                          "enum": [false]
+                          "const": false,
+                          "example": false
                         },
                         "error": {
                           "type": "object",
-                          "required": ["type", "status", "message", "data"],
                           "properties": {
+                            "status": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991,
+                              "example": 404,
+                              "enum": [404]
+                            },
                             "type": {
                               "type": "string",
+                              "example": "market.data_not_found",
                               "enum": ["market.data_not_found"]
-                            },
-                            "status": {
-                              "type": "number",
-                              "enum": [404]
                             },
                             "message": {
                               "type": "string",
@@ -1892,29 +2105,36 @@
                               ],
                               "additionalProperties": false
                             }
-                          }
+                          },
+                          "required": ["status", "type", "message", "data"],
+                          "additionalProperties": false
                         }
-                      }
+                      },
+                      "required": ["success", "error"],
+                      "additionalProperties": false
                     },
                     {
                       "type": "object",
-                      "required": ["success", "error"],
                       "properties": {
                         "success": {
                           "type": "boolean",
-                          "enum": [false]
+                          "const": false,
+                          "example": false
                         },
                         "error": {
                           "type": "object",
-                          "required": ["type", "status", "message", "data"],
                           "properties": {
+                            "status": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991,
+                              "example": 404,
+                              "enum": [404]
+                            },
                             "type": {
                               "type": "string",
+                              "example": "returns.buy_price_not_found",
                               "enum": ["returns.buy_price_not_found"]
-                            },
-                            "status": {
-                              "type": "number",
-                              "enum": [404]
                             },
                             "message": {
                               "type": "string",
@@ -1935,9 +2155,13 @@
                               "required": ["symbol", "buyDate"],
                               "additionalProperties": false
                             }
-                          }
+                          },
+                          "required": ["status", "type", "message", "data"],
+                          "additionalProperties": false
                         }
-                      }
+                      },
+                      "required": ["success", "error"],
+                      "additionalProperties": false
                     }
                   ]
                 }
@@ -1952,23 +2176,26 @@
                   "oneOf": [
                     {
                       "type": "object",
-                      "required": ["success", "error"],
                       "properties": {
                         "success": {
                           "type": "boolean",
-                          "enum": [false]
+                          "const": false,
+                          "example": false
                         },
                         "error": {
                           "type": "object",
-                          "required": ["type", "status", "message", "data"],
                           "properties": {
+                            "status": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991,
+                              "example": 502,
+                              "enum": [502]
+                            },
                             "type": {
                               "type": "string",
+                              "example": "market.provider_unavailable",
                               "enum": ["market.provider_unavailable"]
-                            },
-                            "status": {
-                              "type": "number",
-                              "enum": [502]
                             },
                             "message": {
                               "type": "string",
@@ -2019,29 +2246,36 @@
                               ],
                               "additionalProperties": false
                             }
-                          }
+                          },
+                          "required": ["status", "type", "message", "data"],
+                          "additionalProperties": false
                         }
-                      }
+                      },
+                      "required": ["success", "error"],
+                      "additionalProperties": false
                     },
                     {
                       "type": "object",
-                      "required": ["success", "error"],
                       "properties": {
                         "success": {
                           "type": "boolean",
-                          "enum": [false]
+                          "const": false,
+                          "example": false
                         },
                         "error": {
                           "type": "object",
-                          "required": ["type", "status", "message", "data"],
                           "properties": {
+                            "status": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991,
+                              "example": 502,
+                              "enum": [502]
+                            },
                             "type": {
                               "type": "string",
+                              "example": "market.provider_auth_unavailable",
                               "enum": ["market.provider_auth_unavailable"]
-                            },
-                            "status": {
-                              "type": "number",
-                              "enum": [502]
                             },
                             "message": {
                               "type": "string",
@@ -2092,29 +2326,36 @@
                               ],
                               "additionalProperties": false
                             }
-                          }
+                          },
+                          "required": ["status", "type", "message", "data"],
+                          "additionalProperties": false
                         }
-                      }
+                      },
+                      "required": ["success", "error"],
+                      "additionalProperties": false
                     },
                     {
                       "type": "object",
-                      "required": ["success", "error"],
                       "properties": {
                         "success": {
                           "type": "boolean",
-                          "enum": [false]
+                          "const": false,
+                          "example": false
                         },
                         "error": {
                           "type": "object",
-                          "required": ["type", "status", "message", "data"],
                           "properties": {
+                            "status": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991,
+                              "example": 502,
+                              "enum": [502]
+                            },
                             "type": {
                               "type": "string",
+                              "example": "market.provider_invalid_response",
                               "enum": ["market.provider_invalid_response"]
-                            },
-                            "status": {
-                              "type": "number",
-                              "enum": [502]
                             },
                             "message": {
                               "type": "string",
@@ -2165,9 +2406,13 @@
                               ],
                               "additionalProperties": false
                             }
-                          }
+                          },
+                          "required": ["status", "type", "message", "data"],
+                          "additionalProperties": false
                         }
-                      }
+                      },
+                      "required": ["success", "error"],
+                      "additionalProperties": false
                     }
                   ]
                 }
@@ -2182,23 +2427,26 @@
                   "oneOf": [
                     {
                       "type": "object",
-                      "required": ["success", "error"],
                       "properties": {
                         "success": {
                           "type": "boolean",
-                          "enum": [false]
+                          "const": false,
+                          "example": false
                         },
                         "error": {
                           "type": "object",
-                          "required": ["type", "status", "message", "data"],
                           "properties": {
+                            "status": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991,
+                              "example": 504,
+                              "enum": [504]
+                            },
                             "type": {
                               "type": "string",
+                              "example": "market.provider_timeout",
                               "enum": ["market.provider_timeout"]
-                            },
-                            "status": {
-                              "type": "number",
-                              "enum": [504]
                             },
                             "message": {
                               "type": "string",
@@ -2249,9 +2497,13 @@
                               ],
                               "additionalProperties": false
                             }
-                          }
+                          },
+                          "required": ["status", "type", "message", "data"],
+                          "additionalProperties": false
                         }
-                      }
+                      },
+                      "required": ["success", "error"],
+                      "additionalProperties": false
                     }
                   ]
                 }

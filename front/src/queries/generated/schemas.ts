@@ -308,6 +308,7 @@ export type HealthCheckDto = z.infer<typeof HealthCheckDtoSchema>
 export const StocksControllerSuggestionResponse200Schema = z.object({
   success: z.literal(true),
   data: SuggestionDtoSchema,
+  meta: z.record(z.string(), z.unknown()).optional(),
 })
 export type StocksControllerSuggestionResponse200 = z.infer<
   typeof StocksControllerSuggestionResponse200Schema
@@ -316,6 +317,7 @@ export type StocksControllerSuggestionResponse200 = z.infer<
 export const StocksControllerSearchResponse200Schema = z.object({
   success: z.literal(true),
   data: z.array(StockDtoSchema),
+  meta: z.record(z.string(), z.unknown()).optional(),
 })
 export type StocksControllerSearchResponse200 = z.infer<
   typeof StocksControllerSearchResponse200Schema
@@ -324,6 +326,7 @@ export type StocksControllerSearchResponse200 = z.infer<
 export const StocksControllerGetResponse200Schema = z.object({
   success: z.literal(true),
   data: StockDtoSchema,
+  meta: z.record(z.string(), z.unknown()).optional(),
 })
 export type StocksControllerGetResponse200 = z.infer<
   typeof StocksControllerGetResponse200Schema
@@ -332,8 +335,8 @@ export type StocksControllerGetResponse200 = z.infer<
 export const StocksControllerGetResponse404Schema = z.object({
   success: z.literal(false),
   error: z.object({
-    type: z.literal("stock.unsupported"),
     status: z.literal(404),
+    type: z.literal("stock.unsupported"),
     message: z.string(),
     data: z.object({
       symbol: z.string(),
@@ -347,6 +350,7 @@ export type StocksControllerGetResponse404 = z.infer<
 export const PricesControllerPriceResponse200Schema = z.object({
   success: z.literal(true),
   data: PriceDtoSchema,
+  meta: z.record(z.string(), z.unknown()).optional(),
 })
 export type PricesControllerPriceResponse200 = z.infer<
   typeof PricesControllerPriceResponse200Schema
@@ -356,8 +360,8 @@ export const PricesControllerPriceResponse404Schema = z.union([
   z.object({
     success: z.literal(false),
     error: z.object({
-      type: z.literal("stock.unsupported"),
       status: z.literal(404),
+      type: z.literal("stock.unsupported"),
       message: z.string(),
       data: z.object({
         symbol: z.string(),
@@ -367,8 +371,8 @@ export const PricesControllerPriceResponse404Schema = z.union([
   z.object({
     success: z.literal(false),
     error: z.object({
-      type: z.literal("market.data_not_found"),
       status: z.literal(404),
+      type: z.literal("market.data_not_found"),
       message: z.string(),
       data: z.object({
         provider: z.enum(["kis", "fsc", "opendart"]),
@@ -390,8 +394,8 @@ export const PricesControllerPriceResponse502Schema = z.union([
   z.object({
     success: z.literal(false),
     error: z.object({
+      status: z.literal(502),
       type: z.literal("market.provider_unavailable"),
-      status: z.literal(502),
       message: z.string(),
       data: z.object({
         provider: z.enum(["kis", "fsc", "opendart"]),
@@ -407,8 +411,8 @@ export const PricesControllerPriceResponse502Schema = z.union([
   z.object({
     success: z.literal(false),
     error: z.object({
+      status: z.literal(502),
       type: z.literal("market.provider_auth_unavailable"),
-      status: z.literal(502),
       message: z.string(),
       data: z.object({
         provider: z.enum(["kis", "fsc", "opendart"]),
@@ -424,8 +428,8 @@ export const PricesControllerPriceResponse502Schema = z.union([
   z.object({
     success: z.literal(false),
     error: z.object({
-      type: z.literal("market.provider_invalid_response"),
       status: z.literal(502),
+      type: z.literal("market.provider_invalid_response"),
       message: z.string(),
       data: z.object({
         provider: z.enum(["kis", "fsc", "opendart"]),
@@ -446,8 +450,8 @@ export type PricesControllerPriceResponse502 = z.infer<
 export const PricesControllerPriceResponse504Schema = z.object({
   success: z.literal(false),
   error: z.object({
-    type: z.literal("market.provider_timeout"),
     status: z.literal(504),
+    type: z.literal("market.provider_timeout"),
     message: z.string(),
     data: z.object({
       provider: z.enum(["kis", "fsc", "opendart"]),
@@ -467,6 +471,7 @@ export type PricesControllerPriceResponse504 = z.infer<
 export const CandlesControllerCandlesResponse200Schema = z.object({
   success: z.literal(true),
   data: CandlesDtoSchema,
+  meta: z.record(z.string(), z.unknown()).optional(),
 })
 export type CandlesControllerCandlesResponse200 = z.infer<
   typeof CandlesControllerCandlesResponse200Schema
@@ -476,8 +481,8 @@ export const CandlesControllerCandlesResponse404Schema = z.union([
   z.object({
     success: z.literal(false),
     error: z.object({
-      type: z.literal("stock.unsupported"),
       status: z.literal(404),
+      type: z.literal("stock.unsupported"),
       message: z.string(),
       data: z.object({
         symbol: z.string(),
@@ -487,8 +492,8 @@ export const CandlesControllerCandlesResponse404Schema = z.union([
   z.object({
     success: z.literal(false),
     error: z.object({
-      type: z.literal("market.data_not_found"),
       status: z.literal(404),
+      type: z.literal("market.data_not_found"),
       message: z.string(),
       data: z.object({
         provider: z.enum(["kis", "fsc", "opendart"]),
@@ -510,8 +515,8 @@ export const CandlesControllerCandlesResponse502Schema = z.union([
   z.object({
     success: z.literal(false),
     error: z.object({
+      status: z.literal(502),
       type: z.literal("market.provider_unavailable"),
-      status: z.literal(502),
       message: z.string(),
       data: z.object({
         provider: z.enum(["kis", "fsc", "opendart"]),
@@ -527,8 +532,8 @@ export const CandlesControllerCandlesResponse502Schema = z.union([
   z.object({
     success: z.literal(false),
     error: z.object({
+      status: z.literal(502),
       type: z.literal("market.provider_auth_unavailable"),
-      status: z.literal(502),
       message: z.string(),
       data: z.object({
         provider: z.enum(["kis", "fsc", "opendart"]),
@@ -544,8 +549,8 @@ export const CandlesControllerCandlesResponse502Schema = z.union([
   z.object({
     success: z.literal(false),
     error: z.object({
-      type: z.literal("market.provider_invalid_response"),
       status: z.literal(502),
+      type: z.literal("market.provider_invalid_response"),
       message: z.string(),
       data: z.object({
         provider: z.enum(["kis", "fsc", "opendart"]),
@@ -566,8 +571,8 @@ export type CandlesControllerCandlesResponse502 = z.infer<
 export const CandlesControllerCandlesResponse504Schema = z.object({
   success: z.literal(false),
   error: z.object({
-    type: z.literal("market.provider_timeout"),
     status: z.literal(504),
+    type: z.literal("market.provider_timeout"),
     message: z.string(),
     data: z.object({
       provider: z.enum(["kis", "fsc", "opendart"]),
@@ -587,6 +592,7 @@ export type CandlesControllerCandlesResponse504 = z.infer<
 export const ReturnsControllerCalculateResponse200Schema = z.object({
   success: z.literal(true),
   data: ReturnSummaryDtoSchema,
+  meta: z.record(z.string(), z.unknown()).optional(),
 })
 export type ReturnsControllerCalculateResponse200 = z.infer<
   typeof ReturnsControllerCalculateResponse200Schema
@@ -596,8 +602,8 @@ export const ReturnsControllerCalculateResponse404Schema = z.union([
   z.object({
     success: z.literal(false),
     error: z.object({
-      type: z.literal("stock.unsupported"),
       status: z.literal(404),
+      type: z.literal("stock.unsupported"),
       message: z.string(),
       data: z.object({
         symbol: z.string(),
@@ -607,8 +613,8 @@ export const ReturnsControllerCalculateResponse404Schema = z.union([
   z.object({
     success: z.literal(false),
     error: z.object({
-      type: z.literal("market.data_not_found"),
       status: z.literal(404),
+      type: z.literal("market.data_not_found"),
       message: z.string(),
       data: z.object({
         provider: z.enum(["kis", "fsc", "opendart"]),
@@ -624,8 +630,8 @@ export const ReturnsControllerCalculateResponse404Schema = z.union([
   z.object({
     success: z.literal(false),
     error: z.object({
-      type: z.literal("returns.buy_price_not_found"),
       status: z.literal(404),
+      type: z.literal("returns.buy_price_not_found"),
       message: z.string(),
       data: z.object({
         symbol: z.string(),
@@ -642,8 +648,8 @@ export const ReturnsControllerCalculateResponse502Schema = z.union([
   z.object({
     success: z.literal(false),
     error: z.object({
+      status: z.literal(502),
       type: z.literal("market.provider_unavailable"),
-      status: z.literal(502),
       message: z.string(),
       data: z.object({
         provider: z.enum(["kis", "fsc", "opendart"]),
@@ -659,8 +665,8 @@ export const ReturnsControllerCalculateResponse502Schema = z.union([
   z.object({
     success: z.literal(false),
     error: z.object({
+      status: z.literal(502),
       type: z.literal("market.provider_auth_unavailable"),
-      status: z.literal(502),
       message: z.string(),
       data: z.object({
         provider: z.enum(["kis", "fsc", "opendart"]),
@@ -676,8 +682,8 @@ export const ReturnsControllerCalculateResponse502Schema = z.union([
   z.object({
     success: z.literal(false),
     error: z.object({
-      type: z.literal("market.provider_invalid_response"),
       status: z.literal(502),
+      type: z.literal("market.provider_invalid_response"),
       message: z.string(),
       data: z.object({
         provider: z.enum(["kis", "fsc", "opendart"]),
@@ -698,8 +704,8 @@ export type ReturnsControllerCalculateResponse502 = z.infer<
 export const ReturnsControllerCalculateResponse504Schema = z.object({
   success: z.literal(false),
   error: z.object({
-    type: z.literal("market.provider_timeout"),
     status: z.literal(504),
+    type: z.literal("market.provider_timeout"),
     message: z.string(),
     data: z.object({
       provider: z.enum(["kis", "fsc", "opendart"]),
@@ -719,6 +725,7 @@ export type ReturnsControllerCalculateResponse504 = z.infer<
 export const ReturnsControllerChartResponse200Schema = z.object({
   success: z.literal(true),
   data: ReturnChartDtoSchema,
+  meta: z.record(z.string(), z.unknown()).optional(),
 })
 export type ReturnsControllerChartResponse200 = z.infer<
   typeof ReturnsControllerChartResponse200Schema
@@ -728,8 +735,8 @@ export const ReturnsControllerChartResponse404Schema = z.union([
   z.object({
     success: z.literal(false),
     error: z.object({
-      type: z.literal("stock.unsupported"),
       status: z.literal(404),
+      type: z.literal("stock.unsupported"),
       message: z.string(),
       data: z.object({
         symbol: z.string(),
@@ -739,8 +746,8 @@ export const ReturnsControllerChartResponse404Schema = z.union([
   z.object({
     success: z.literal(false),
     error: z.object({
-      type: z.literal("market.data_not_found"),
       status: z.literal(404),
+      type: z.literal("market.data_not_found"),
       message: z.string(),
       data: z.object({
         provider: z.enum(["kis", "fsc", "opendart"]),
@@ -756,8 +763,8 @@ export const ReturnsControllerChartResponse404Schema = z.union([
   z.object({
     success: z.literal(false),
     error: z.object({
-      type: z.literal("returns.buy_price_not_found"),
       status: z.literal(404),
+      type: z.literal("returns.buy_price_not_found"),
       message: z.string(),
       data: z.object({
         symbol: z.string(),
@@ -774,8 +781,8 @@ export const ReturnsControllerChartResponse502Schema = z.union([
   z.object({
     success: z.literal(false),
     error: z.object({
+      status: z.literal(502),
       type: z.literal("market.provider_unavailable"),
-      status: z.literal(502),
       message: z.string(),
       data: z.object({
         provider: z.enum(["kis", "fsc", "opendart"]),
@@ -791,8 +798,8 @@ export const ReturnsControllerChartResponse502Schema = z.union([
   z.object({
     success: z.literal(false),
     error: z.object({
+      status: z.literal(502),
       type: z.literal("market.provider_auth_unavailable"),
-      status: z.literal(502),
       message: z.string(),
       data: z.object({
         provider: z.enum(["kis", "fsc", "opendart"]),
@@ -808,8 +815,8 @@ export const ReturnsControllerChartResponse502Schema = z.union([
   z.object({
     success: z.literal(false),
     error: z.object({
-      type: z.literal("market.provider_invalid_response"),
       status: z.literal(502),
+      type: z.literal("market.provider_invalid_response"),
       message: z.string(),
       data: z.object({
         provider: z.enum(["kis", "fsc", "opendart"]),
@@ -830,8 +837,8 @@ export type ReturnsControllerChartResponse502 = z.infer<
 export const ReturnsControllerChartResponse504Schema = z.object({
   success: z.literal(false),
   error: z.object({
-    type: z.literal("market.provider_timeout"),
     status: z.literal(504),
+    type: z.literal("market.provider_timeout"),
     message: z.string(),
     data: z.object({
       provider: z.enum(["kis", "fsc", "opendart"]),
@@ -913,8 +920,8 @@ export const ApiErrorDtoSchema = z.union([
   z.object({
     success: z.literal(false),
     error: z.object({
-      type: z.literal("stock.unsupported"),
       status: z.literal(404),
+      type: z.literal("stock.unsupported"),
       message: z.string(),
       data: z.object({
         symbol: z.string(),
@@ -925,8 +932,8 @@ export const ApiErrorDtoSchema = z.union([
     z.object({
       success: z.literal(false),
       error: z.object({
-        type: z.literal("stock.unsupported"),
         status: z.literal(404),
+        type: z.literal("stock.unsupported"),
         message: z.string(),
         data: z.object({
           symbol: z.string(),
@@ -936,8 +943,8 @@ export const ApiErrorDtoSchema = z.union([
     z.object({
       success: z.literal(false),
       error: z.object({
-        type: z.literal("market.data_not_found"),
         status: z.literal(404),
+        type: z.literal("market.data_not_found"),
         message: z.string(),
         data: z.object({
           provider: z.enum(["kis", "fsc", "opendart"]),
@@ -955,8 +962,8 @@ export const ApiErrorDtoSchema = z.union([
     z.object({
       success: z.literal(false),
       error: z.object({
+        status: z.literal(502),
         type: z.literal("market.provider_unavailable"),
-        status: z.literal(502),
         message: z.string(),
         data: z.object({
           provider: z.enum(["kis", "fsc", "opendart"]),
@@ -972,8 +979,8 @@ export const ApiErrorDtoSchema = z.union([
     z.object({
       success: z.literal(false),
       error: z.object({
+        status: z.literal(502),
         type: z.literal("market.provider_auth_unavailable"),
-        status: z.literal(502),
         message: z.string(),
         data: z.object({
           provider: z.enum(["kis", "fsc", "opendart"]),
@@ -989,8 +996,8 @@ export const ApiErrorDtoSchema = z.union([
     z.object({
       success: z.literal(false),
       error: z.object({
-        type: z.literal("market.provider_invalid_response"),
         status: z.literal(502),
+        type: z.literal("market.provider_invalid_response"),
         message: z.string(),
         data: z.object({
           provider: z.enum(["kis", "fsc", "opendart"]),
@@ -1007,8 +1014,8 @@ export const ApiErrorDtoSchema = z.union([
   z.object({
     success: z.literal(false),
     error: z.object({
-      type: z.literal("market.provider_timeout"),
       status: z.literal(504),
+      type: z.literal("market.provider_timeout"),
       message: z.string(),
       data: z.object({
         provider: z.enum(["kis", "fsc", "opendart"]),
@@ -1025,8 +1032,8 @@ export const ApiErrorDtoSchema = z.union([
     z.object({
       success: z.literal(false),
       error: z.object({
-        type: z.literal("stock.unsupported"),
         status: z.literal(404),
+        type: z.literal("stock.unsupported"),
         message: z.string(),
         data: z.object({
           symbol: z.string(),
@@ -1036,8 +1043,8 @@ export const ApiErrorDtoSchema = z.union([
     z.object({
       success: z.literal(false),
       error: z.object({
-        type: z.literal("market.data_not_found"),
         status: z.literal(404),
+        type: z.literal("market.data_not_found"),
         message: z.string(),
         data: z.object({
           provider: z.enum(["kis", "fsc", "opendart"]),
@@ -1053,8 +1060,8 @@ export const ApiErrorDtoSchema = z.union([
     z.object({
       success: z.literal(false),
       error: z.object({
-        type: z.literal("returns.buy_price_not_found"),
         status: z.literal(404),
+        type: z.literal("returns.buy_price_not_found"),
         message: z.string(),
         data: z.object({
           symbol: z.string(),
