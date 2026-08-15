@@ -1,0 +1,457 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "OpenDART",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://opendart.fss.or.kr"
+    }
+  ],
+  "paths": {
+    "/api/company.json": {
+      "get": {
+        "operationId": "opendartCompany",
+        "parameters": [
+          {
+            "name": "crtfc_key",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          {
+            "name": "corp_code",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/OpendartCorpCode"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "회사 개요 또는 OpenDART 업무 오류",
+            "x-success-schema": {
+              "$ref": "#/components/schemas/OpendartCompanyResponse"
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/OpendartCompanyResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/OpendartErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "HTTP 오류 응답 body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpendartErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/list.json": {
+      "get": {
+        "operationId": "opendartDisclosures",
+        "parameters": [
+          {
+            "name": "crtfc_key",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          {
+            "name": "corp_code",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/OpendartCorpCode"
+            }
+          },
+          {
+            "name": "bgn_de",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{8}$"
+            }
+          },
+          {
+            "name": "end_de",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{8}$"
+            }
+          },
+          {
+            "name": "last_reprt_at",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "Y"
+            }
+          },
+          {
+            "name": "page_no",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "1"
+            }
+          },
+          {
+            "name": "page_count",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "100"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "공시 목록 또는 OpenDART 업무 오류",
+            "x-success-schema": {
+              "$ref": "#/components/schemas/OpendartDisclosuresResponse"
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/OpendartDisclosuresResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/OpendartErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "HTTP 오류 응답 body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpendartErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/fnlttSinglAcnt.json": {
+      "get": {
+        "operationId": "opendartFinancialAccounts",
+        "parameters": [
+          {
+            "name": "crtfc_key",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          {
+            "name": "corp_code",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/OpendartCorpCode"
+            }
+          },
+          {
+            "name": "bsns_year",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{4}$"
+            }
+          },
+          {
+            "name": "reprt_code",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["11013", "11012", "11014", "11011"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "재무계정 목록 또는 OpenDART 업무 오류",
+            "x-success-schema": {
+              "$ref": "#/components/schemas/OpendartFinancialAccountsResponse"
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/OpendartFinancialAccountsResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/OpendartErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "HTTP 오류 응답 body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpendartErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "OpendartCorpCode": {
+        "type": "string",
+        "pattern": "^[0-9]{8}$"
+      },
+      "OpendartErrorResponse": {
+        "type": "object",
+        "required": ["status"],
+        "properties": {
+          "status": {
+            "type": "string",
+            "minLength": 1
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "OpendartCompanyResponse": {
+        "type": "object",
+        "required": ["status", "corp_code", "corp_name", "corp_cls"],
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "000"
+          },
+          "message": {
+            "type": "string"
+          },
+          "corp_code": {
+            "$ref": "#/components/schemas/OpendartCorpCode"
+          },
+          "corp_name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "stock_code": {
+            "$ref": "#/components/schemas/OpendartNullableStockCode"
+          },
+          "stock_name": {
+            "type": ["string", "null"]
+          },
+          "corp_cls": {
+            "type": "string",
+            "minLength": 1
+          },
+          "induty_code": {
+            "type": ["string", "null"]
+          },
+          "est_dt": {
+            "type": ["string", "null"]
+          },
+          "acc_mt": {
+            "type": ["string", "null"]
+          }
+        }
+      },
+      "OpendartDisclosure": {
+        "type": "object",
+        "required": [
+          "rcept_no",
+          "corp_code",
+          "corp_name",
+          "report_nm",
+          "flr_nm",
+          "rcept_dt"
+        ],
+        "properties": {
+          "rcept_no": {
+            "type": "string",
+            "minLength": 1
+          },
+          "corp_code": {
+            "$ref": "#/components/schemas/OpendartCorpCode"
+          },
+          "stock_code": {
+            "$ref": "#/components/schemas/OpendartNullableStockCode"
+          },
+          "corp_name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "report_nm": {
+            "type": "string",
+            "minLength": 1
+          },
+          "flr_nm": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rcept_dt": {
+            "type": "string",
+            "pattern": "^[0-9]{8}$"
+          },
+          "rm": {
+            "type": "string",
+            "default": ""
+          }
+        }
+      },
+      "OpendartDisclosuresResponse": {
+        "type": "object",
+        "required": ["status"],
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "000"
+          },
+          "message": {
+            "type": "string"
+          },
+          "list": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/OpendartDisclosure"
+                }
+              },
+              {
+                "$ref": "#/components/schemas/OpendartDisclosure"
+              }
+            ]
+          }
+        }
+      },
+      "OpendartFinancialAccount": {
+        "type": "object",
+        "required": [
+          "bsns_year",
+          "reprt_code",
+          "corp_code",
+          "sj_div",
+          "account_nm"
+        ],
+        "properties": {
+          "bsns_year": {
+            "type": "string",
+            "pattern": "^[0-9]{4}$"
+          },
+          "reprt_code": {
+            "type": "string",
+            "enum": ["11013", "11012", "11014", "11011"]
+          },
+          "corp_code": {
+            "$ref": "#/components/schemas/OpendartCorpCode"
+          },
+          "sj_div": {
+            "type": "string",
+            "minLength": 1
+          },
+          "account_id": {
+            "type": ["string", "null"]
+          },
+          "account_nm": {
+            "type": "string",
+            "minLength": 1
+          },
+          "thstrm_amount": {
+            "type": ["string", "number", "null"]
+          },
+          "frmtrm_amount": {
+            "type": ["string", "number", "null"]
+          },
+          "bfefrmtrm_amount": {
+            "type": ["string", "number", "null"]
+          },
+          "currency": {
+            "type": ["string", "null"]
+          }
+        }
+      },
+      "OpendartFinancialAccountsResponse": {
+        "type": "object",
+        "required": ["status"],
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "000"
+          },
+          "message": {
+            "type": "string"
+          },
+          "list": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/OpendartFinancialAccount"
+                }
+              },
+              {
+                "$ref": "#/components/schemas/OpendartFinancialAccount"
+              }
+            ]
+          }
+        }
+      },
+      "OpendartNullableStockCode": {
+        "anyOf": [
+          {
+            "type": "string",
+            "pattern": "^\\s*(?:[A-Z0-9]{1,9})?\\s*$"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    }
+  }
+}

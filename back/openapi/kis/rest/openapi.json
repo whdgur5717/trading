@@ -1,0 +1,901 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "KIS REST API",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://openapi.koreainvestment.com:9443",
+      "description": "실전투자"
+    },
+    {
+      "url": "https://openapivts.koreainvestment.com:29443",
+      "description": "모의투자"
+    }
+  ],
+  "paths": {
+    "/oauth2/tokenP": {
+      "post": {
+        "operationId": "authToken",
+        "summary": "접근토큰발급",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthTokenRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "접근토큰 발급 응답",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthTokenResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "OAuth 오류 응답",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KisOAuthErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/oauth2/Approval": {
+      "post": {
+        "operationId": "authWsToken",
+        "summary": "웹소켓 접속키 발급",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthWsTokenRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "웹소켓 접속키 발급 응답",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthWsTokenResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "KIS REST 오류 응답",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KisRestErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/uapi/domestic-stock/v1/quotations/inquire-price": {
+      "get": {
+        "operationId": "domesticStockInquirePrice",
+        "summary": "주식현재가 시세",
+        "security": [
+          {
+            "BearerAuth": [],
+            "AppKey": [],
+            "AppSecret": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tr_id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "FHKST01010100"
+            }
+          },
+          {
+            "name": "custtype",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "P"
+            }
+          },
+          {
+            "name": "FID_COND_MRKT_DIV_CODE",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["J", "NX", "UN"]
+            }
+          },
+          {
+            "name": "FID_INPUT_ISCD",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "주식현재가 시세 응답",
+            "x-success-schema": {
+              "$ref": "#/components/schemas/DomesticStockInquirePriceResponse"
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/DomesticStockInquirePriceResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/KisRestErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "KIS REST 오류 응답",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KisRestErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice": {
+      "get": {
+        "operationId": "domesticStockInquireDailyItemChartPrice",
+        "summary": "국내주식기간별시세(일/주/월/년)",
+        "security": [
+          {
+            "BearerAuth": [],
+            "AppKey": [],
+            "AppSecret": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tr_id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "FHKST03010100"
+            }
+          },
+          {
+            "name": "custtype",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "P"
+            }
+          },
+          {
+            "name": "FID_COND_MRKT_DIV_CODE",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["J", "NX", "UN"]
+            }
+          },
+          {
+            "name": "FID_INPUT_ISCD",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          {
+            "name": "FID_INPUT_DATE_1",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{8}$"
+            }
+          },
+          {
+            "name": "FID_INPUT_DATE_2",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{8}$"
+            }
+          },
+          {
+            "name": "FID_PERIOD_DIV_CODE",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["D", "W", "M", "Y"]
+            }
+          },
+          {
+            "name": "FID_ORG_ADJ_PRC",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["0", "1"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "국내주식기간별시세 응답",
+            "x-success-schema": {
+              "$ref": "#/components/schemas/DomesticStockInquireDailyItemChartPriceResponse"
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/DomesticStockInquireDailyItemChartPriceResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/KisRestErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "KIS REST 오류 응답",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KisRestErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/uapi/domestic-stock/v1/quotations/chk-holiday": {
+      "get": {
+        "operationId": "domesticStockChkHoliday",
+        "summary": "국내휴장일조회",
+        "security": [
+          {
+            "BearerAuth": [],
+            "AppKey": [],
+            "AppSecret": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tr_id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "CTCA0903R"
+            }
+          },
+          {
+            "name": "custtype",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "P"
+            }
+          },
+          {
+            "name": "tr_cont",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "BASS_DT",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{8}$"
+            }
+          },
+          {
+            "name": "CTX_AREA_FK",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "CTX_AREA_NK",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "국내휴장일조회 응답",
+            "x-success-schema": {
+              "$ref": "#/components/schemas/DomesticStockChkHolidayResponse"
+            },
+            "headers": {
+              "tr_cont": {
+                "description": "연속 거래 여부",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/DomesticStockChkHolidayResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/KisRestErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "KIS REST 오류 응답",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KisRestErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      },
+      "AppKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "appkey"
+      },
+      "AppSecret": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "appsecret"
+      }
+    },
+    "schemas": {
+      "KisRestErrorResponse": {
+        "type": "object",
+        "required": ["rt_cd", "msg_cd", "msg1"],
+        "properties": {
+          "rt_cd": {
+            "type": "string",
+            "pattern": "^(?!0$)[\\s\\S]*$"
+          },
+          "msg_cd": {
+            "type": "string"
+          },
+          "msg1": {
+            "type": "string"
+          }
+        }
+      },
+      "KisOAuthErrorResponse": {
+        "type": "object",
+        "required": ["error_code", "error_description"],
+        "properties": {
+          "error_code": {
+            "type": "string"
+          },
+          "error_description": {
+            "type": "string"
+          }
+        }
+      },
+      "AuthTokenRequest": {
+        "type": "object",
+        "required": ["grant_type", "appkey", "appsecret"],
+        "properties": {
+          "grant_type": {
+            "type": "string",
+            "const": "client_credentials"
+          },
+          "appkey": {
+            "type": "string",
+            "minLength": 1
+          },
+          "appsecret": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "AuthTokenResponse": {
+        "type": "object",
+        "required": [
+          "access_token",
+          "token_type",
+          "expires_in",
+          "access_token_token_expired"
+        ],
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "minLength": 1
+          },
+          "token_type": {
+            "type": "string"
+          },
+          "expires_in": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "access_token_token_expired": {
+            "type": "string"
+          }
+        }
+      },
+      "AuthWsTokenRequest": {
+        "type": "object",
+        "required": ["grant_type", "appkey", "secretkey"],
+        "properties": {
+          "grant_type": {
+            "type": "string",
+            "const": "client_credentials"
+          },
+          "appkey": {
+            "type": "string",
+            "minLength": 1
+          },
+          "secretkey": {
+            "type": "string",
+            "minLength": 1
+          },
+          "token": {
+            "type": "string"
+          }
+        }
+      },
+      "AuthWsTokenResponse": {
+        "type": "object",
+        "required": ["approval_key"],
+        "properties": {
+          "approval_key": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "DomesticStockInquirePriceResponse": {
+        "type": "object",
+        "required": ["rt_cd", "msg_cd", "msg1", "output"],
+        "properties": {
+          "rt_cd": {
+            "type": "string",
+            "const": "0"
+          },
+          "msg_cd": {
+            "type": "string"
+          },
+          "msg1": {
+            "type": "string"
+          },
+          "output": {
+            "type": "object",
+            "required": [
+              "iscd_stat_cls_code",
+              "marg_rate",
+              "rprs_mrkt_kor_name",
+              "new_hgpr_lwpr_cls_code",
+              "bstp_kor_isnm",
+              "temp_stop_yn",
+              "oprc_rang_cont_yn",
+              "clpr_rang_cont_yn",
+              "crdt_able_yn",
+              "grmn_rate_cls_code",
+              "elw_pblc_yn",
+              "stck_prpr",
+              "prdy_vrss",
+              "prdy_vrss_sign",
+              "prdy_ctrt",
+              "acml_tr_pbmn",
+              "acml_vol",
+              "prdy_vrss_vol_rate",
+              "stck_oprc",
+              "stck_hgpr",
+              "stck_lwpr",
+              "stck_mxpr",
+              "stck_llam",
+              "stck_sdpr",
+              "wghn_avrg_stck_prc",
+              "hts_frgn_ehrt",
+              "frgn_ntby_qty",
+              "pgtr_ntby_qty",
+              "pvt_scnd_dmrs_prc",
+              "pvt_frst_dmrs_prc",
+              "pvt_pont_val",
+              "pvt_frst_dmsp_prc",
+              "pvt_scnd_dmsp_prc",
+              "dmrs_val",
+              "dmsp_val",
+              "cpfn",
+              "rstc_wdth_prc",
+              "stck_fcam",
+              "stck_sspr",
+              "aspr_unit",
+              "hts_deal_qty_unit_val",
+              "lstn_stcn",
+              "hts_avls",
+              "per",
+              "pbr",
+              "stac_month",
+              "vol_tnrt",
+              "eps",
+              "bps",
+              "d250_hgpr",
+              "d250_hgpr_date",
+              "d250_hgpr_vrss_prpr_rate",
+              "d250_lwpr",
+              "d250_lwpr_date",
+              "d250_lwpr_vrss_prpr_rate",
+              "stck_dryy_hgpr",
+              "dryy_hgpr_vrss_prpr_rate",
+              "dryy_hgpr_date",
+              "stck_dryy_lwpr",
+              "dryy_lwpr_vrss_prpr_rate",
+              "dryy_lwpr_date",
+              "w52_hgpr",
+              "w52_hgpr_vrss_prpr_ctrt",
+              "w52_hgpr_date",
+              "w52_lwpr",
+              "w52_lwpr_vrss_prpr_ctrt",
+              "w52_lwpr_date",
+              "whol_loan_rmnd_rate",
+              "ssts_yn",
+              "stck_shrn_iscd",
+              "fcam_cnnm",
+              "cpfn_cnnm",
+              "apprch_rate",
+              "frgn_hldn_qty",
+              "vi_cls_code",
+              "ovtm_vi_cls_code",
+              "last_ssts_cntg_qty",
+              "invt_caful_yn",
+              "mrkt_warn_cls_code",
+              "short_over_yn",
+              "sltr_yn",
+              "mang_issu_cls_code"
+            ],
+            "properties": {
+              "iscd_stat_cls_code": { "type": "string" },
+              "marg_rate": { "type": "string" },
+              "rprs_mrkt_kor_name": { "type": "string" },
+              "new_hgpr_lwpr_cls_code": { "type": "string" },
+              "bstp_kor_isnm": { "type": "string" },
+              "temp_stop_yn": { "type": "string" },
+              "oprc_rang_cont_yn": { "type": "string" },
+              "clpr_rang_cont_yn": { "type": "string" },
+              "crdt_able_yn": { "type": "string" },
+              "grmn_rate_cls_code": { "type": "string" },
+              "elw_pblc_yn": { "type": "string" },
+              "stck_prpr": { "type": "string" },
+              "prdy_vrss": { "type": "string" },
+              "prdy_vrss_sign": { "type": "string" },
+              "prdy_ctrt": { "type": "string" },
+              "acml_tr_pbmn": { "type": "string" },
+              "acml_vol": { "type": "string" },
+              "prdy_vrss_vol_rate": { "type": "string" },
+              "stck_oprc": { "type": "string" },
+              "stck_hgpr": { "type": "string" },
+              "stck_lwpr": { "type": "string" },
+              "stck_mxpr": { "type": "string" },
+              "stck_llam": { "type": "string" },
+              "stck_sdpr": { "type": "string" },
+              "wghn_avrg_stck_prc": { "type": "string" },
+              "hts_frgn_ehrt": { "type": "string" },
+              "frgn_ntby_qty": { "type": "string" },
+              "pgtr_ntby_qty": { "type": "string" },
+              "pvt_scnd_dmrs_prc": { "type": "string" },
+              "pvt_frst_dmrs_prc": { "type": "string" },
+              "pvt_pont_val": { "type": "string" },
+              "pvt_frst_dmsp_prc": { "type": "string" },
+              "pvt_scnd_dmsp_prc": { "type": "string" },
+              "dmrs_val": { "type": "string" },
+              "dmsp_val": { "type": "string" },
+              "cpfn": { "type": "string" },
+              "rstc_wdth_prc": { "type": "string" },
+              "stck_fcam": { "type": "string" },
+              "stck_sspr": { "type": "string" },
+              "aspr_unit": { "type": "string" },
+              "hts_deal_qty_unit_val": { "type": "string" },
+              "lstn_stcn": { "type": "string" },
+              "hts_avls": { "type": "string" },
+              "per": { "type": "string" },
+              "pbr": { "type": "string" },
+              "stac_month": { "type": "string" },
+              "vol_tnrt": { "type": "string" },
+              "eps": { "type": "string" },
+              "bps": { "type": "string" },
+              "d250_hgpr": { "type": "string" },
+              "d250_hgpr_date": { "type": "string" },
+              "d250_hgpr_vrss_prpr_rate": { "type": "string" },
+              "d250_lwpr": { "type": "string" },
+              "d250_lwpr_date": { "type": "string" },
+              "d250_lwpr_vrss_prpr_rate": { "type": "string" },
+              "stck_dryy_hgpr": { "type": "string" },
+              "dryy_hgpr_vrss_prpr_rate": { "type": "string" },
+              "dryy_hgpr_date": { "type": "string" },
+              "stck_dryy_lwpr": { "type": "string" },
+              "dryy_lwpr_vrss_prpr_rate": { "type": "string" },
+              "dryy_lwpr_date": { "type": "string" },
+              "w52_hgpr": { "type": "string" },
+              "w52_hgpr_vrss_prpr_ctrt": { "type": "string" },
+              "w52_hgpr_date": { "type": "string" },
+              "w52_lwpr": { "type": "string" },
+              "w52_lwpr_vrss_prpr_ctrt": { "type": "string" },
+              "w52_lwpr_date": { "type": "string" },
+              "whol_loan_rmnd_rate": { "type": "string" },
+              "ssts_yn": { "type": "string" },
+              "stck_shrn_iscd": { "type": "string" },
+              "fcam_cnnm": { "type": "string" },
+              "cpfn_cnnm": { "type": "string" },
+              "apprch_rate": { "type": "string" },
+              "frgn_hldn_qty": { "type": "string" },
+              "vi_cls_code": { "type": "string" },
+              "ovtm_vi_cls_code": { "type": "string" },
+              "last_ssts_cntg_qty": { "type": "string" },
+              "invt_caful_yn": { "type": "string" },
+              "mrkt_warn_cls_code": { "type": "string" },
+              "short_over_yn": { "type": "string" },
+              "sltr_yn": { "type": "string" },
+              "mang_issu_cls_code": { "type": "string" }
+            }
+          }
+        }
+      },
+      "DomesticStockInquireDailyItemChartPriceResponse": {
+        "type": "object",
+        "required": ["rt_cd", "msg_cd", "msg1", "output1", "output2"],
+        "properties": {
+          "rt_cd": {
+            "type": "string",
+            "const": "0"
+          },
+          "msg_cd": {
+            "type": "string"
+          },
+          "msg1": {
+            "type": "string"
+          },
+          "output1": {
+            "type": "object",
+            "required": [
+              "prdy_vrss",
+              "prdy_vrss_sign",
+              "prdy_ctrt",
+              "stck_prdy_clpr",
+              "acml_vol",
+              "acml_tr_pbmn",
+              "hts_kor_isnm",
+              "stck_prpr",
+              "stck_shrn_iscd",
+              "prdy_vol",
+              "stck_mxpr",
+              "stck_llam",
+              "stck_oprc",
+              "stck_hgpr",
+              "stck_lwpr",
+              "stck_prdy_oprc",
+              "stck_prdy_hgpr",
+              "stck_prdy_lwpr",
+              "askp",
+              "bidp",
+              "prdy_vrss_vol",
+              "vol_tnrt",
+              "stck_fcam",
+              "lstn_stcn",
+              "cpfn",
+              "hts_avls",
+              "per",
+              "eps",
+              "pbr",
+              "itewhol_loan_rmnd_ratem"
+            ],
+            "properties": {
+              "prdy_vrss": { "type": "string" },
+              "prdy_vrss_sign": { "type": "string" },
+              "prdy_ctrt": { "type": "string" },
+              "stck_prdy_clpr": { "type": "string" },
+              "acml_vol": { "type": "string" },
+              "acml_tr_pbmn": { "type": "string" },
+              "hts_kor_isnm": { "type": "string" },
+              "stck_prpr": { "type": "string" },
+              "stck_shrn_iscd": { "type": "string" },
+              "prdy_vol": { "type": "string" },
+              "stck_mxpr": { "type": "string" },
+              "stck_llam": { "type": "string" },
+              "stck_oprc": { "type": "string" },
+              "stck_hgpr": { "type": "string" },
+              "stck_lwpr": { "type": "string" },
+              "stck_prdy_oprc": { "type": "string" },
+              "stck_prdy_hgpr": { "type": "string" },
+              "stck_prdy_lwpr": { "type": "string" },
+              "askp": { "type": "string" },
+              "bidp": { "type": "string" },
+              "prdy_vrss_vol": { "type": "string" },
+              "vol_tnrt": { "type": "string" },
+              "stck_fcam": { "type": "string" },
+              "lstn_stcn": { "type": "string" },
+              "cpfn": { "type": "string" },
+              "hts_avls": { "type": "string" },
+              "per": { "type": "string" },
+              "eps": { "type": "string" },
+              "pbr": { "type": "string" },
+              "itewhol_loan_rmnd_ratem": { "type": "string" }
+            }
+          },
+          "output2": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "stck_bsop_date",
+                "stck_clpr",
+                "stck_oprc",
+                "stck_hgpr",
+                "stck_lwpr",
+                "acml_vol",
+                "acml_tr_pbmn",
+                "flng_cls_code",
+                "prtt_rate",
+                "mod_yn",
+                "prdy_vrss_sign",
+                "prdy_vrss",
+                "revl_issu_reas"
+              ],
+              "properties": {
+                "stck_bsop_date": { "type": "string" },
+                "stck_clpr": { "type": "string" },
+                "stck_oprc": { "type": "string" },
+                "stck_hgpr": { "type": "string" },
+                "stck_lwpr": { "type": "string" },
+                "acml_vol": { "type": "string" },
+                "acml_tr_pbmn": { "type": "string" },
+                "flng_cls_code": { "type": "string" },
+                "prtt_rate": { "type": "string" },
+                "mod_yn": { "type": "string" },
+                "prdy_vrss_sign": { "type": "string" },
+                "prdy_vrss": { "type": "string" },
+                "revl_issu_reas": { "type": "string" }
+              }
+            }
+          }
+        }
+      },
+      "DomesticStockChkHolidayResponse": {
+        "type": "object",
+        "required": [
+          "rt_cd",
+          "msg_cd",
+          "msg1",
+          "ctx_area_fk",
+          "ctx_area_nk",
+          "output"
+        ],
+        "properties": {
+          "rt_cd": {
+            "type": "string",
+            "const": "0"
+          },
+          "msg_cd": {
+            "type": "string"
+          },
+          "msg1": {
+            "type": "string"
+          },
+          "ctx_area_fk": {
+            "type": "string"
+          },
+          "ctx_area_nk": {
+            "type": "string"
+          },
+          "output": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "bass_dt",
+                "wday_dvsn_cd",
+                "bzdy_yn",
+                "tr_day_yn",
+                "opnd_yn",
+                "sttl_day_yn"
+              ],
+              "properties": {
+                "bass_dt": {
+                  "type": "string",
+                  "pattern": "^[0-9]{8}$"
+                },
+                "wday_dvsn_cd": {
+                  "type": "string"
+                },
+                "bzdy_yn": {
+                  "type": "string",
+                  "enum": ["Y", "N"]
+                },
+                "tr_day_yn": {
+                  "type": "string",
+                  "enum": ["Y", "N"]
+                },
+                "opnd_yn": {
+                  "type": "string",
+                  "enum": ["Y", "N"]
+                },
+                "sttl_day_yn": {
+                  "type": "string",
+                  "enum": ["Y", "N"]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

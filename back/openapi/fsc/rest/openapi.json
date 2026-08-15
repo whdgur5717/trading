@@ -1,0 +1,415 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "FSC",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://apis.data.go.kr"
+    }
+  ],
+  "paths": {
+    "/1160100/service/GetStockSecuritiesInfoService/getStockPriceInfo": {
+      "get": {
+        "operationId": "fscStockPriceInfo",
+        "parameters": [
+          {
+            "name": "serviceKey",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          {
+            "name": "resultType",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "json"
+            }
+          },
+          {
+            "name": "basDt",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{8}$"
+            }
+          },
+          {
+            "name": "numOfRows",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "5000"
+            }
+          },
+          {
+            "name": "pageNo",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "주식 시세 목록 또는 FSC 업무 오류",
+            "x-success-schema": {
+              "$ref": "#/components/schemas/FscStockPriceResponse"
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/FscStockPriceResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/FscErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "HTTP 오류 응답 body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FscErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/1160100/service/GetMarketIndexInfoService/getStockMarketIndex": {
+      "get": {
+        "operationId": "fscMarketIndexInfo",
+        "parameters": [
+          {
+            "name": "serviceKey",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          {
+            "name": "resultType",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "json"
+            }
+          },
+          {
+            "name": "basDt",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{8}$"
+            }
+          },
+          {
+            "name": "numOfRows",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "200"
+            }
+          },
+          {
+            "name": "pageNo",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "시장 지수 목록 또는 FSC 업무 오류",
+            "x-success-schema": {
+              "$ref": "#/components/schemas/FscMarketIndexResponse"
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/FscMarketIndexResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/FscErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "HTTP 오류 응답 body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FscErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "FscNumberText": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "number"
+          }
+        ]
+      },
+      "FscOptionalNumberText": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "FscStockPriceItem": {
+        "type": "object",
+        "required": [
+          "basDt",
+          "srtnCd",
+          "itmsNm",
+          "mrktCtg",
+          "clpr",
+          "fltRt",
+          "mkp",
+          "hipr",
+          "lopr",
+          "trqu",
+          "trPrc",
+          "lstgStCnt",
+          "mrktTotAmt"
+        ],
+        "properties": {
+          "basDt": {
+            "type": "string",
+            "pattern": "^[0-9]{8}$"
+          },
+          "srtnCd": {
+            "type": "string",
+            "minLength": 1
+          },
+          "isinCd": {
+            "type": "string",
+            "minLength": 1
+          },
+          "itmsNm": {
+            "type": "string",
+            "minLength": 1
+          },
+          "mrktCtg": {
+            "type": "string",
+            "minLength": 1
+          },
+          "clpr": {
+            "$ref": "#/components/schemas/FscNumberText"
+          },
+          "fltRt": {
+            "$ref": "#/components/schemas/FscNumberText"
+          },
+          "mkp": {
+            "$ref": "#/components/schemas/FscNumberText"
+          },
+          "hipr": {
+            "$ref": "#/components/schemas/FscNumberText"
+          },
+          "lopr": {
+            "$ref": "#/components/schemas/FscNumberText"
+          },
+          "trqu": {
+            "$ref": "#/components/schemas/FscNumberText"
+          },
+          "trPrc": {
+            "$ref": "#/components/schemas/FscNumberText"
+          },
+          "lstgStCnt": {
+            "$ref": "#/components/schemas/FscNumberText"
+          },
+          "mrktTotAmt": {
+            "$ref": "#/components/schemas/FscNumberText"
+          }
+        }
+      },
+      "FscMarketIndexItem": {
+        "type": "object",
+        "required": ["basDt", "idxNm", "clpr", "fltRt"],
+        "properties": {
+          "basDt": {
+            "type": "string",
+            "pattern": "^[0-9]{8}$"
+          },
+          "idxNm": {
+            "type": "string",
+            "minLength": 1
+          },
+          "clpr": {
+            "$ref": "#/components/schemas/FscNumberText"
+          },
+          "fltRt": {
+            "$ref": "#/components/schemas/FscNumberText"
+          },
+          "trPrc": {
+            "$ref": "#/components/schemas/FscOptionalNumberText"
+          },
+          "lstgMrktTotAmt": {
+            "$ref": "#/components/schemas/FscOptionalNumberText"
+          }
+        }
+      },
+      "FscStockPriceResponse": {
+        "type": "object",
+        "required": ["response"],
+        "properties": {
+          "response": {
+            "type": "object",
+            "required": ["header", "body"],
+            "properties": {
+              "header": {
+                "$ref": "#/components/schemas/FscSuccessHeader"
+              },
+              "body": {
+                "type": "object",
+                "properties": {
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "item": {
+                        "anyOf": [
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/components/schemas/FscStockPriceItem"
+                            }
+                          },
+                          {
+                            "$ref": "#/components/schemas/FscStockPriceItem"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "FscMarketIndexResponse": {
+        "type": "object",
+        "required": ["response"],
+        "properties": {
+          "response": {
+            "type": "object",
+            "required": ["header", "body"],
+            "properties": {
+              "header": {
+                "$ref": "#/components/schemas/FscSuccessHeader"
+              },
+              "body": {
+                "type": "object",
+                "properties": {
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "item": {
+                        "anyOf": [
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/components/schemas/FscMarketIndexItem"
+                            }
+                          },
+                          {
+                            "$ref": "#/components/schemas/FscMarketIndexItem"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "FscSuccessHeader": {
+        "type": "object",
+        "required": ["resultCode"],
+        "properties": {
+          "resultCode": {
+            "type": "string",
+            "const": "00"
+          },
+          "resultMsg": {
+            "type": "string"
+          }
+        }
+      },
+      "FscErrorResponse": {
+        "type": "object",
+        "required": ["response"],
+        "properties": {
+          "response": {
+            "type": "object",
+            "required": ["header"],
+            "properties": {
+              "header": {
+                "type": "object",
+                "required": ["resultCode"],
+                "properties": {
+                  "resultCode": {
+                    "type": "string"
+                  },
+                  "resultMsg": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
