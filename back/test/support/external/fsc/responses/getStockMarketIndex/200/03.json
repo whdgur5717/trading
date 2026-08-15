@@ -1,9 +1,0 @@
-{
-  "response": {
-    "header": {
-      "resultCode": "03",
-      "resultMsg": "INVALID REQUEST PARAMETER ERROR."
-    },
-    "body": {}
-  }
-}

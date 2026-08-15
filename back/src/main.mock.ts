@@ -3,10 +3,10 @@ import { NestFactory } from "@nestjs/core"
 import type { NestExpressApplication } from "@nestjs/platform-express"
 import type { NextFunction, Request, Response } from "express"
 import { configureApp } from "./bootstrap/app-bootstrap"
-import { MockAppModule } from "./mock/mock-app.module"
+import { MockModule } from "./mock/mock.module"
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(MockAppModule)
+  const app = await NestFactory.create<NestExpressApplication>(MockModule)
   const config = app.get(ConfigService)
 
   configureApp(app)

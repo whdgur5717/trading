@@ -9,7 +9,7 @@
     "build": "nest build",
     "type-check": "tsc --noEmit --incremental false",
     "lint": "eslint --fix . --max-warnings 0",
-    "lint:staged": "eslint --fix --max-warnings 0",
+    "lint:staged": "eslint --fix --max-warnings 0 --no-warn-ignored",
     "format": "prettier --write . --ignore-path ../.prettierignore",
     "test": "NODE_ENV=test vitest run",
     "test:watch": "NODE_ENV=test vitest src",
@@ -19,7 +19,7 @@
     "generate:openapi": "NODE_ENV=test pnpm build && NODE_ENV=test node scripts/generate-openapi.mjs",
     "generate:contract": "orval --config openapi/config.mjs",
     "start": "NODE_ENV=development nest start",
-    "start:dev": "NODE_ENV=development nest start --entryFile main.mock --watch",
+    "start:dev": "NODE_ENV=development nest start --path tsconfig.mock.json --entryFile main.mock --watch",
     "start:debug": "NODE_ENV=development nest start --debug --watch",
     "start:prod": "NODE_ENV=production node dist/src/main.js"
   },

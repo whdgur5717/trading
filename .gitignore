@@ -4,5 +4,6 @@ node_modules
 !.env.test
 .dev.vars*
 dist
+dist-mock
 .turbo
 deploy/codedeploy/image-uri.txt

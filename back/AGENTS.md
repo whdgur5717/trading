@@ -14,14 +14,14 @@ back/
 │   ├── bootstrap/       # 앱 부트스트랩, Swagger/OpenAPI 설정
 │   ├── common/          # 공통 응답, 검증, 공용 schema
 │   ├── config/          # 환경 변수 검증
+│   ├── mock/            # 개발용 mock 앱과 외부 API mock 구현
 │   ├── health/
 │   ├── kis/
 │   ├── realtime/
 │   ├── returns/
 │   └── stocks/
 ├── test/
-│   ├── e2e/             # HTTP/SSE e2e 테스트
-│   └── support/         # e2e fixture, KIS mock server
+│   └── e2e/             # HTTP/SSE e2e 테스트
 └── scripts/             # OpenAPI/클라이언트 생성, 개발 mock
 ```
 
@@ -35,17 +35,17 @@ back/
 
 ## 기술 스택
 
-| 영역           | 기준                                         |
-| -------------- | -------------------------------------------- |
-| 언어           | `TypeScript`                                 |
-| 프레임워크     | `NestJS 11`                                  |
-| HTTP           | `Nest Express adapter`                       |
-| 검증과 DTO     | `Zod`, `nestjs-zod`                          |
-| 결과/오류 흐름 | `neverthrow`                                 |
-| 유틸리티       | `es-toolkit`                                 |
-| API 문서       | `@nestjs/swagger`, `swagger-ui-express`      |
-| 실시간         | WebSocket (`ws`), SSE                        |
-| 테스트         | `Vitest`, `MSW`, local WebSocket mock server |
+| 영역           | 기준                                    |
+| -------------- | --------------------------------------- |
+| 언어           | `TypeScript`                            |
+| 프레임워크     | `NestJS 11`                             |
+| HTTP           | `Nest Express adapter`                  |
+| 검증과 DTO     | `Zod`, `nestjs-zod`                     |
+| 결과/오류 흐름 | `neverthrow`                            |
+| 유틸리티       | `es-toolkit`                            |
+| API 문서       | `@nestjs/swagger`, `swagger-ui-express` |
+| 실시간         | WebSocket, SSE                          |
+| 테스트         | `Vitest`, `MSW`                         |
 
 ## 유틸리티
 

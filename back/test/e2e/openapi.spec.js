@@ -1,21 +1,28 @@
+import { readFile } from "node:fs/promises"
+import { NestFactory } from "@nestjs/core"
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest"
-import { MockRuntime } from "../../src/mock/mock-runtime"
-import { createApp } from "../support/app"
-import { readOpenApiDocument } from "../support/openapi/openApiDocument"
-import {
-  jsonContentType,
-  openApiRequestCases,
-  sseContentType,
-} from "../support/openapi/openApiRequestCases"
+import { configureApp } from "../../src/bootstrap/app-bootstrap"
+import { MockModule } from "../../src/mock/mock.module"
+import { MockRuntime } from "../../src/mock/mock.runtime"
 
-const openapi = await readOpenApiDocument()
+const jsonContentType = "application/json"
+const sseContentType = "text/event-stream"
+const methods = ["get", "post", "put", "patch", "delete"]
+const responseContentTypes = [jsonContentType, sseContentType]
+const openApiUrl = new URL(
+  "../../../packages/api-client/openapi.json",
+  import.meta.url
+)
+
+const openapi = JSON.parse(await readFile(openApiUrl, "utf8"))
 const requestCases = openApiRequestCases(openapi)
 
 let app
 let appUrl
 
 beforeAll(async () => {
-  app = await createApp()
+  app = await NestFactory.create(MockModule, { logger: false })
+  configureApp(app)
 
   await app.listen(0, "127.0.0.1")
   appUrl = await app.getUrl()
@@ -28,6 +35,100 @@ afterEach(() => {
 afterAll(async () => {
   await app?.close()
 })
+
+function openApiRequestCases(document) {
+  return Object.entries(document.paths).flatMap(([path, pathItem]) =>
+    methods.flatMap((method) => {
+      if (path === "/health") {
+        return []
+      }
+
+      const operation = pathItem[method]
+
+      if (!operation) {
+        return []
+      }
+
+      const response = operation.responses["200"]
+
+      if (!response || "$ref" in response) {
+        return []
+      }
+
+      const contentType = responseContentTypes.find(
+        (candidate) => response.content?.[candidate]
+      )
+
+      if (!contentType) {
+        return []
+      }
+
+      const extension = operation["x-test"]
+      const metadata =
+        extension && typeof extension === "object" ? extension : {}
+      const target = requestTarget(path, operation.parameters ?? [], metadata)
+
+      return [
+        {
+          contentType,
+          expected: metadata.expect ?? {},
+          method: method.toUpperCase(),
+          name: `${method.toUpperCase()} ${path}`,
+          path: target.path,
+          query: target.query,
+        },
+      ]
+    })
+  )
+}
+
+function requestTarget(path, parameters, metadata) {
+  const query = new URLSearchParams()
+  let resolvedPath = path
+
+  for (const parameter of parameters) {
+    if ("$ref" in parameter) {
+      throw new Error(`OpenAPI parameter reference is not supported: ${path}`)
+    }
+
+    const value = exampleValue(parameter, metadata.request ?? {})
+
+    if (parameter.in === "path") {
+      resolvedPath = resolvedPath.replace(
+        `{${parameter.name}}`,
+        encodeURIComponent(String(value))
+      )
+      continue
+    }
+
+    if (parameter.in === "query") {
+      query.set(parameter.name, String(value))
+    }
+  }
+
+  return {
+    path: resolvedPath,
+    query: query.toString(),
+  }
+}
+
+function exampleValue(parameter, requestOverride) {
+  const schema = parameter.schema
+  const candidates = [
+    requestOverride[parameter.in]?.[parameter.name],
+    parameter.example,
+    schema && !("$ref" in schema) ? schema.example : undefined,
+    schema && !("$ref" in schema) ? schema.default : undefined,
+    schema && !("$ref" in schema) ? schema.const : undefined,
+  ]
+  const value = candidates.find((candidate) => candidate !== undefined)
+
+  if (value === undefined) {
+    throw new Error(`OpenAPI parameter example is missing: ${parameter.name}`)
+  }
+
+  return value
+}
 
 function urlFor(requestCase) {
   const url = new URL(requestCase.path, appUrl)

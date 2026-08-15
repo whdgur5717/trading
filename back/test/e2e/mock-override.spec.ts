@@ -1,13 +1,19 @@
+import { NestFactory } from "@nestjs/core"
+import type { NestExpressApplication } from "@nestjs/platform-express"
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest"
-import { MockRuntime } from "../../src/mock/mock-runtime"
-import { createApp } from "../support/app"
+import { configureApp } from "../../src/bootstrap/app-bootstrap"
+import { MockModule } from "../../src/mock/mock.module"
+import { MockRuntime } from "../../src/mock/mock.runtime"
 
-describe("API 응답 override", () => {
-  let app
+describe("Mock 앱의 API 응답 override", () => {
+  let app: NestExpressApplication | undefined
   let appUrl = ""
 
   beforeAll(async () => {
-    app = await createApp()
+    app = await NestFactory.create<NestExpressApplication>(MockModule, {
+      logger: false,
+    })
+    configureApp(app)
     await app.listen(0, "127.0.0.1")
     appUrl = await app.getUrl()
   })
@@ -20,7 +26,7 @@ describe("API 응답 override", () => {
     app?.get(MockRuntime).reset()
   })
 
-  it("저장한 응답을 반환하고 Passthrough 후 실제 백엔드 흐름으로 복귀한다", async () => {
+  it("HTTP override를 저장하면 대상 API에 적용되고 삭제하면 원래 응답으로 돌아간다", async () => {
     const override = {
       operationId: "getPrices",
       method: "GET",
@@ -60,7 +66,7 @@ describe("API 응답 override", () => {
     })
   })
 
-  it("저장한 SSE 시나리오를 event stream으로 반환한다", async () => {
+  it("SSE override를 저장하면 대상 API가 지정한 이벤트를 반환한다", async () => {
     const saved = await fetch(new URL("/__mock/overrides", appUrl), {
       method: "PUT",
       headers: { "content-type": "application/json" },

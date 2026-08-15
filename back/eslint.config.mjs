@@ -10,6 +10,7 @@ export default tseslint.config(
     ignores: [
       "eslint.config.mjs",
       "**/dist/**",
+      "**/dist-mock/**",
       "**/.next/**",
       "**/out/**",
       "**/build/**",
