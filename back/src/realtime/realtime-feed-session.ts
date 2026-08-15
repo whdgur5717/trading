@@ -1,13 +1,11 @@
 import { Logger } from "@nestjs/common"
 import { err, ok, type Result } from "neverthrow"
-import WebSocket from "ws"
 import type {
   FeedCredential,
   RealtimeTradeFeedPort,
   TradeTick,
 } from "../market/port/realtime"
 import type { RealtimeConnectionError } from "./realtime-connection-error"
-import { webSocketDataAsText } from "./websocket-message"
 
 const CONNECT_TIMEOUT_MS = 5_000
 
@@ -98,13 +96,11 @@ export class RealtimeFeedSession {
       return
     }
 
-    if (ws.readyState === WebSocket.OPEN) {
+    if (
+      ws.readyState === WebSocket.OPEN ||
+      ws.readyState === WebSocket.CONNECTING
+    ) {
       ws.close()
-      return
-    }
-
-    if (ws.readyState === WebSocket.CONNECTING) {
-      ws.terminate()
     }
   }
 
@@ -122,35 +118,38 @@ export class RealtimeFeedSession {
     const ws = new WebSocket(this.tradeFeed.endpoint())
     this.ws = ws
 
-    ws.on("message", (data) => {
-      const raw = webSocketDataAsText(data)
-      const priceEvent = this.tradeFeed.decode(raw)
+    ws.addEventListener("message", (event) => {
+      if (typeof event.data !== "string") {
+        return
+      }
+
+      const priceEvent = this.tradeFeed.decode(event.data)
 
       if (priceEvent) {
         this.events.onPrice(priceEvent)
       }
     })
 
-    ws.on("close", (closeCode, reason) => {
+    ws.addEventListener("close", (event) => {
       if (this.ws !== ws) {
         return
       }
 
       this.logger.warn(
-        `Realtime feed WebSocket closed: ${closeCode} ${reason.toString()}`
+        `Realtime feed WebSocket closed: ${event.code} ${event.reason}`
       )
       this.ws = null
       this.credential = null
       this.subscribedStockCodes.clear()
       this.events.onDisconnected({
-        closeCode,
-        reason: reason.toString(),
+        closeCode: event.code,
+        reason: event.reason,
       })
       this.events.onClosed()
     })
 
-    ws.on("error", (error) => {
-      this.logger.error("Realtime feed WebSocket error", error)
+    ws.addEventListener("error", () => {
+      this.logger.error("Realtime feed WebSocket error")
     })
 
     const opened = await this.waitUntilOpen(ws)
@@ -161,11 +160,11 @@ export class RealtimeFeedSession {
         this.subscribedStockCodes.clear()
       }
 
-      ws.removeAllListeners()
-      if (ws.readyState === WebSocket.OPEN) {
+      if (
+        ws.readyState === WebSocket.OPEN ||
+        ws.readyState === WebSocket.CONNECTING
+      ) {
         ws.close()
-      } else if (ws.readyState === WebSocket.CONNECTING) {
-        ws.terminate()
       }
 
       return opened
@@ -229,8 +228,8 @@ export class RealtimeFeedSession {
   ): Promise<Result<void, RealtimeConnectionError>> {
     return new Promise((resolve) => {
       const timeout = setTimeout(() => {
-        ws.off("open", handleOpen)
-        ws.off("error", handleError)
+        ws.removeEventListener("open", handleOpen)
+        ws.removeEventListener("error", handleError)
         resolve(
           err({
             type: "websocket-timeout",
@@ -241,23 +240,23 @@ export class RealtimeFeedSession {
 
       const handleOpen = () => {
         clearTimeout(timeout)
-        ws.off("error", handleError)
+        ws.removeEventListener("error", handleError)
         this.logger.log("Realtime feed WebSocket connected")
         resolve(ok(undefined))
       }
-      const handleError = (error: Error) => {
+      const handleError = () => {
         clearTimeout(timeout)
-        ws.off("open", handleOpen)
+        ws.removeEventListener("open", handleOpen)
         resolve(
           err({
             type: "websocket-error",
-            message: error.message,
+            message: "Realtime feed WebSocket connection failed",
           })
         )
       }
 
-      ws.once("open", handleOpen)
-      ws.once("error", handleError)
+      ws.addEventListener("open", handleOpen, { once: true })
+      ws.addEventListener("error", handleError, { once: true })
     })
   }
 }
