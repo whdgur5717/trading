@@ -77,7 +77,9 @@ export const DomesticStockInquirePriceResponse = /*#__PURE__*/ zod.object({
     iscd_stat_cls_code: /*#__PURE__*/ zod.string(),
     marg_rate: /*#__PURE__*/ zod.string(),
     rprs_mrkt_kor_name: /*#__PURE__*/ zod.string(),
-    new_hgpr_lwpr_cls_code: /*#__PURE__*/ zod.string(),
+    new_hgpr_lwpr_cls_code: /*#__PURE__*/ zod.optional(
+      /*#__PURE__*/ zod.string()
+    ),
     bstp_kor_isnm: /*#__PURE__*/ zod.string(),
     temp_stop_yn: /*#__PURE__*/ zod.string(),
     oprc_rang_cont_yn: /*#__PURE__*/ zod.string(),
@@ -146,7 +148,7 @@ export const DomesticStockInquirePriceResponse = /*#__PURE__*/ zod.object({
     stck_shrn_iscd: /*#__PURE__*/ zod.string(),
     fcam_cnnm: /*#__PURE__*/ zod.string(),
     cpfn_cnnm: /*#__PURE__*/ zod.string(),
-    apprch_rate: /*#__PURE__*/ zod.string(),
+    apprch_rate: /*#__PURE__*/ zod.optional(/*#__PURE__*/ zod.string()),
     frgn_hldn_qty: /*#__PURE__*/ zod.string(),
     vi_cls_code: /*#__PURE__*/ zod.string(),
     ovtm_vi_cls_code: /*#__PURE__*/ zod.string(),
@@ -201,7 +203,7 @@ export const DomesticStockInquireDailyItemChartPriceResponse =
       per: /*#__PURE__*/ zod.string(),
       eps: /*#__PURE__*/ zod.string(),
       pbr: /*#__PURE__*/ zod.string(),
-      itewhol_loan_rmnd_ratem: /*#__PURE__*/ zod.string(),
+      "itewhol_loan_rmnd_ratem name": /*#__PURE__*/ zod.string(),
     }),
     output2: /*#__PURE__*/ zod.array(
       /*#__PURE__*/ zod.object({

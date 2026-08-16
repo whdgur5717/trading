@@ -45,9 +45,10 @@ export const getDomesticStockInquirePriceResponseDomesticStockInquirePriceRespon
         rprs_mrkt_kor_name: faker.string.alpha({
           length: { min: 10, max: 20 },
         }),
-        new_hgpr_lwpr_cls_code: faker.string.alpha({
-          length: { min: 10, max: 20 },
-        }),
+        new_hgpr_lwpr_cls_code: faker.helpers.arrayElement([
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+          undefined,
+        ]),
         bstp_kor_isnm: faker.string.alpha({ length: { min: 10, max: 20 } }),
         temp_stop_yn: faker.string.alpha({ length: { min: 10, max: 20 } }),
         oprc_rang_cont_yn: faker.string.alpha({ length: { min: 10, max: 20 } }),
@@ -138,7 +139,10 @@ export const getDomesticStockInquirePriceResponseDomesticStockInquirePriceRespon
         stck_shrn_iscd: faker.string.alpha({ length: { min: 10, max: 20 } }),
         fcam_cnnm: faker.string.alpha({ length: { min: 10, max: 20 } }),
         cpfn_cnnm: faker.string.alpha({ length: { min: 10, max: 20 } }),
-        apprch_rate: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        apprch_rate: faker.helpers.arrayElement([
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+          undefined,
+        ]),
         frgn_hldn_qty: faker.string.alpha({ length: { min: 10, max: 20 } }),
         vi_cls_code: faker.string.alpha({ length: { min: 10, max: 20 } }),
         ovtm_vi_cls_code: faker.string.alpha({ length: { min: 10, max: 20 } }),
@@ -298,7 +302,7 @@ export const getDomesticStockInquireDailyItemChartPriceResponseDomesticStockInqu
         per: faker.string.alpha({ length: { min: 10, max: 20 } }),
         eps: faker.string.alpha({ length: { min: 10, max: 20 } }),
         pbr: faker.string.alpha({ length: { min: 10, max: 20 } }),
-        itewhol_loan_rmnd_ratem: faker.string.alpha({
+        "itewhol_loan_rmnd_ratem name": faker.string.alpha({
           length: { min: 10, max: 20 },
         }),
       },
@@ -370,7 +374,7 @@ export const getDomesticStockInquireDailyItemChartPriceResponseMock = () => ({
     per: "15.23",
     eps: "5252",
     pbr: "1.42",
-    itewhol_loan_rmnd_ratem: "0.12",
+    "itewhol_loan_rmnd_ratem name": "0.12",
   },
   output2: [
     {

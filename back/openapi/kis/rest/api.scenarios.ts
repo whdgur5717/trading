@@ -203,7 +203,7 @@ export const scenarios = {
             per: "15.23",
             eps: "5252",
             pbr: "1.42",
-            itewhol_loan_rmnd_ratem: "0.12",
+            "itewhol_loan_rmnd_ratem name": "0.12",
           },
           output2: [
             {

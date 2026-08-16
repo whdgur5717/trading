@@ -542,7 +542,6 @@
               "iscd_stat_cls_code",
               "marg_rate",
               "rprs_mrkt_kor_name",
-              "new_hgpr_lwpr_cls_code",
               "bstp_kor_isnm",
               "temp_stop_yn",
               "oprc_rang_cont_yn",
@@ -611,7 +610,6 @@
               "stck_shrn_iscd",
               "fcam_cnnm",
               "cpfn_cnnm",
-              "apprch_rate",
               "frgn_hldn_qty",
               "vi_cls_code",
               "ovtm_vi_cls_code",
@@ -755,7 +753,7 @@
               "per",
               "eps",
               "pbr",
-              "itewhol_loan_rmnd_ratem"
+              "itewhol_loan_rmnd_ratem name"
             ],
             "properties": {
               "prdy_vrss": { "type": "string" },
@@ -787,7 +785,7 @@
               "per": { "type": "string" },
               "eps": { "type": "string" },
               "pbr": { "type": "string" },
-              "itewhol_loan_rmnd_ratem": { "type": "string" }
+              "itewhol_loan_rmnd_ratem name": { "type": "string" }
             }
           },
           "output2": {
