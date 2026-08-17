@@ -1,7 +1,7 @@
 import { ConfigService } from "@nestjs/config"
 import { Test } from "@nestjs/testing"
 import { describe, expect, it, vi } from "vitest"
-import { rest } from "../../../../openapi/opendart/rest/api"
+import { rest } from "#generated/opendart/rest/api"
 import { HttpRequestProvider } from "../../../common/http/httpRequest.provider"
 import {
   HttpRequestProviderMock,

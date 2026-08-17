@@ -44,4 +44,11 @@ USER node
 
 EXPOSE 8080
 
-CMD ["node", "dist/main.js"]
+HEALTHCHECK \
+  --interval=10s \
+  --timeout=3s \
+  --start-period=30s \
+  --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:' + process.env.PORT + '/health').then((response) => process.exit(response.status === 200 ? 0 : 1)).catch(() => process.exit(1))"
+
+CMD ["npm", "run", "start:prod"]

@@ -5,6 +5,13 @@
   "author": "",
   "private": true,
   "license": "UNLICENSED",
+  "imports": {
+    "#generated/*": {
+      "development": "./generated/*.ts",
+      "mock": "./dist-mock/generated/*.js",
+      "default": "./dist/generated/*.js"
+    }
+  },
   "scripts": {
     "build": "nest build",
     "type-check": "tsc --noEmit --incremental false",
@@ -19,7 +26,7 @@
     "generate:openapi": "NODE_ENV=test pnpm build && NODE_ENV=test node scripts/generate-openapi.mjs",
     "generate:contract": "orval --config openapi/config.mjs",
     "start": "NODE_ENV=development nest start",
-    "start:dev": "NODE_ENV=development nest start --path tsconfig.mock.json --entryFile main.mock --watch",
+    "start:dev": "NODE_ENV=development NODE_OPTIONS=--conditions=mock nest start --path tsconfig.mock.json --entryFile main.mock --watch",
     "start:debug": "NODE_ENV=development nest start --debug --watch",
     "start:prod": "NODE_ENV=production node dist/src/main.js"
   },

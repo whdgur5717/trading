@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
 import { err, ok, type Result } from "neverthrow"
 import type { z } from "zod"
-import { rest } from "../../../../openapi/kis/rest/api"
+import { rest } from "#generated/kis/rest/api"
 import {
   HttpRequestError,
   HttpRequestProvider,

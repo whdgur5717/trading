@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
 import { err, ok, type Result } from "neverthrow"
 import type { z } from "zod"
-import { FscErrorResponse, rest } from "../../../../openapi/fsc/rest/api"
+import { FscErrorResponse, rest } from "#generated/fsc/rest/api"
 import {
   HttpRequestError,
   HttpRequestProvider,

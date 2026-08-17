@@ -4,10 +4,12 @@ import { fileURLToPath } from "node:url"
 
 import { openapiOverlay, parseFile } from "openapi-format"
 import { defineConfig, pascal } from "orval"
-import { format } from "prettier"
+import { format, resolveConfig } from "prettier"
 import * as zod from "zod/mini"
 
 const openapiDirectory = dirname(fileURLToPath(import.meta.url))
+const generatedDirectory = resolve(openapiDirectory, "..", "generated")
+const prettierConfig = (await resolveConfig(openapiDirectory)) ?? {}
 const methods = [
   "get",
   "put",
@@ -186,14 +188,9 @@ for (const provider of (
     }
   }
 
-  const target = resolve(openapiDirectory, provider.name, "rest", "api.ts")
-  const scenariosTarget = resolve(
-    openapiDirectory,
-    provider.name,
-    "rest",
-    "api.scenarios.ts"
-  )
-  const outputDirectory = resolve(openapiDirectory, provider.name, "rest")
+  const outputDirectory = resolve(generatedDirectory, provider.name, "rest")
+  const target = resolve(outputDirectory, "api.ts")
+  const scenariosTarget = resolve(outputDirectory, "api.scenarios.ts")
   const mockTarget = resolve(outputDirectory, "api.msw.ts")
 
   projects[`${provider.name}Rest`] = {
@@ -506,7 +503,7 @@ for (const provider of (
               "} as const",
               "",
             ].join("\n"),
-            { filepath: scenariosTarget }
+            { ...prettierConfig, filepath: scenariosTarget }
           )
         )
 

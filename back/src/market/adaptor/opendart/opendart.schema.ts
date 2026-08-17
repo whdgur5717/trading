@@ -4,7 +4,7 @@ import {
   OpendartCorpCode,
   OpendartDisclosuresResponse,
   OpendartFinancialAccountsResponse,
-} from "../../../../openapi/opendart/rest/api"
+} from "#generated/opendart/rest/api"
 import {
   companyProfileSchema,
   financialAccountSchema,

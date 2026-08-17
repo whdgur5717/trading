@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common"
 import { err, ok, type Result } from "neverthrow"
-import { rest } from "../../../../openapi/kis/rest/api"
+import { rest } from "#generated/kis/rest/api"
 import { marketErrors, type MarketDataError } from "../../market-data.error"
 import type {
   Candle,

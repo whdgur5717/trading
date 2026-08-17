@@ -2,10 +2,7 @@ import { Injectable } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
 import { err, ok, type Result } from "neverthrow"
 import type { z } from "zod"
-import {
-  OpendartErrorResponse,
-  rest,
-} from "../../../../openapi/opendart/rest/api"
+import { OpendartErrorResponse, rest } from "#generated/opendart/rest/api"
 import {
   HttpRequestError,
   HttpRequestProvider,

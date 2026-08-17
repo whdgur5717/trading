@@ -1,9 +1,9 @@
-import { getFscMock } from "../../../../openapi/fsc/rest/api.msw"
-import { scenarios as fscScenarios } from "../../../../openapi/fsc/rest/api.scenarios"
-import { getKisRestApiMock } from "../../../../openapi/kis/rest/api.msw"
-import { scenarios as kisScenarios } from "../../../../openapi/kis/rest/api.scenarios"
-import { getOpenDARTMock } from "../../../../openapi/opendart/rest/api.msw"
-import { scenarios as opendartScenarios } from "../../../../openapi/opendart/rest/api.scenarios"
+import { getFscMock } from "#generated/fsc/rest/api.msw"
+import { scenarios as fscScenarios } from "#generated/fsc/rest/api.scenarios"
+import { getKisRestApiMock } from "#generated/kis/rest/api.msw"
+import { scenarios as kisScenarios } from "#generated/kis/rest/api.scenarios"
+import { getOpenDARTMock } from "#generated/opendart/rest/api.msw"
+import { scenarios as opendartScenarios } from "#generated/opendart/rest/api.scenarios"
 import { scenarioHandlers } from "./scenario.handlers"
 
 export function restHandlers() {
