@@ -1,7 +1,7 @@
 import { ConfigService } from "@nestjs/config"
 import { Test } from "@nestjs/testing"
 import { describe, expect, it } from "vitest"
-import { rest } from "../../../../openapi/fsc/rest/api"
+import { rest } from "#generated/fsc/rest/api"
 import { HttpRequestProvider } from "../../../common/http/httpRequest.provider"
 import {
   HttpRequestProviderMock,

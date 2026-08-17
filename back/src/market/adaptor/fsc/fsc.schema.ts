@@ -2,7 +2,7 @@ import { z } from "zod"
 import {
   FscMarketIndexResponse,
   FscStockPriceResponse,
-} from "../../../../openapi/fsc/rest/api"
+} from "#generated/fsc/rest/api"
 import {
   dailyMarketIndexSchema,
   dailyStockPriceSchema,

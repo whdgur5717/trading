@@ -44,4 +44,4 @@ USER node
 
 EXPOSE 8080
 
-CMD ["node", "dist/main.js"]
+CMD ["npm", "run", "start:prod"]

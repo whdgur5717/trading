@@ -3,7 +3,7 @@ import {
   DomesticStockChkHolidayResponse,
   DomesticStockInquireDailyItemChartPriceResponse,
   DomesticStockInquirePriceResponse,
-} from "../../../../openapi/kis/rest/api"
+} from "#generated/kis/rest/api"
 import {
   candleSchema as portCandleSchema,
   priceSchema as portPriceSchema,

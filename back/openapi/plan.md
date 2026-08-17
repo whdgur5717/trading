@@ -16,12 +16,16 @@ Overlay target이 원본 문서와 일치하지 않거나 operation별 `success`
 
 ```text
 openapi.json
-  └─ Orval Zod 생성 ─> api.ts
+  └─ Orval Zod 생성 ─> generated/{provider}/rest/api.ts
 
 openapi.json + overlay.yaml
-  ├─ Overlay success ─> Orval ─> api.msw.ts
-  └─ named/default 응답 ───────> api.scenarios.ts
+  ├─ Overlay success ─> Orval ─> generated/{provider}/rest/api.msw.ts
+  └─ named/default 응답 ───────> generated/{provider}/rest/api.scenarios.ts
 ```
+
+`openapi` 디렉터리는 생성 입력과 설정만, `generated` 디렉터리는
+생성된 TypeScript 코드만 소유한다. 백엔드 코드는 생성 결과를
+`#generated/{provider}/rest/...`로 import한다.
 
 - `api.ts`: Zod 4 Mini 요청·응답 스키마, 추론 타입, operation별
   method/path/request/responses 계약
