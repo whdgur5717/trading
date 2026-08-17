@@ -155,19 +155,32 @@ run("docker", [
   config.imageUri,
 ])
 
-await new Promise((resolve) => setTimeout(resolve, 3000))
+async function waitForContainerHealth() {
+  const deadline = Date.now() + 90000
 
-const running = run("docker", [
-  "inspect",
-  "-f",
-  "{{.State.Running}}",
-  config.containerName,
-]).trim()
+  while (Date.now() < deadline) {
+    const state = JSON.parse(
+      run("docker", ["inspect", "-f", "{{json .State}}", config.containerName])
+    )
 
-if (running !== "true") {
-  throw new Error(
-    `${config.containerName} stopped immediately after docker run`
-  )
+    if (!state.Running) {
+      throw new Error(`${config.containerName} stopped during startup`)
+    }
+
+    if (state.Health?.Status === "healthy") {
+      return
+    }
+
+    if (state.Health?.Status === "unhealthy") {
+      throw new Error(`${config.containerName} became unhealthy`)
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+  }
+
+  throw new Error(`${config.containerName} health check timed out`)
 }
+
+await waitForContainerHealth()
 
 console.log(`Deployed ${config.containerName}: ${config.imageUri}`)
