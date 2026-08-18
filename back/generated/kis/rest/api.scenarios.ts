@@ -6,6 +6,7 @@ import type {
   KisRestErrorResponse,
   DomesticStockInquirePriceResponse,
   DomesticStockInquireDailyItemChartPriceResponse,
+  DomesticStockInquireViStatusResponse,
   DomesticStockChkHolidayResponse,
 } from "./api"
 
@@ -238,6 +239,44 @@ export const scenarios = {
             },
           ],
         } satisfies DomesticStockInquireDailyItemChartPriceResponse,
+      },
+    },
+    default: {
+      body: {
+        rt_cd: "1",
+        msg_cd: "KIS999",
+        msg1: "KIS REST 오류 응답",
+      } satisfies KisRestErrorResponse,
+    },
+  },
+  domesticStockInquireViStatus: {
+    method: "get",
+    path: "/uapi/domestic-stock/v1/quotations/inquire-vi-status",
+    scenarios: {
+      success: {
+        status: 200,
+        body: {
+          rt_cd: "0",
+          msg_cd: "MCA00000",
+          msg1: "정상처리 되었습니다.",
+          output: [
+            {
+              hts_kor_isnm: "삼성전자",
+              mksc_shrn_iscd: "005930",
+              vi_cls_code: "Y",
+              bsop_date: "20260507",
+              cntg_vi_hour: "100530",
+              vi_cncl_hour: "100830",
+              vi_kind_code: "1",
+              vi_prc: "82500",
+              vi_stnd_prc: "81000",
+              vi_dprt: "1.85",
+              vi_dmc_stnd_prc: "80500",
+              vi_dmc_dprt: "2.48",
+              vi_count: "3",
+            },
+          ],
+        } satisfies DomesticStockInquireViStatusResponse,
       },
     },
     default: {

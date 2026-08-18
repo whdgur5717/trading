@@ -132,6 +132,31 @@
 - KIS API 문서 목록:
   <https://apiportal.koreainvestment.com/apiservice-category>
 
+## REST: 변동성완화장치(VI) 현황
+
+| 항목       | 값                                                     |
+| ---------- | ------------------------------------------------------ |
+| API 이름   | 변동성완화장치(VI) 현황                                |
+| URL        | `/uapi/domestic-stock/v1/quotations/inquire-vi-status` |
+| Method     | `GET`                                                  |
+| 실전 TR ID | `FHPST01390000`                                        |
+| 모의투자   | 미지원                                                 |
+
+실제 응답 검증:
+
+- 검증일: `2026-08-18`
+- 운영 서버 응답: HTTP `200`, `rt_cd: "0"`, `msg_cd: "MCA00000"`
+- `output`은 공식 문서의 단일 객체 표기와 달리 객체 배열로 반환됨
+- 전체 시장·전체 VI 조회에서 30개 항목을 반환했으며 각 항목의 13개 필드가
+  OpenAPI 계약과 일치함
+
+근거:
+
+- KIS 공식 예제:
+  <https://github.com/koreainvestment/open-trading-api/blob/main/examples_llm/domestic_stock/inquire_vi_status/inquire_vi_status.py>
+- KIS API 문서:
+  <https://apiportal.koreainvestment.com/apiservice-apiservice?%2Fuapi%2Fdomestic-stock%2Fv1%2Fquotations%2Finquire-vi-status=>
+
 ## NXT 거래시간
 
 | 항목          | 값                                      |
