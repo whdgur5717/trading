@@ -38,7 +38,7 @@ export default function Home() {
   return (
     <div className="grid w-full max-w-form gap-6">
       <section
-        className="grid gap-5 rounded-2xl bg-surface-raised p-xl"
+        className="grid gap-5 rounded-2xl bg-surface-card p-xl shadow-surface inset-shadow-surface"
         aria-label="계산 입력"
       >
         <div className="grid gap-4">

@@ -7,7 +7,7 @@ export default function ResultError({ reset }: { reset: () => void }) {
   return (
     <div className="grid w-full max-w-form gap-6">
       <section
-        className="grid gap-6 rounded-2xl bg-surface-raised p-xl"
+        className="grid gap-6 rounded-2xl bg-surface-card p-xl shadow-surface inset-shadow-surface"
         aria-label="오류"
       >
         <h1 className="type-title text-ink">일시적인 오류가 발생했어요</h1>
