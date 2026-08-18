@@ -199,7 +199,7 @@ export function createPickerField<TValue = never>(name = "PickerField") {
       <Popover.Trigger
         ref={ref}
         className={cn(
-          "group grid min-h-14 w-full cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-end gap-x-3 gap-y-1 rounded-xl bg-surface-muted px-4 py-3 text-left font-sans text-ink transition-colors duration-150 ease-standard outline-none hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled-foreground data-disabled:cursor-not-allowed data-disabled:bg-disabled data-disabled:text-disabled-foreground data-[state=open]:bg-surface-raised",
+          "group grid min-h-14 w-full cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-end gap-x-3 gap-y-1 rounded-xl bg-surface-muted px-4 py-3 text-left font-sans text-ink transition-colors duration-150 ease-standard outline-none hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled-foreground data-disabled:cursor-not-allowed data-disabled:bg-disabled data-disabled:text-disabled-foreground data-[state=open]:bg-surface",
           className
         )}
         data-disabled={triggerDisabled ? "" : undefined}
@@ -227,7 +227,7 @@ export function createPickerField<TValue = never>(name = "PickerField") {
       <Popover.Content
         ref={ref}
         className={cn(
-          "z-50 w-(--radix-popover-trigger-width) rounded-2xl bg-[oklch(0.245_0.02_294)] p-3 text-ink shadow-[0_18px_44px_oklch(0_0_0/0.34)] outline-none data-[state=open]:animate-popover-in",
+          "z-50 w-(--radix-popover-trigger-width) rounded-2xl bg-surface-popup p-3 text-ink shadow-surface inset-shadow-surface outline-none data-[state=open]:animate-popover-in",
           className
         )}
         data-slot="picker-field-content"

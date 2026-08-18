@@ -15,7 +15,7 @@ type ResultCardRootProps = {
 function ResultCardRoot({ children, status }: ResultCardRootProps) {
   return (
     <ResultCardStatusProvider status={status}>
-      <section className="flex w-full max-w-form flex-col gap-6 rounded-2xl bg-surface-raised p-xl">
+      <section className="flex w-full max-w-form flex-col gap-6 rounded-2xl bg-surface-card p-xl shadow-surface inset-shadow-surface">
         {children}
       </section>
     </ResultCardStatusProvider>

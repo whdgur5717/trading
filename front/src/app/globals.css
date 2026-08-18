@@ -18,7 +18,9 @@
   --color-bg: oklch(0.055 0 0);
   --color-surface: oklch(0.125 0.012 294);
   --color-surface-muted: oklch(0.17 0.016 294);
-  --color-surface-raised: oklch(0.205 0.018 294);
+  --color-surface-card: oklch(0.205 0.018 294);
+  --color-surface-modal: oklch(0.205 0.018 294);
+  --color-surface-popup: oklch(0.245 0.02 294);
   --color-ink: oklch(0.94 0.006 294);
   --color-muted: oklch(0.74 0.018 294);
   --color-subtle: oklch(0.58 0.02 294);
@@ -36,7 +38,12 @@
   --color-warning: oklch(0.82 0.14 78);
   --color-disabled: oklch(0.19 0.012 294);
   --color-disabled-foreground: oklch(0.48 0.018 294);
-  --color-overlay: oklch(0.24 0.07 294 / 0.62);
+  --color-backdrop: oklch(0.055 0 0 / 0.72);
+
+  --inset-shadow-surface: inset 0 1px 0 rgb(255 255 255 / 0.08);
+  --shadow-surface:
+    0 2px 4px rgb(0 0 0 / 0.1), 0 8px 8px rgb(0 0 0 / 0.09),
+    0 19px 11px rgb(0 0 0 / 0.05), 0 34px 13px rgb(0 0 0 / 0.01);
 
   --text-display: 2.75rem;
   --text-display--line-height: 1.02;

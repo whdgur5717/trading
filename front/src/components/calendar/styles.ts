@@ -12,6 +12,6 @@ export const calendar = tv({
     daysGrid: "w-full table-fixed",
     weekRow: "",
     dayCell:
-      "mx-auto flex size-9 cursor-pointer items-center justify-center rounded-lg text-label font-bold text-ink transition-colors duration-150 ease-standard hover:bg-surface active:bg-surface-raised disabled:cursor-not-allowed disabled:text-disabled-foreground disabled:hover:bg-transparent disabled:active:bg-transparent data-selected:bg-primary data-selected:text-primary-foreground data-[hidden=true]:invisible data-[outside-month=true]:text-subtle",
+      "mx-auto flex size-9 cursor-pointer items-center justify-center rounded-lg text-label font-bold text-ink transition-colors duration-150 ease-standard hover:bg-surface active:bg-surface-muted disabled:cursor-not-allowed disabled:text-disabled-foreground disabled:hover:bg-transparent disabled:active:bg-transparent data-selected:bg-primary data-selected:text-primary-foreground data-[hidden=true]:invisible data-[outside-month=true]:text-subtle",
   },
 })

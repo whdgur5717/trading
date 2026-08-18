@@ -150,7 +150,7 @@ export function MockControlPanel() {
       <Popover.Trigger asChild>
         <button
           aria-label="API mock control"
-          className="fixed right-lg bottom-lg z-50 inline-flex size-touch items-center justify-center rounded-full bg-primary text-primary-foreground shadow-2xl"
+          className="fixed right-lg bottom-lg z-50 inline-flex size-touch items-center justify-center rounded-full bg-primary text-primary-foreground shadow-surface inset-shadow-surface"
           title="API mock control"
           type="button"
         >
@@ -218,7 +218,7 @@ export function MockControlPanel() {
                       저장
                     </button>
                     <button
-                      className="inline-flex h-touch items-center gap-sm rounded-sm bg-surface-raised px-lg type-label text-muted"
+                      className="inline-flex h-touch items-center gap-sm rounded-sm bg-surface-muted px-lg type-label text-muted"
                       disabled={busy}
                       onClick={() => runMockAction(passthrough)}
                       type="button"
