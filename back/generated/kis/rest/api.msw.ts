@@ -4,6 +4,7 @@ import type {
   KisRestErrorResponse,
   DomesticStockInquirePriceResponse,
   DomesticStockInquireDailyItemChartPriceResponse,
+  DomesticStockInquireViStatusResponse,
   DomesticStockChkHolidayResponse,
 } from "./api"
 
@@ -410,6 +411,70 @@ export const getDomesticStockInquireDailyItemChartPriceResponseMock = () => ({
   ],
 })
 
+export const getDomesticStockInquireViStatusResponseDomesticStockInquireViStatusResponseMock =
+  (
+    overrideResponse: Partial<DomesticStockInquireViStatusResponse> = {}
+  ): DomesticStockInquireViStatusResponse => ({
+    ...{
+      rt_cd: "0",
+      msg_cd: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      msg1: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      output: Array.from(
+        { length: faker.number.int({ min: 1, max: 10 }) },
+        (_, i) => i + 1
+      ).map(() => ({
+        hts_kor_isnm: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        mksc_shrn_iscd: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        vi_cls_code: faker.helpers.arrayElement(["Y", "N"] as const),
+        bsop_date: faker.helpers.fromRegExp("^[0-9]{8}$"),
+        cntg_vi_hour: faker.helpers.fromRegExp("^[0-9]{6}$"),
+        vi_cncl_hour: faker.helpers.fromRegExp("^[0-9]{6}$"),
+        vi_kind_code: faker.helpers.arrayElement(["1", "2", "3"] as const),
+        vi_prc: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        vi_stnd_prc: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        vi_dprt: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        vi_dmc_stnd_prc: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        vi_dmc_dprt: faker.string.alpha({ length: { min: 10, max: 20 } }),
+        vi_count: faker.string.alpha({ length: { min: 10, max: 20 } }),
+      })),
+    },
+    ...overrideResponse,
+  })
+
+export const getDomesticStockInquireViStatusResponseKisRestErrorResponseMock = (
+  overrideResponse: Partial<KisRestErrorResponse> = {}
+): KisRestErrorResponse => ({
+  ...{
+    rt_cd: faker.helpers.fromRegExp("^(?!0$)[\\s\\S]*$"),
+    msg_cd: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    msg1: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  },
+  ...overrideResponse,
+})
+
+export const getDomesticStockInquireViStatusResponseMock = () => ({
+  rt_cd: "0",
+  msg_cd: "MCA00000",
+  msg1: "정상처리 되었습니다.",
+  output: [
+    {
+      hts_kor_isnm: "삼성전자",
+      mksc_shrn_iscd: "005930",
+      vi_cls_code: "Y",
+      bsop_date: "20260507",
+      cntg_vi_hour: "100530",
+      vi_cncl_hour: "100830",
+      vi_kind_code: "1",
+      vi_prc: "82500",
+      vi_stnd_prc: "81000",
+      vi_dprt: "1.85",
+      vi_dmc_stnd_prc: "80500",
+      vi_dmc_dprt: "2.48",
+      vi_count: "3",
+    },
+  ],
+})
+
 export const getDomesticStockChkHolidayResponseDomesticStockChkHolidayResponseMock =
   (
     overrideResponse: Partial<DomesticStockChkHolidayResponse> = {}
@@ -571,6 +636,34 @@ export const getDomesticStockInquireDailyItemChartPriceMockHandler = (
   )
 }
 
+export const getDomesticStockInquireViStatusMockHandler = (
+  overrideResponse?:
+    | DomesticStockInquireViStatusResponse
+    | KisRestErrorResponse
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0]
+      ) =>
+        | Promise<DomesticStockInquireViStatusResponse | KisRestErrorResponse>
+        | DomesticStockInquireViStatusResponse
+        | KisRestErrorResponse),
+  options?: RequestHandlerOptions
+) => {
+  return http.get(
+    "*/uapi/domestic-stock/v1/quotations/inquire-vi-status",
+    async (info: Parameters<Parameters<typeof http.get>[1]>[0]) => {
+      return HttpResponse.json(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === "function"
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getDomesticStockInquireViStatusResponseMock(),
+        { status: 200 }
+      )
+    },
+    options
+  )
+}
+
 export const getDomesticStockChkHolidayMockHandler = (
   overrideResponse?:
     | DomesticStockChkHolidayResponse
@@ -603,5 +696,6 @@ export const getKisRestApiMock = () => [
   getAuthWsTokenMockHandler(),
   getDomesticStockInquirePriceMockHandler(),
   getDomesticStockInquireDailyItemChartPriceMockHandler(),
+  getDomesticStockInquireViStatusMockHandler(),
   getDomesticStockChkHolidayMockHandler(),
 ]

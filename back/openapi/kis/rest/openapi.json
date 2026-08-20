@@ -295,6 +295,156 @@
         }
       }
     },
+    "/uapi/domestic-stock/v1/quotations/inquire-vi-status": {
+      "get": {
+        "operationId": "domesticStockInquireViStatus",
+        "summary": "변동성완화장치(VI) 현황",
+        "security": [
+          {
+            "BearerAuth": [],
+            "AppKey": [],
+            "AppSecret": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tr_id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "FHPST01390000"
+            }
+          },
+          {
+            "name": "custtype",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "P"
+            }
+          },
+          {
+            "name": "tr_cont",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "FID_DIV_CLS_CODE",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["0", "1", "2"]
+            }
+          },
+          {
+            "name": "FID_COND_SCR_DIV_CODE",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "20139"
+            }
+          },
+          {
+            "name": "FID_MRKT_CLS_CODE",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["0", "K", "Q"]
+            }
+          },
+          {
+            "name": "FID_INPUT_ISCD",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "FID_RANK_SORT_CLS_CODE",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["0", "1", "2", "3"]
+            }
+          },
+          {
+            "name": "FID_INPUT_DATE_1",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{8}$"
+            }
+          },
+          {
+            "name": "FID_TRGT_CLS_CODE",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "FID_TRGT_EXLS_CLS_CODE",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "변동성완화장치(VI) 현황 응답",
+            "x-success-schema": {
+              "$ref": "#/components/schemas/DomesticStockInquireViStatusResponse"
+            },
+            "headers": {
+              "tr_cont": {
+                "description": "연속 거래 여부",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/DomesticStockInquireViStatusResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/KisRestErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "KIS REST 오류 응답",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KisRestErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/uapi/domestic-stock/v1/quotations/chk-holiday": {
       "get": {
         "operationId": "domesticStockChkHoliday",
@@ -822,6 +972,61 @@
                 "prdy_vrss": { "type": "string" },
                 "revl_issu_reas": { "type": "string" }
               }
+            }
+          }
+        }
+      },
+      "DomesticStockInquireViStatusItem": {
+        "type": "object",
+        "required": [
+          "hts_kor_isnm",
+          "mksc_shrn_iscd",
+          "vi_cls_code",
+          "bsop_date",
+          "cntg_vi_hour",
+          "vi_cncl_hour",
+          "vi_kind_code",
+          "vi_prc",
+          "vi_stnd_prc",
+          "vi_dprt",
+          "vi_dmc_stnd_prc",
+          "vi_dmc_dprt",
+          "vi_count"
+        ],
+        "properties": {
+          "hts_kor_isnm": { "type": "string" },
+          "mksc_shrn_iscd": { "type": "string" },
+          "vi_cls_code": { "type": "string", "enum": ["Y", "N"] },
+          "bsop_date": { "type": "string", "pattern": "^[0-9]{8}$" },
+          "cntg_vi_hour": { "type": "string", "pattern": "^[0-9]{6}$" },
+          "vi_cncl_hour": { "type": "string", "pattern": "^[0-9]{6}$" },
+          "vi_kind_code": { "type": "string", "enum": ["1", "2", "3"] },
+          "vi_prc": { "type": "string" },
+          "vi_stnd_prc": { "type": "string" },
+          "vi_dprt": { "type": "string" },
+          "vi_dmc_stnd_prc": { "type": "string" },
+          "vi_dmc_dprt": { "type": "string" },
+          "vi_count": { "type": "string" }
+        }
+      },
+      "DomesticStockInquireViStatusResponse": {
+        "type": "object",
+        "required": ["rt_cd", "msg_cd", "msg1", "output"],
+        "properties": {
+          "rt_cd": {
+            "type": "string",
+            "const": "0"
+          },
+          "msg_cd": {
+            "type": "string"
+          },
+          "msg1": {
+            "type": "string"
+          },
+          "output": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DomesticStockInquireViStatusItem"
             }
           }
         }

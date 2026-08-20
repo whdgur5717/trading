@@ -231,6 +231,65 @@ export type DomesticStockInquireDailyItemChartPriceResponseOutput = zod.output<
   typeof DomesticStockInquireDailyItemChartPriceResponse
 >
 
+export const domesticStockInquireViStatusItemBsopDateRegExp = new RegExp(
+  "^[0-9]{8}$"
+)
+export const domesticStockInquireViStatusItemCntgViHourRegExp = new RegExp(
+  "^[0-9]{6}$"
+)
+export const domesticStockInquireViStatusItemViCnclHourRegExp = new RegExp(
+  "^[0-9]{6}$"
+)
+
+export const DomesticStockInquireViStatusItem = /*#__PURE__*/ zod.object({
+  hts_kor_isnm: /*#__PURE__*/ zod.string(),
+  mksc_shrn_iscd: /*#__PURE__*/ zod.string(),
+  vi_cls_code: /*#__PURE__*/ zod.enum(["Y", "N"]),
+  bsop_date: /*#__PURE__*/ zod
+    .string()
+    .check(
+      /*#__PURE__*/ zod.regex(domesticStockInquireViStatusItemBsopDateRegExp)
+    ),
+  cntg_vi_hour: /*#__PURE__*/ zod
+    .string()
+    .check(
+      /*#__PURE__*/ zod.regex(domesticStockInquireViStatusItemCntgViHourRegExp)
+    ),
+  vi_cncl_hour: /*#__PURE__*/ zod
+    .string()
+    .check(
+      /*#__PURE__*/ zod.regex(domesticStockInquireViStatusItemViCnclHourRegExp)
+    ),
+  vi_kind_code: /*#__PURE__*/ zod.enum(["1", "2", "3"]),
+  vi_prc: /*#__PURE__*/ zod.string(),
+  vi_stnd_prc: /*#__PURE__*/ zod.string(),
+  vi_dprt: /*#__PURE__*/ zod.string(),
+  vi_dmc_stnd_prc: /*#__PURE__*/ zod.string(),
+  vi_dmc_dprt: /*#__PURE__*/ zod.string(),
+  vi_count: /*#__PURE__*/ zod.string(),
+})
+
+export type DomesticStockInquireViStatusItem = zod.input<
+  typeof DomesticStockInquireViStatusItem
+>
+export type DomesticStockInquireViStatusItemOutput = zod.output<
+  typeof DomesticStockInquireViStatusItem
+>
+
+export const DomesticStockInquireViStatusResponse = /*#__PURE__*/ zod.object({
+  rt_cd: /*#__PURE__*/ zod.literal("0"),
+  msg_cd: /*#__PURE__*/ zod.string(),
+  msg1: /*#__PURE__*/ zod.string(),
+  output: /*#__PURE__*/ zod.array(DomesticStockInquireViStatusItem),
+})
+
+export type DomesticStockInquireViStatusResponse = zod.input<
+  typeof DomesticStockInquireViStatusResponse
+>
+export type DomesticStockInquireViStatusResponseOutput = zod.output<
+  typeof DomesticStockInquireViStatusResponse
+>
+
 export const domesticStockChkHolidayResponseOutputItemBassDtRegExp = new RegExp(
   "^[0-9]{8}$"
 )
@@ -355,6 +414,45 @@ export const DomesticStockInquireDailyItemChartPriceDefaultResponse =
   KisRestErrorResponse
 
 /**
+ * @summary 변동성완화장치(VI) 현황
+ */
+export const domesticStockInquireViStatusQueryFIDINPUTDATE1RegExp = new RegExp(
+  "^[0-9]{8}$"
+)
+
+export const DomesticStockInquireViStatusQueryParams = /*#__PURE__*/ zod.object(
+  {
+    FID_DIV_CLS_CODE: /*#__PURE__*/ zod.enum(["0", "1", "2"]),
+    FID_COND_SCR_DIV_CODE: /*#__PURE__*/ zod.literal("20139"),
+    FID_MRKT_CLS_CODE: /*#__PURE__*/ zod.enum(["0", "K", "Q"]),
+    FID_INPUT_ISCD: /*#__PURE__*/ zod.string(),
+    FID_RANK_SORT_CLS_CODE: /*#__PURE__*/ zod.enum(["0", "1", "2", "3"]),
+    FID_INPUT_DATE_1: /*#__PURE__*/ zod
+      .string()
+      .check(
+        /*#__PURE__*/ zod.regex(
+          domesticStockInquireViStatusQueryFIDINPUTDATE1RegExp
+        )
+      ),
+    FID_TRGT_CLS_CODE: /*#__PURE__*/ zod.string(),
+    FID_TRGT_EXLS_CLS_CODE: /*#__PURE__*/ zod.string(),
+  }
+)
+
+export const DomesticStockInquireViStatusHeader = /*#__PURE__*/ zod.object({
+  tr_id: /*#__PURE__*/ zod.literal("FHPST01390000"),
+  custtype: /*#__PURE__*/ zod.literal("P"),
+  tr_cont: /*#__PURE__*/ zod.optional(/*#__PURE__*/ zod.string()),
+})
+
+export const DomesticStockInquireViStatus200Response = /*#__PURE__*/ zod.union([
+  DomesticStockInquireViStatusResponse,
+  KisRestErrorResponse,
+])
+
+export const DomesticStockInquireViStatusDefaultResponse = KisRestErrorResponse
+
+/**
  * @summary 국내휴장일조회
  */
 export const domesticStockChkHolidayQueryBASSDTRegExp = new RegExp("^[0-9]{8}$")
@@ -458,6 +556,29 @@ const domesticStockInquireDailyItemChartPriceContract = {
   },
 } as const
 
+const domesticStockInquireViStatusContract = {
+  method: "get",
+  path: "/uapi/domestic-stock/v1/quotations/inquire-vi-status",
+  request: {
+    query: DomesticStockInquireViStatusQueryParams,
+    headers: DomesticStockInquireViStatusHeader,
+    fixedHeaders: {
+      tr_id: "FHPST01390000",
+      custtype: "P",
+    },
+  },
+  responses: {
+    "200": {
+      schema: DomesticStockInquireViStatus200Response,
+      success: DomesticStockInquireViStatusResponse,
+      failures: [KisRestErrorResponse],
+    },
+    default: {
+      schema: DomesticStockInquireViStatusDefaultResponse,
+    },
+  },
+} as const
+
 const domesticStockChkHolidayContract = {
   method: "get",
   path: "/uapi/domestic-stock/v1/quotations/chk-holiday",
@@ -487,5 +608,6 @@ export const rest = {
   domesticStockInquirePrice: domesticStockInquirePriceContract,
   domesticStockInquireDailyItemChartPrice:
     domesticStockInquireDailyItemChartPriceContract,
+  domesticStockInquireViStatus: domesticStockInquireViStatusContract,
   domesticStockChkHoliday: domesticStockChkHolidayContract,
 } as const
