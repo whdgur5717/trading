@@ -1,5 +1,4 @@
 import { Injectable } from "@nestjs/common"
-import { ConfigService } from "@nestjs/config"
 import type PQueue from "p-queue"
 
 export interface KisRestQueueOptions {
@@ -17,8 +16,6 @@ function sleep(ms: number): Promise<void> {
 @Injectable()
 export class KisRestQueue {
   private queue: Promise<PQueue> | null = null
-
-  constructor(private readonly config: ConfigService) {}
 
   async run<T>(
     task: (signal?: AbortSignal) => Promise<T>,
@@ -67,11 +64,9 @@ export class KisRestQueue {
     const { default: PQueue } = await import("p-queue")
 
     return new PQueue({
-      concurrency: this.config.getOrThrow<number>("KIS_REST_QUEUE_CONCURRENCY"),
-      intervalCap: this.config.getOrThrow<number>(
-        "KIS_REST_QUEUE_INTERVAL_CAP"
-      ),
-      interval: this.config.getOrThrow<number>("KIS_REST_QUEUE_INTERVAL_MS"),
+      concurrency: 3,
+      intervalCap: 1,
+      interval: 150,
       strict: true,
     })
   }
