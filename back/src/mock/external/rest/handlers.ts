@@ -4,13 +4,14 @@ import { getKisRestApiMock } from "#generated/kis/rest/api.msw"
 import { scenarios as kisScenarios } from "#generated/kis/rest/api.scenarios"
 import { getOpenDARTMock } from "#generated/opendart/rest/api.msw"
 import { scenarios as opendartScenarios } from "#generated/opendart/rest/api.scenarios"
+import { kisOverrides } from "./kis.overrides"
 import { scenarioHandlers } from "./scenario.handlers"
 
 export function restHandlers() {
   return [
     ...scenarioHandlers({
       scenarios: kisScenarios,
-      handlers: getKisRestApiMock(),
+      handlers: [...kisOverrides, ...getKisRestApiMock()],
     }),
     ...scenarioHandlers({
       scenarios: opendartScenarios,
