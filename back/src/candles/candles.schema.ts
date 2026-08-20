@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { pastOrTodayIsoDateSchema } from "../common/validation/date"
-import { candleIntervalSchema, stockSymbolSchema } from "../market/port/data"
+import { candleIntervalSchema, stockSymbolSchema } from "../external/schema"
 
 const decimalTextSchema = z.string().min(1)
 

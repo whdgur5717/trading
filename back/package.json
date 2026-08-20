@@ -38,6 +38,7 @@
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/swagger": "^11.4.3",
     "axios": "^1.17.0",
+    "cockatiel": "^3.2.1",
     "es-hangul": "^2.3.8",
     "es-toolkit": "^1.46.1",
     "nestjs-zod": "^5.4.0",

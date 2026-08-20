@@ -1,19 +1,19 @@
 import { Injectable } from "@nestjs/common"
 import { ResultAsync } from "neverthrow"
-import { MarketService } from "../market/market.service"
+import { ExternalService } from "../external/external.service"
 import { StocksService } from "../stocks/stocks.service"
 
 @Injectable()
 export class PricesService {
   constructor(
     private readonly stocksService: StocksService,
-    private readonly marketService: MarketService
+    private readonly externalService: ExternalService
   ) {}
 
   getPrice(symbol: string) {
     return this.stocksService.getBySymbol(symbol).asyncAndThen((stock) =>
       ResultAsync.fromSafePromise(
-        this.marketService.price({
+        this.externalService.price({
           symbol,
           quotationMarket: stock.quotationMarket,
         })

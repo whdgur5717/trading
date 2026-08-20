@@ -1,0 +1,196 @@
+import { Injectable } from "@nestjs/common"
+import { ConfigService } from "@nestjs/config"
+import { err, ok, type Result } from "neverthrow"
+import type { z } from "zod"
+import {
+  HttpRequestError,
+  HttpRequestProvider,
+  type HttpResponse,
+} from "../../../../common/http/httpRequest.provider"
+import { externalErrors, type ExternalProviderError } from "../../../error"
+import { KisAuthorization } from "../authorization"
+import { KisRestQueue, type KisRestQueueOptions } from "./queue"
+import { responseMetaSchema } from "./schema"
+
+@Injectable()
+export class KisRestRequest {
+  constructor(
+    private readonly httpRequestProvider: HttpRequestProvider,
+    private readonly authorizationProvider: KisAuthorization,
+    private readonly requestQueueProvider: KisRestQueue,
+    private readonly config: ConfigService
+  ) {}
+
+  async get<TSchema extends z.ZodType>(
+    api: {
+      method: "get"
+      path: string
+      request: {
+        fixedHeaders: Record<string, string>
+      }
+    },
+    query: Record<string, string>,
+    schema: TSchema,
+    options: KisRestQueueOptions = {}
+  ): Promise<Result<z.output<TSchema>, ExternalProviderError>> {
+    const accessToken = await this.authorizationProvider.accessToken()
+
+    if (accessToken.isErr()) {
+      return err(accessToken.error)
+    }
+
+    const first = await this.getWithAccessToken(
+      api,
+      query,
+      accessToken.value,
+      schema,
+      options
+    )
+
+    if (
+      first.isOk() ||
+      first.error.type !== "market.provider_auth_unavailable"
+    ) {
+      return first
+    }
+
+    this.authorizationProvider.resetAccessToken()
+    const refreshedAccessToken = await this.authorizationProvider.accessToken()
+
+    if (refreshedAccessToken.isErr()) {
+      return err(refreshedAccessToken.error)
+    }
+
+    return this.getWithAccessToken(
+      api,
+      query,
+      refreshedAccessToken.value,
+      schema,
+      options
+    )
+  }
+
+  private async getWithAccessToken<TSchema extends z.ZodType>(
+    api: {
+      method: "get"
+      path: string
+      request: {
+        fixedHeaders: Record<string, string>
+      }
+    },
+    query: Record<string, string>,
+    accessToken: string,
+    schema: TSchema,
+    options: KisRestQueueOptions
+  ): Promise<Result<z.output<TSchema>, ExternalProviderError>> {
+    let response: HttpResponse
+
+    try {
+      response = await this.requestQueueProvider.run(
+        (signal) =>
+          this.httpRequestProvider.request({
+            method: api.method,
+            url: `${this.restBaseUrl}${api.path}`,
+            headers: {
+              appkey: this.appKey,
+              appsecret: this.appSecret,
+              ...api.request.fixedHeaders,
+              authorization: `Bearer ${accessToken}`,
+            },
+            query,
+            signal,
+            validateStatus: (status) => status >= 200 && status < 300,
+          }),
+        options
+      )
+    } catch (error) {
+      if (!(error instanceof HttpRequestError)) {
+        throw error
+      }
+
+      const upstreamStatus = error.response?.status ?? null
+      const upstreamCode = error.code ?? null
+
+      switch (error.kind) {
+        case "timeout":
+          return err(
+            externalErrors.providerTimeout({
+              provider: "kis",
+              endpoint: api.path,
+              upstreamStatus,
+              upstreamCode,
+            })
+          )
+        case "response":
+          return err(
+            (upstreamStatus === 401 || upstreamStatus === 403
+              ? externalErrors.providerAuthUnavailable
+              : externalErrors.providerUnavailable)({
+              provider: "kis",
+              endpoint: api.path,
+              upstreamStatus,
+              upstreamCode,
+            })
+          )
+        case "cancelled":
+        case "network":
+        case "client":
+          return err(
+            externalErrors.providerUnavailable({
+              provider: "kis",
+              endpoint: api.path,
+              upstreamStatus,
+              upstreamCode,
+            })
+          )
+      }
+    }
+
+    const meta = responseMetaSchema.safeParse(response.data)
+
+    if (meta.success && meta.data.rt_cd !== "0") {
+      const upstreamCode = meta.data.msg_cd ?? null
+      const upstreamMessage = meta.data.msg1 ?? null
+
+      return err(
+        (/token|auth|인증|토큰|만료|expired|unauthorized/.test(
+          `${upstreamCode ?? ""} ${upstreamMessage ?? ""}`.toLowerCase()
+        )
+          ? externalErrors.providerAuthUnavailable
+          : externalErrors.providerUnavailable)({
+          provider: "kis",
+          endpoint: api.path,
+          upstreamStatus: response.status,
+          upstreamCode,
+        })
+      )
+    }
+
+    const parsed = schema.safeParse(response.data)
+
+    if (!parsed.success) {
+      return err(
+        externalErrors.providerInvalidResponse({
+          provider: "kis",
+          endpoint: api.path,
+          upstreamStatus: response.status,
+          upstreamCode: null,
+        })
+      )
+    }
+
+    return ok(parsed.data)
+  }
+
+  private get restBaseUrl(): string {
+    return this.config.getOrThrow<string>("KIS_REST_BASE_URL")
+  }
+
+  private get appKey(): string {
+    return this.config.getOrThrow<string>("APP_KEY")
+  }
+
+  private get appSecret(): string {
+    return this.config.getOrThrow<string>("APP_SECRET")
+  }
+}
