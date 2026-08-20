@@ -1,11 +1,7 @@
 import { Test } from "@nestjs/testing"
 import { ok } from "neverthrow"
-import { beforeEach, describe, expect, it } from "vitest"
-import {
-  MarketServiceMock,
-  MarketTestingModule,
-} from "../market/testing/marketTesting.module"
-import { MarketService } from "../market/market.service"
+import { beforeEach, describe, expect, it, vi } from "vitest"
+import { ExternalService } from "../external/external.service"
 import {
   StocksServiceMock,
   StocksTestingModule,
@@ -13,19 +9,29 @@ import {
 import { StocksService } from "../stocks/stocks.service"
 import { PricesService } from "./prices.service"
 
+class ExternalServiceMock {
+  price = vi.fn<ExternalService["price"]>()
+}
+
 describe("PricesService", () => {
   let service: PricesService
-  let marketService: MarketServiceMock
+  let externalService: ExternalServiceMock
   let stocksService: StocksServiceMock
 
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [MarketTestingModule, StocksTestingModule],
-      providers: [PricesService],
+      imports: [StocksTestingModule],
+      providers: [
+        PricesService,
+        {
+          provide: ExternalService,
+          useClass: ExternalServiceMock,
+        },
+      ],
     }).compile()
 
     service = moduleRef.get(PricesService)
-    marketService = moduleRef.get(MarketService)
+    externalService = moduleRef.get(ExternalService)
     stocksService = moduleRef.get(StocksService)
   })
 
@@ -38,7 +44,7 @@ describe("PricesService", () => {
         quotationMarket: "KRX",
       })
     )
-    marketService.price.mockResolvedValue(
+    externalService.price.mockResolvedValue(
       ok({
         currentPrice: 70000,
         openPrice: 69000,
@@ -71,7 +77,7 @@ describe("PricesService", () => {
     })
 
     expect(stocksService.getBySymbol).toHaveBeenCalledWith("005930")
-    expect(marketService.price).toHaveBeenCalledWith({
+    expect(externalService.price).toHaveBeenCalledWith({
       symbol: "005930",
       quotationMarket: "KRX",
     })

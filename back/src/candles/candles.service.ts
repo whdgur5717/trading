@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common"
 import { sortBy, uniqBy } from "es-toolkit"
 import { ResultAsync, ok } from "neverthrow"
-import { MarketService } from "../market/market.service"
+import { ExternalService } from "../external/external.service"
 import { StocksService } from "../stocks/stocks.service"
 import {
   MAX_CANDLE_COUNT,
@@ -16,7 +16,7 @@ const KST_TIME_ZONE = "Asia/Seoul"
 export class CandlesService {
   constructor(
     private readonly stocksService: StocksService,
-    private readonly marketService: MarketService
+    private readonly externalService: ExternalService
   ) {}
 
   getCandles(query: CandlesQuery) {
@@ -26,7 +26,7 @@ export class CandlesService {
         const before = query.before ?? kstDate(new Date())
 
         return ResultAsync.fromSafePromise(
-          this.marketService.candles({
+          this.externalService.candles({
             symbol: query.symbol,
             interval: query.interval,
             count: query.count,
