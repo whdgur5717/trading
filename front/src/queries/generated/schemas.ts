@@ -259,46 +259,55 @@ export const ReturnChartDtoSchema = z.object({
 })
 export type ReturnChartDto = z.infer<typeof ReturnChartDtoSchema>
 
-export const RealtimeDisconnectedDtoSchema = z.object({
-  closeCode: z.number(),
+export const SubscribedEventDtoSchema = z.object({
+  symbol: z.string(),
+})
+export type SubscribedEventDto = z.infer<typeof SubscribedEventDtoSchema>
+
+export const PriceEventDtoSchema = z.object({
+  symbol: z.string(),
+  price: z.number(),
+  executedAt: z
+    .string()
+    .regex(
+      new RegExp(
+        "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+      )
+    ),
+})
+export type PriceEventDto = z.infer<typeof PriceEventDtoSchema>
+
+export const HeartbeatEventDtoSchema = z.object({
+  at: z
+    .string()
+    .regex(
+      new RegExp(
+        "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+      )
+    ),
+})
+export type HeartbeatEventDto = z.infer<typeof HeartbeatEventDtoSchema>
+
+export const DisconnectedEventDtoSchema = z.object({
+  provider: z.enum(["kis", "fsc", "opendart"]),
+  closeCode: z.number().int().min(-9007199254740991).max(9007199254740991),
   reason: z.string(),
 })
-export type RealtimeDisconnectedDto = z.infer<
-  typeof RealtimeDisconnectedDtoSchema
->
+export type DisconnectedEventDto = z.infer<typeof DisconnectedEventDtoSchema>
 
-export const RealtimeErrorDtoSchema = z.object({
-  code: z.string(),
-  message: z.string(),
-  retryAfterMs: z.number().optional(),
-})
-export type RealtimeErrorDto = z.infer<typeof RealtimeErrorDtoSchema>
-
-export const RealtimeHeartbeatDtoSchema = z.object({
-  at: z.string(),
-})
-export type RealtimeHeartbeatDto = z.infer<typeof RealtimeHeartbeatDtoSchema>
-
-export const RealtimePriceDtoSchema = z.object({
-  symbol: z.string(),
-  trId: z.string(),
-  price: z.number(),
-  tradeTime: z.string(),
-  businessDate: z.string(),
-})
-export type RealtimePriceDto = z.infer<typeof RealtimePriceDtoSchema>
-
-export const RealtimeReconnectedDtoSchema = z.object({
+export const ReconnectedEventDtoSchema = z.object({
+  provider: z.enum(["kis", "fsc", "opendart"]),
   symbols: z.array(z.string()),
 })
-export type RealtimeReconnectedDto = z.infer<
-  typeof RealtimeReconnectedDtoSchema
->
+export type ReconnectedEventDto = z.infer<typeof ReconnectedEventDtoSchema>
 
-export const RealtimeSubscribedDtoSchema = z.object({
-  symbol: z.string(),
+export const UnavailableEventDtoSchema = z.object({
+  code: z.literal("FEED_UNAVAILABLE"),
+  provider: z.union([z.enum(["kis", "fsc", "opendart"]), z.null()]),
+  message: z.string(),
+  retryAfterMs: z.number().int().min(0).max(9007199254740991),
 })
-export type RealtimeSubscribedDto = z.infer<typeof RealtimeSubscribedDtoSchema>
+export type UnavailableEventDto = z.infer<typeof UnavailableEventDtoSchema>
 
 export const HealthCheckDtoSchema = z.object({
   status: z.literal("ok"),
@@ -855,31 +864,31 @@ export type ReturnsControllerChartResponse504 = z.infer<
   typeof ReturnsControllerChartResponse504Schema
 >
 
-export const RealtimeControllerStreamEventSchema = z.union([
+export const StreamRealtimePricesEventSchema = z.union([
   z.object({
     event: z.literal("subscribed"),
     id: z.string().optional(),
-    data: RealtimeSubscribedDtoSchema,
+    data: SubscribedEventDtoSchema,
   }),
   z.object({
     event: z.literal("price"),
     id: z.string().optional(),
-    data: RealtimePriceDtoSchema,
+    data: PriceEventDtoSchema,
   }),
   z.object({
     event: z.literal("heartbeat"),
     id: z.string().optional(),
-    data: RealtimeHeartbeatDtoSchema,
+    data: HeartbeatEventDtoSchema,
   }),
   z.object({
     event: z.literal("disconnected"),
     id: z.string().optional(),
-    data: RealtimeDisconnectedDtoSchema,
+    data: DisconnectedEventDtoSchema,
   }),
   z.object({
     event: z.literal("reconnected"),
     id: z.string().optional(),
-    data: RealtimeReconnectedDtoSchema,
+    data: ReconnectedEventDtoSchema,
   }),
   z.object({
     event: z.literal("error"),
@@ -902,13 +911,12 @@ export const RealtimeControllerStreamEventSchema = z.union([
           symbol: z.string(),
         }),
       }),
-      RealtimeErrorDtoSchema,
-      z.string(),
+      UnavailableEventDtoSchema,
     ]),
   }),
 ])
-export type RealtimeControllerStreamEvent = z.infer<
-  typeof RealtimeControllerStreamEventSchema
+export type StreamRealtimePricesEvent = z.infer<
+  typeof StreamRealtimePricesEventSchema
 >
 
 export const HealthControllerCheckResponse200Schema = HealthCheckDtoSchema

@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { stockSymbolSchema } from "../market/port/data"
+import { stockSymbolSchema } from "../external/schema"
 
 export const quotationMarketSchema = z
   .enum(["KRX", "NXT", "CONSOLIDATED"])

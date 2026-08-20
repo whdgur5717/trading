@@ -1,11 +1,7 @@
 import { Test } from "@nestjs/testing"
 import { ok } from "neverthrow"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import {
-  MarketServiceMock,
-  MarketTestingModule,
-} from "../market/testing/marketTesting.module"
-import { MarketService } from "../market/market.service"
+import { ExternalService } from "../external/external.service"
 import {
   StocksServiceMock,
   StocksTestingModule,
@@ -13,19 +9,29 @@ import {
 import { StocksService } from "../stocks/stocks.service"
 import { CandlesService } from "./candles.service"
 
+class ExternalServiceMock {
+  candles = vi.fn<ExternalService["candles"]>()
+}
+
 describe("CandlesService", () => {
   let service: CandlesService
-  let marketService: MarketServiceMock
+  let externalService: ExternalServiceMock
   let stocksService: StocksServiceMock
 
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [MarketTestingModule, StocksTestingModule],
-      providers: [CandlesService],
+      imports: [StocksTestingModule],
+      providers: [
+        CandlesService,
+        {
+          provide: ExternalService,
+          useClass: ExternalServiceMock,
+        },
+      ],
     }).compile()
 
     service = moduleRef.get(CandlesService)
-    marketService = moduleRef.get(MarketService)
+    externalService = moduleRef.get(ExternalService)
     stocksService = moduleRef.get(StocksService)
   })
 
@@ -42,7 +48,7 @@ describe("CandlesService", () => {
         quotationMarket: "KRX",
       })
     )
-    marketService.candles.mockResolvedValue(
+    externalService.candles.mockResolvedValue(
       ok([
         {
           date: "2026-05-17",
@@ -82,7 +88,7 @@ describe("CandlesService", () => {
       nextBefore: "2026-05-17",
     })
 
-    expect(marketService.candles).toHaveBeenCalledWith({
+    expect(externalService.candles).toHaveBeenCalledWith({
       symbol: "005930",
       interval: "1d",
       count: 1,
@@ -102,7 +108,7 @@ describe("CandlesService", () => {
         quotationMarket: "KRX",
       })
     )
-    marketService.candles
+    externalService.candles
       .mockResolvedValueOnce(
         ok(
           Array.from({ length: 100 }, (_, index) => ({
@@ -163,14 +169,14 @@ describe("CandlesService", () => {
       "2026-07-10T09:00:00+09:00"
     )
     expect(result.value.candles).toHaveLength(101)
-    expect(marketService.candles).toHaveBeenNthCalledWith(1, {
+    expect(externalService.candles).toHaveBeenNthCalledWith(1, {
       symbol: "005930",
       interval: "1d",
       count: 100,
       before: "2026-07-10",
       quotationMarket: "KRX",
     })
-    expect(marketService.candles).toHaveBeenNthCalledWith(2, {
+    expect(externalService.candles).toHaveBeenNthCalledWith(2, {
       symbol: "005930",
       interval: "1d",
       count: 100,

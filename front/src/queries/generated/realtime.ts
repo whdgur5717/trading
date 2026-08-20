@@ -1,21 +1,21 @@
 import { apiBaseUrl } from "../api"
-export { RealtimeControllerStreamEventSchema } from "./schemas"
-export type { RealtimeControllerStreamEvent } from "./schemas"
+export { StreamRealtimePricesEventSchema } from "./schemas"
+export type { StreamRealtimePricesEvent } from "./schemas"
 
-export type RealtimeControllerStreamParams = {
+export type StreamRealtimePricesParams = {
   symbols: string
 }
 
 /**
  * @example
  * ```ts
- * const eventSource = REALTIME_CONTROLLER_STREAM({
+ * const eventSource = STREAM_REALTIME_PRICES({
  *   symbols: "005930,000660"
  * })
  * ```
  */
-export function REALTIME_CONTROLLER_STREAM(
-  params: RealtimeControllerStreamParams
+export function STREAM_REALTIME_PRICES(
+  params: StreamRealtimePricesParams
 ): EventSource {
   const searchParams = new URLSearchParams()
   searchParams.set("symbols", String(params.symbols))
