@@ -14,9 +14,6 @@ const envSchema = z.object({
     .default("ws://ops.koreainvestment.com:21000/tryitout"),
   FSC_REST_BASE_URL: z.url().default("https://apis.data.go.kr"),
   OPENDART_REST_BASE_URL: z.url().default("https://opendart.fss.or.kr"),
-  KIS_REST_QUEUE_CONCURRENCY: z.coerce.number().int().positive().default(3),
-  KIS_REST_QUEUE_INTERVAL_CAP: z.coerce.number().int().positive().default(3),
-  KIS_REST_QUEUE_INTERVAL_MS: z.coerce.number().int().positive().default(300),
   PUBLIC_DATA_SERVICE_KEY: z.string().min(1),
   DART_API_KEY: z.string().min(1),
 })
