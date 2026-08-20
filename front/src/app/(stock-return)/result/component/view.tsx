@@ -20,22 +20,6 @@ function statusOf(value: number): ResultCardStatus {
   return value > 0 ? "gain" : value < 0 ? "loss" : "flat"
 }
 
-function chartDate(value: string | undefined) {
-  if (!value) {
-    return undefined
-  }
-
-  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    return value
-  }
-
-  if (!/^\d{8}$/.test(value)) {
-    return undefined
-  }
-
-  return `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}`
-}
-
 export function ResultView({ result }: ResultViewProps) {
   const stream = useEventStream(result.stock.symbol)
   const currentPrice = stream.data?.price ?? Number(result.current.currentPrice)
@@ -54,7 +38,7 @@ export function ResultView({ result }: ResultViewProps) {
       value: Number(candle.closePrice),
     })) satisfies PriceTrendData[]
 
-    const time = chartDate(stream.data?.businessDate)
+    const time = stream.data?.executedAt.slice(0, 10)
 
     if (!time || stream.data?.price === undefined) {
       return data
