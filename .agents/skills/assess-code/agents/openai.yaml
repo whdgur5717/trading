@@ -1,7 +1,0 @@
-interface:
-  display_name: "Assess Code"
-  short_description: "Assess code against contextual design criteria"
-  default_prompt: "Use $assess-code to assess this code using the relevant references and report evidence-backed tensions."
-
-policy:
-  allow_implicit_invocation: false
