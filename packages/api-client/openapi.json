@@ -2516,7 +2516,7 @@
     },
     "/realtime/stream": {
       "get": {
-        "operationId": "RealtimeController_stream",
+        "operationId": "streamRealtimePrices",
         "parameters": [
           {
             "name": "symbols",
@@ -2533,7 +2533,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Server-sent events stream",
+            "description": "Realtime stock trade events",
             "content": {
               "text/event-stream": {
                 "schema": {
@@ -2551,7 +2551,7 @@
                             "type": "string"
                           },
                           "data": {
-                            "$ref": "#/components/schemas/RealtimeSubscribedDto"
+                            "$ref": "#/components/schemas/SubscribedEventDto"
                           }
                         },
                         "required": ["event", "data"]
@@ -2567,7 +2567,7 @@
                             "type": "string"
                           },
                           "data": {
-                            "$ref": "#/components/schemas/RealtimePriceDto"
+                            "$ref": "#/components/schemas/PriceEventDto"
                           }
                         },
                         "required": ["event", "data"]
@@ -2583,7 +2583,7 @@
                             "type": "string"
                           },
                           "data": {
-                            "$ref": "#/components/schemas/RealtimeHeartbeatDto"
+                            "$ref": "#/components/schemas/HeartbeatEventDto"
                           }
                         },
                         "required": ["event", "data"]
@@ -2599,7 +2599,7 @@
                             "type": "string"
                           },
                           "data": {
-                            "$ref": "#/components/schemas/RealtimeDisconnectedDto"
+                            "$ref": "#/components/schemas/DisconnectedEventDto"
                           }
                         },
                         "required": ["event", "data"]
@@ -2615,7 +2615,7 @@
                             "type": "string"
                           },
                           "data": {
-                            "$ref": "#/components/schemas/RealtimeReconnectedDto"
+                            "$ref": "#/components/schemas/ReconnectedEventDto"
                           }
                         },
                         "required": ["event", "data"]
@@ -2699,10 +2699,7 @@
                                 ]
                               },
                               {
-                                "$ref": "#/components/schemas/RealtimeErrorDto"
-                              },
-                              {
-                                "type": "string"
+                                "$ref": "#/components/schemas/UnavailableEventDto"
                               }
                             ]
                           }
@@ -2716,29 +2713,10 @@
             }
           },
           "400": {
-            "description": "The symbols query is missing or does not match the stream request contract.",
-            "content": {
-              "text/event-stream": {
-                "example": {
-                  "success": false,
-                  "error": {
-                    "type": "common.invalid_request",
-                    "status": 400,
-                    "message": "Validation failed",
-                    "data": {
-                      "issues": [
-                        {
-                          "path": ["symbols"],
-                          "message": "Required"
-                        }
-                      ]
-                    }
-                  }
-                }
-              }
-            }
+            "description": "Invalid symbols query"
           }
         },
+        "summary": "",
         "tags": ["Realtime"]
       }
     },
@@ -3732,11 +3710,63 @@
         },
         "required": ["stock", "buy", "current", "result", "chart"]
       },
-      "RealtimeDisconnectedDto": {
+      "SubscribedEventDto": {
         "type": "object",
         "properties": {
-          "closeCode": {
+          "symbol": {
+            "type": "string",
+            "example": "005930"
+          }
+        },
+        "required": ["symbol"],
+        "additionalProperties": false
+      },
+      "PriceEventDto": {
+        "type": "object",
+        "properties": {
+          "symbol": {
+            "type": "string",
+            "example": "005930"
+          },
+          "price": {
             "type": "number",
+            "example": 78000
+          },
+          "executedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "example": "2026-05-15T10:30:15+09:00"
+          }
+        },
+        "required": ["symbol", "price", "executedAt"],
+        "additionalProperties": false
+      },
+      "HeartbeatEventDto": {
+        "type": "object",
+        "properties": {
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+            "example": "2026-05-15T01:30:15.000Z"
+          }
+        },
+        "required": ["at"],
+        "additionalProperties": false
+      },
+      "DisconnectedEventDto": {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string",
+            "enum": ["kis", "fsc", "opendart"],
+            "example": "kis"
+          },
+          "closeCode": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
             "example": 1006
           },
           "reason": {
@@ -3744,65 +3774,17 @@
             "example": ""
           }
         },
-        "required": ["closeCode", "reason"]
+        "required": ["provider", "closeCode", "reason"],
+        "additionalProperties": false
       },
-      "RealtimeErrorDto": {
+      "ReconnectedEventDto": {
         "type": "object",
         "properties": {
-          "code": {
+          "provider": {
             "type": "string",
-            "example": "FEED_UNAVAILABLE"
+            "enum": ["kis", "fsc", "opendart"],
+            "example": "kis"
           },
-          "message": {
-            "type": "string",
-            "example": "Realtime feed connection failed"
-          },
-          "retryAfterMs": {
-            "type": "number",
-            "example": 300000
-          }
-        },
-        "required": ["code", "message"]
-      },
-      "RealtimeHeartbeatDto": {
-        "type": "object",
-        "properties": {
-          "at": {
-            "type": "string",
-            "example": "2026-05-15T01:30:15.000Z"
-          }
-        },
-        "required": ["at"]
-      },
-      "RealtimePriceDto": {
-        "type": "object",
-        "properties": {
-          "symbol": {
-            "type": "string",
-            "example": "005930"
-          },
-          "trId": {
-            "type": "string",
-            "example": "H0STCNT0"
-          },
-          "price": {
-            "type": "number",
-            "example": 78000
-          },
-          "tradeTime": {
-            "type": "string",
-            "example": "103015"
-          },
-          "businessDate": {
-            "type": "string",
-            "example": "20260515"
-          }
-        },
-        "required": ["symbol", "trId", "price", "tradeTime", "businessDate"]
-      },
-      "RealtimeReconnectedDto": {
-        "type": "object",
-        "properties": {
           "symbols": {
             "type": "array",
             "items": {
@@ -3811,17 +3793,41 @@
             "example": ["005930", "000660"]
           }
         },
-        "required": ["symbols"]
+        "required": ["provider", "symbols"],
+        "additionalProperties": false
       },
-      "RealtimeSubscribedDto": {
+      "UnavailableEventDto": {
         "type": "object",
         "properties": {
-          "symbol": {
+          "code": {
             "type": "string",
-            "example": "005930"
+            "const": "FEED_UNAVAILABLE"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": ["kis", "fsc", "opendart"],
+                "example": "kis"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "type": "string",
+            "example": "Realtime feed is unavailable"
+          },
+          "retryAfterMs": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991,
+            "example": 300000
           }
         },
-        "required": ["symbol"]
+        "required": ["code", "provider", "message", "retryAfterMs"],
+        "additionalProperties": false
       },
       "HealthCheckDto": {
         "type": "object",

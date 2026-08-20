@@ -4,10 +4,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useEffect, useRef, useState } from "react"
 
 import {
-  REALTIME_CONTROLLER_STREAM,
-  RealtimeControllerStreamEventSchema,
-  type RealtimeControllerStreamEvent,
-  type RealtimePriceDto,
+  STREAM_REALTIME_PRICES,
+  StreamRealtimePricesEventSchema,
+  type PriceEventDto,
+  type StreamRealtimePricesEvent,
 } from "@/queries/generated"
 
 export type EventStreamStatus =
@@ -18,15 +18,12 @@ export type EventStreamStatus =
   | "stale"
   | "error"
 
-type RealtimeErrorEvent = Extract<
-  RealtimeControllerStreamEvent,
-  { event: "error" }
->
+type RealtimeErrorEvent = Extract<StreamRealtimePricesEvent, { event: "error" }>
 
 export type EventStreamError = RealtimeErrorEvent["data"] | { message: string }
 
 type EventStreamMeta = {
-  lastEvent: RealtimeControllerStreamEvent | null
+  lastEvent: StreamRealtimePricesEvent | null
   lastEventAt: number | null
   lastPriceAt: number | null
 }
@@ -67,7 +64,7 @@ export function useEventStream(symbol: string) {
     meta: emptyMeta,
   })
   const [connectionVersion, setConnectionVersion] = useState(0)
-  const priceQuery = useQuery<RealtimePriceDto | null>({
+  const priceQuery = useQuery<PriceEventDto | null>({
     queryKey: ["realtime", "stock-price", symbol],
     queryFn: () => null,
     enabled: false,
@@ -82,7 +79,7 @@ export function useEventStream(symbol: string) {
       return
     }
 
-    const eventSource = REALTIME_CONTROLLER_STREAM({ symbols: symbol })
+    const eventSource = STREAM_REALTIME_PRICES({ symbols: symbol })
 
     eventSource.onopen = () => {
       setStream({
@@ -134,7 +131,7 @@ export function useEventStream(symbol: string) {
           const messageEvent = event as MessageEvent<string>
           const data = JSON.parse(messageEvent.data) as unknown
 
-          const realtimeEvent = RealtimeControllerStreamEventSchema.parse({
+          const realtimeEvent = StreamRealtimePricesEventSchema.parse({
             event: eventName,
             data,
           })
