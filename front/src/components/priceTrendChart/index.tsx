@@ -216,7 +216,7 @@ function PriceTrendChartRoot({
       ) : null}
       <div
         aria-hidden={!tooltip.visible}
-        className="pointer-events-none absolute top-0 left-0 z-20 w-28 rounded-md bg-surface-raised/90 px-2 py-1 text-right type-label opacity-0 shadow-[0_8px_24px_oklch(0_0_0/0.28)] transition-opacity duration-100 ease-standard data-visible:opacity-100"
+        className="pointer-events-none absolute top-0 left-0 z-20 w-28 rounded-md bg-surface-popup/90 px-2 py-1 text-right type-label opacity-0 shadow-surface inset-shadow-surface transition-opacity duration-100 ease-standard data-visible:opacity-100"
         data-visible={tooltip.visible ? "" : undefined}
         style={
           {

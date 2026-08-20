@@ -5,7 +5,9 @@ colors:
   bg: "oklch(0.055 0 0)"
   surface: "oklch(0.125 0.012 294)"
   surface-muted: "oklch(0.17 0.016 294)"
-  surface-raised: "oklch(0.205 0.018 294)"
+  surface-card: "oklch(0.205 0.018 294)"
+  surface-modal: "oklch(0.205 0.018 294)"
+  surface-popup: "oklch(0.245 0.02 294)"
   ink: "oklch(0.94 0.006 294)"
   muted: "oklch(0.74 0.018 294)"
   subtle: "oklch(0.58 0.02 294)"
@@ -23,7 +25,14 @@ colors:
   warning: "oklch(0.82 0.14 78)"
   disabled: "oklch(0.19 0.012 294)"
   disabled-foreground: "oklch(0.48 0.018 294)"
-  overlay: "oklch(0.24 0.07 294 / 0.62)"
+  backdrop: "oklch(0.055 0 0 / 0.72)"
+shadow:
+  inset-surface: "inset 0 1px 0 rgb(255 255 255 / 0.08)"
+  surface:
+    - "0 2px 4px rgb(0 0 0 / 0.1)"
+    - "0 8px 8px rgb(0 0 0 / 0.09)"
+    - "0 19px 11px rgb(0 0 0 / 0.05)"
+    - "0 34px 13px rgb(0 0 0 / 0.01)"
 typography:
   display:
     fontFamily: "Pretendard Variable, Pretendard, system-ui, sans-serif"
@@ -99,7 +108,10 @@ spacing:
 | 배경          | `bg`              | 제품의 기본 캔버스다. 다크 모드 토글처럼 다루지 않는다.                     |
 | 기본 표면     | `surface`         | 조용한 구획, 모달 상단/하단, 보조 영역에 쓴다.                              |
 | 눌린 표면     | `surface-muted`   | 입력 row, 비활성 chip, 밀도 높은 컨트롤에 쓴다.                             |
-| 떠 있는 표면  | `surface-raised`  | 결과 카드, popover, 핵심 패널에 쓴다.                                       |
+| 카드 표면     | `surface-card`    | 입력 카드와 결과 카드처럼 화면에 계속 존재하는 elevation에 쓴다.            |
+| 모달 표면     | `surface-modal`   | backdrop 위에서 현재 작업을 차단하는 모달에 쓴다.                           |
+| 팝업 표면     | `surface-popup`   | select, menu, date picker, popover처럼 잠시 겹쳐 뜨는 표면에 쓴다.          |
+| 모달 뒤 배경  | `backdrop`        | 모달이 열릴 때 기존 화면을 어둡게 하고 상호작용을 차단한다.                 |
 | 본문 글자     | `ink`             | 반드시 읽혀야 하는 텍스트에 쓴다.                                           |
 | 보조 글자     | `muted`, `subtle` | 보조 설명과 placeholder에 쓴다. 대비를 낮추기 위해 남용하지 않는다.         |
 | 주요 액션     | `primary`         | 선택 상태, 주요 버튼, 공유 유도에 쓴다.                                     |
@@ -129,15 +141,26 @@ spacing:
 
 ## 표면
 
-깊이는 그림자나 선보다 표면 톤과 간격으로 만든다. 검은 배경 위에서는 표면 단계가
-충분히 달라야 한다.
+깊이는 표면 톤을 우선으로 만든다. 검은 캔버스에서는 바깥 검은 그림자만으로 깊이를
+구분할 수 없으므로, elevated surface에는 `inset-shadow-surface`의 얇은 상단
+highlight를 함께 쓴다. `shadow-surface`의 바깥 그림자는 popup이 다른 표면을
+실제로 겹칠 때 보조로 작동한다. elevation을 표현하기 위해 border는 사용하지
+않는다. 두 토큰은 Tailwind의 inset shadow와 outer shadow 체계를 각각 사용한다.
 
-| 표면             | 용도                               |
-| ---------------- | ---------------------------------- |
-| `bg`             | 페이지 전체 배경                   |
-| `surface`        | 차분한 보조 구획                   |
-| `surface-muted`  | 입력, 비활성 선택지, 밀도 높은 row |
-| `surface-raised` | 결과 카드, popover, 핵심 panel     |
+| 표면            | 용도                                           |
+| --------------- | ---------------------------------------------- |
+| `bg`            | 페이지 전체 배경                               |
+| `surface`       | 차분한 보조 구획                               |
+| `surface-muted` | 입력, 비활성 선택지, 같은 표면 안의 inset 영역 |
+| `surface-card`  | 입력 카드, 결과 카드                           |
+| `surface-modal` | dialog와 modal panel                           |
+| `surface-popup` | select, menu, date picker, popover, tooltip    |
+
+카드, 모달, 팝업은 공통 `inset-shadow-surface shadow-surface` 조합을 사용한다.
+카드에서는 inset highlight가 주로 보이고, 팝업에서는 아래 표면 위에 드리워지는
+바깥 그림자도 함께 보인다. 모달은 `backdrop`과 조합해 기존 화면과 분리한다. 일반
+버튼과 닫힌 select trigger는 elevation을 갖지 않으며, 열림 상태에서도 카드나
+팝업 표면으로 바뀌지 않는다.
 
 색 있는 side stripe로 구조를 만들지 않는다.
 
@@ -158,8 +181,18 @@ spacing:
 ### 카드
 
 - 결과 카드는 `16px`, 입력 그룹은 `12px` radius를 넘지 않는다.
-- 입력 영역은 `surface-muted`, 공유 결과 카드는 `surface-raised`를 쓴다.
+- 입력 카드와 공유 결과 카드는 `surface-card`, `inset-shadow-surface`,
+  `shadow-surface`를 쓴다.
 - 카드 안에 다시 장식용 카드를 중첩하지 않는다.
+
+### 팝업과 모달
+
+- select, menu, date picker, popover의 바깥 컨테이너는 모두 `surface-popup`,
+  `inset-shadow-surface`, `shadow-surface`를 쓴다. 내부 콘텐츠가 자체 elevation을
+  결정하지 않는다.
+- 모달은 `surface-modal`, `inset-shadow-surface`, `shadow-surface`, `backdrop`을
+  함께 쓴다.
+- 팝업이나 모달에 elevation 표현용 border를 추가하지 않는다.
 
 ### 입력 필드
 

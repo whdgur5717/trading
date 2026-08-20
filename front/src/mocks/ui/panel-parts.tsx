@@ -29,8 +29,8 @@ type StatusListProps = {
 
 export function PanelFrame({ children }: PanelFrameProps) {
   return (
-    <section className="flex max-h-[min(44rem,calc(100dvh-2rem))] w-[min(52rem,calc(100dvw-2rem))] flex-col overflow-hidden rounded-lg bg-surface shadow-2xl">
-      <header className="flex items-center justify-between gap-md border-b border-surface-raised p-md">
+    <section className="flex max-h-[min(44rem,calc(100dvh-2rem))] w-[min(52rem,calc(100dvw-2rem))] flex-col overflow-hidden rounded-lg bg-surface-popup shadow-surface inset-shadow-surface">
+      <header className="flex items-center justify-between gap-md border-b border-surface-muted p-md">
         <div className="flex flex-col gap-xs">
           <p className="type-label text-primary">Mock backend</p>
           <h2 className="type-title">API Mock Control</h2>
@@ -38,7 +38,7 @@ export function PanelFrame({ children }: PanelFrameProps) {
         <Popover.Close asChild>
           <button
             aria-label="닫기"
-            className="inline-flex size-touch items-center justify-center rounded-sm bg-surface-raised text-muted"
+            className="inline-flex size-touch items-center justify-center rounded-sm bg-surface-muted text-muted"
             title="닫기"
             type="button"
           >
@@ -65,7 +65,7 @@ export function OperationList({
       <div className="flex items-center justify-between gap-md">
         <h3 className="type-title">Operations</h3>
         <button
-          className="inline-flex h-touch items-center gap-sm rounded-sm bg-surface-raised px-md type-label text-muted"
+          className="inline-flex h-touch items-center gap-sm rounded-sm bg-surface-muted px-md type-label text-muted"
           disabled={disabled}
           onClick={refresh}
           type="button"

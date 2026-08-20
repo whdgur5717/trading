@@ -17,20 +17,20 @@ export const Trigger = Dialog.Trigger
 export const Portal = Dialog.Portal
 export const Close = Dialog.Close
 
-export type ModalOverlayProps = ComponentProps<typeof Dialog.Overlay>
+export type ModalBackdropProps = ComponentProps<typeof Dialog.Overlay>
 
-export function Overlay({ className, ref, ...props }: ModalOverlayProps) {
+export function Backdrop({ className, ref, ...props }: ModalBackdropProps) {
   return (
     <Dialog.Overlay
       ref={ref}
-      className={cn(styles.overlay(), className)}
-      data-slot="modal-overlay"
+      className={cn(styles.backdrop(), className)}
+      data-slot="modal-backdrop"
       {...props}
     />
   )
 }
 
-Overlay.displayName = "ModalOverlay"
+Backdrop.displayName = "ModalBackdrop"
 
 export type ModalContentProps = ComponentProps<typeof Dialog.Content>
 
@@ -42,7 +42,7 @@ export function Content({
 }: ModalContentProps) {
   return (
     <Dialog.Portal>
-      <Overlay />
+      <Backdrop />
       <Dialog.Content
         ref={ref}
         className={cn(styles.content(), className)}
