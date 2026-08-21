@@ -1,10 +1,26 @@
 import { apiBaseUrl } from "../api"
-export { StreamRealtimePricesEventSchema } from "./schemas"
-export type { StreamRealtimePricesEvent } from "./schemas"
+import {
+  type StreamRealtimePricesResponse400,
+  type StreamRealtimePricesResponse404,
+} from "./schemas"
+export {
+  StreamRealtimePricesEventSchema,
+  StreamRealtimePricesResponse400Schema,
+  StreamRealtimePricesResponse404Schema,
+} from "./schemas"
+export type {
+  StreamRealtimePricesEvent,
+  StreamRealtimePricesResponse400,
+  StreamRealtimePricesResponse404,
+} from "./schemas"
 
 export type StreamRealtimePricesParams = {
   symbols: string
 }
+
+export type StreamRealtimePricesFailure =
+  | { status: 400; body: StreamRealtimePricesResponse400 }
+  | { status: 404; body: StreamRealtimePricesResponse404 }
 
 /**
  * @example

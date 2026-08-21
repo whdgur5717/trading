@@ -97,6 +97,13 @@ export function before(_options, program) {
         return
       }
 
+      // ApiResponseInterceptor가 적용된 controller만 런타임에서 공통 응답 형식으로
+      // 변환되므로 OpenAPI 응답 계약도 같은 controller에만 생성한다.
+      const usesApiResponseInterceptor = usesInterceptor(
+        node,
+        "ApiResponseInterceptor"
+      )
+
       for (const member of node.members) {
         if (!ts.isMethodDeclaration(member) || !ts.isIdentifier(member.name)) {
           continue
@@ -104,7 +111,7 @@ export function before(_options, program) {
 
         const routeDecorator = getRouteDecorator(member)
 
-        if (!routeDecorator || hasDecorator(member, "SkipApiResponse")) {
+        if (!routeDecorator || !usesApiResponseInterceptor) {
           continue
         }
 
@@ -265,6 +272,18 @@ function getDecorator(node, name) {
 
 function hasDecorator(node, name) {
   return Boolean(getDecorator(node, name))
+}
+
+function usesInterceptor(node, name) {
+  const decorator = getDecorator(node, "UseInterceptors")
+
+  return (
+    decorator &&
+    ts.isCallExpression(decorator.expression) &&
+    decorator.expression.arguments.some(
+      (argument) => expressionName(argument) === name
+    )
+  )
 }
 
 function decoratorName(decorator) {

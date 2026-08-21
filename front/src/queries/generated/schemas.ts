@@ -894,29 +894,41 @@ export const StreamRealtimePricesEventSchema = z.union([
     event: z.literal("error"),
     id: z.string().optional(),
     retry: z.number().optional(),
-    data: z.union([
-      z.object({
-        type: z.literal("common.invalid_request"),
-        status: z.literal(400),
-        message: z.string(),
-        data: z.object({
-          issues: z.array(z.unknown()),
-        }),
-      }),
-      z.object({
-        type: z.literal("stock.unsupported"),
-        status: z.literal(404),
-        message: z.string(),
-        data: z.object({
-          symbol: z.string(),
-        }),
-      }),
-      UnavailableEventDtoSchema,
-    ]),
+    data: UnavailableEventDtoSchema,
   }),
 ])
 export type StreamRealtimePricesEvent = z.infer<
   typeof StreamRealtimePricesEventSchema
+>
+
+export const StreamRealtimePricesResponse400Schema = z.object({
+  success: z.literal(false),
+  error: z.object({
+    type: z.literal("common.invalid_request"),
+    status: z.literal(400),
+    message: z.string(),
+    data: z.object({
+      issues: z.array(z.unknown()),
+    }),
+  }),
+})
+export type StreamRealtimePricesResponse400 = z.infer<
+  typeof StreamRealtimePricesResponse400Schema
+>
+
+export const StreamRealtimePricesResponse404Schema = z.object({
+  success: z.literal(false),
+  error: z.object({
+    type: z.literal("stock.unsupported"),
+    status: z.literal(404),
+    message: z.string(),
+    data: z.object({
+      symbol: z.string(),
+    }),
+  }),
+})
+export type StreamRealtimePricesResponse404 = z.infer<
+  typeof StreamRealtimePricesResponse404Schema
 >
 
 export const HealthControllerCheckResponse200Schema = HealthCheckDtoSchema
@@ -1078,5 +1090,27 @@ export const ApiErrorDtoSchema = z.union([
       }),
     }),
   ]),
+  z.object({
+    success: z.literal(false),
+    error: z.object({
+      type: z.literal("common.invalid_request"),
+      status: z.literal(400),
+      message: z.string(),
+      data: z.object({
+        issues: z.array(z.unknown()),
+      }),
+    }),
+  }),
+  z.object({
+    success: z.literal(false),
+    error: z.object({
+      type: z.literal("stock.unsupported"),
+      status: z.literal(404),
+      message: z.string(),
+      data: z.object({
+        symbol: z.string(),
+      }),
+    }),
+  }),
 ])
 export type ApiErrorDto = z.infer<typeof ApiErrorDtoSchema>

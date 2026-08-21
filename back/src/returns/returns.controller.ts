@@ -1,7 +1,9 @@
-import { Controller, Get, Query } from "@nestjs/common"
+import { Controller, Get, Query, UseInterceptors } from "@nestjs/common"
+import { ApiResponseInterceptor } from "../common/api/response"
 import { ReturnsQueryDto } from "./returns.dto"
 import { ReturnsService } from "./returns.service"
 
+@UseInterceptors(ApiResponseInterceptor)
 @Controller("returns")
 export class ReturnsController {
   constructor(private readonly returnsService: ReturnsService) {}
