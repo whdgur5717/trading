@@ -277,6 +277,11 @@ export const PriceEventDtoSchema = z.object({
 })
 export type PriceEventDto = z.infer<typeof PriceEventDtoSchema>
 
+export const MarketEventDtoSchema = z.object({
+  session: z.enum(["PRE_MARKET", "REGULAR_MARKET", "AFTER_MARKET", "CLOSED"]),
+})
+export type MarketEventDto = z.infer<typeof MarketEventDtoSchema>
+
 export const HeartbeatEventDtoSchema = z.object({
   at: z
     .string()
@@ -289,25 +294,29 @@ export const HeartbeatEventDtoSchema = z.object({
 export type HeartbeatEventDto = z.infer<typeof HeartbeatEventDtoSchema>
 
 export const DisconnectedEventDtoSchema = z.object({
-  provider: z.enum(["kis", "fsc", "opendart"]),
   closeCode: z.number().int().min(-9007199254740991).max(9007199254740991),
   reason: z.string(),
 })
 export type DisconnectedEventDto = z.infer<typeof DisconnectedEventDtoSchema>
 
 export const ReconnectedEventDtoSchema = z.object({
-  provider: z.enum(["kis", "fsc", "opendart"]),
   symbols: z.array(z.string()),
 })
 export type ReconnectedEventDto = z.infer<typeof ReconnectedEventDtoSchema>
 
-export const UnavailableEventDtoSchema = z.object({
-  code: z.literal("FEED_UNAVAILABLE"),
-  provider: z.union([z.enum(["kis", "fsc", "opendart"]), z.null()]),
+export const RealtimeErrorEventDtoSchema = z.object({
+  code: z.enum([
+    "FEED_UNAVAILABLE",
+    "MARKET_SESSION_UNAVAILABLE",
+    "MARKET_SESSION_AUTH_UNAVAILABLE",
+    "MARKET_SESSION_TIMEOUT",
+    "MARKET_SESSION_INVALID_RESPONSE",
+    "MARKET_SESSION_NOT_FOUND",
+  ]),
   message: z.string(),
   retryAfterMs: z.number().int().min(0).max(9007199254740991),
 })
-export type UnavailableEventDto = z.infer<typeof UnavailableEventDtoSchema>
+export type RealtimeErrorEventDto = z.infer<typeof RealtimeErrorEventDtoSchema>
 
 export const HealthCheckDtoSchema = z.object({
   status: z.literal("ok"),
@@ -876,6 +885,11 @@ export const StreamRealtimePricesEventSchema = z.union([
     data: PriceEventDtoSchema,
   }),
   z.object({
+    event: z.literal("market"),
+    id: z.string().optional(),
+    data: MarketEventDtoSchema,
+  }),
+  z.object({
     event: z.literal("heartbeat"),
     id: z.string().optional(),
     data: HeartbeatEventDtoSchema,
@@ -891,32 +905,44 @@ export const StreamRealtimePricesEventSchema = z.union([
     data: ReconnectedEventDtoSchema,
   }),
   z.object({
-    event: z.literal("error"),
+    event: z.literal("realtime-error"),
     id: z.string().optional(),
     retry: z.number().optional(),
-    data: z.union([
-      z.object({
-        type: z.literal("common.invalid_request"),
-        status: z.literal(400),
-        message: z.string(),
-        data: z.object({
-          issues: z.array(z.unknown()),
-        }),
-      }),
-      z.object({
-        type: z.literal("stock.unsupported"),
-        status: z.literal(404),
-        message: z.string(),
-        data: z.object({
-          symbol: z.string(),
-        }),
-      }),
-      UnavailableEventDtoSchema,
-    ]),
+    data: RealtimeErrorEventDtoSchema,
   }),
 ])
 export type StreamRealtimePricesEvent = z.infer<
   typeof StreamRealtimePricesEventSchema
+>
+
+export const StreamRealtimePricesResponse400Schema = z.object({
+  success: z.literal(false),
+  error: z.object({
+    type: z.literal("common.invalid_request"),
+    status: z.literal(400),
+    message: z.string(),
+    data: z.object({
+      issues: z.array(z.unknown()),
+    }),
+  }),
+})
+export type StreamRealtimePricesResponse400 = z.infer<
+  typeof StreamRealtimePricesResponse400Schema
+>
+
+export const StreamRealtimePricesResponse404Schema = z.object({
+  success: z.literal(false),
+  error: z.object({
+    type: z.literal("stock.unsupported"),
+    status: z.literal(404),
+    message: z.string(),
+    data: z.object({
+      symbol: z.string(),
+    }),
+  }),
+})
+export type StreamRealtimePricesResponse404 = z.infer<
+  typeof StreamRealtimePricesResponse404Schema
 >
 
 export const HealthControllerCheckResponse200Schema = HealthCheckDtoSchema
@@ -1078,5 +1104,27 @@ export const ApiErrorDtoSchema = z.union([
       }),
     }),
   ]),
+  z.object({
+    success: z.literal(false),
+    error: z.object({
+      type: z.literal("common.invalid_request"),
+      status: z.literal(400),
+      message: z.string(),
+      data: z.object({
+        issues: z.array(z.unknown()),
+      }),
+    }),
+  }),
+  z.object({
+    success: z.literal(false),
+    error: z.object({
+      type: z.literal("stock.unsupported"),
+      status: z.literal(404),
+      message: z.string(),
+      data: z.object({
+        symbol: z.string(),
+      }),
+    }),
+  }),
 ])
 export type ApiErrorDto = z.infer<typeof ApiErrorDtoSchema>

@@ -3,41 +3,22 @@ import {
   ExecutionContext,
   Injectable,
   NestInterceptor,
-  SetMetadata,
 } from "@nestjs/common"
-import { Reflector } from "@nestjs/core"
 import type { Response } from "express"
 import { Observable, mergeMap } from "rxjs"
 import { commonErrors } from "../error/common.errors"
 import { isDefinedError } from "../error/define"
 import { type ApiFailure, type ApiSuccess } from "./schema"
 
-export const SKIP_API_RESPONSE = "skipApiResponse"
-
-export function SkipApiResponse() {
-  return SetMetadata(SKIP_API_RESPONSE, true)
-}
-
 @Injectable()
 export class ApiResponseInterceptor<T> implements NestInterceptor<
   T,
   ApiSuccess | ApiFailure | T
 > {
-  constructor(private readonly reflector: Reflector) {}
-
   intercept(
     context: ExecutionContext,
     next: CallHandler<T>
   ): Observable<ApiSuccess | ApiFailure | T> {
-    const shouldSkip = this.reflector.getAllAndOverride<boolean>(
-      SKIP_API_RESPONSE,
-      [context.getHandler(), context.getClass()]
-    )
-
-    if (shouldSkip) {
-      return next.handle()
-    }
-
     const response = context.switchToHttp().getResponse<Response>()
 
     return next

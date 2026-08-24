@@ -40,7 +40,6 @@ export const candlesQuerySchema = z
 export const marketDayQuerySchema = z
   .strictObject({
     date: tradingDateSchema,
-    quotationMarket: quotationMarketSchema,
   })
   .meta({ description: "Market day query" })
 
@@ -102,7 +101,6 @@ export const candleSchema = z
 export const marketDaySchema = z
   .strictObject({
     date: tradingDateSchema,
-    quotationMarket: quotationMarketSchema,
     isBusinessDay: z
       .boolean()
       .meta({ description: "Business day", example: true }),
@@ -233,6 +231,25 @@ export type ExternalStreamState =
   | {
       status: "unavailable"
       provider: ExternalProvider
+      message: string
+      retryAfterMs: number
+    }
+
+export type TradeStreamEvent =
+  | {
+      type: "trade"
+      trade: TradeTick
+    }
+  | {
+      type: "disconnected"
+      closeCode: number
+      reason: string
+    }
+  | {
+      type: "reconnected"
+    }
+  | {
+      type: "unavailable"
       message: string
       retryAfterMs: number
     }

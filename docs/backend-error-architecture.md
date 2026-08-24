@@ -180,8 +180,9 @@ controller return type
 클라이언트에 반영되지 않는 상태를 막기 위한 규칙이다.
 
 일반 HTTP API에는 수동 Swagger response annotation을 추가하지 않는다. 반환 타입과
-오류 정의에서 자동으로 생성한다. SSE처럼 `SkipApiResponse()`를 쓰는 경로는 자동
-응답 래핑 대상이 아니므로 필요한 OpenAPI annotation을 직접 둔다.
+오류 정의에서 자동으로 생성한다. `ApiResponseInterceptor`는 일반 JSON controller에
+controller 범위로 적용한다. SSE처럼 interceptor를 적용하지 않는 경로는 필요한
+OpenAPI annotation을 직접 둔다.
 
 ## 생성 클라이언트
 

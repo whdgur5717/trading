@@ -158,6 +158,23 @@ describe("KisWebSocketClient", () => {
     expect(close).toHaveBeenCalledOnce()
   })
 
+  it("같은 구독을 요구하는 소비자들은 하나의 외부 구독을 공유한다", async () => {
+    await Promise.all([
+      client.subscribe(testChannel, "first"),
+      client.subscribe(testChannel, "first"),
+    ])
+
+    expect(subscribe).toHaveBeenCalledOnce()
+
+    client.unsubscribe(testChannel, "first")
+    expect(unsubscribe).not.toHaveBeenCalled()
+    expect(close).not.toHaveBeenCalled()
+
+    client.unsubscribe(testChannel, "first")
+    expect(unsubscribe).toHaveBeenCalledOnce()
+    expect(close).toHaveBeenCalledOnce()
+  })
+
   it("연결 중 수요가 사라지면 연결 완료 상태를 노출하지 않는다", async () => {
     let completeSubscription: (
       result: Result<void, ExternalStreamFailure>

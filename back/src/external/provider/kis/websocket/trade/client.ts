@@ -1,19 +1,18 @@
 import { Injectable } from "@nestjs/common"
-import type { Result } from "neverthrow"
-import type { Observable } from "rxjs"
-import type { ExternalStreamFailure } from "../../../../error"
+import { defer, filter, finalize, ignoreElements, map, merge, scan } from "rxjs"
 import { tradeTickSchema } from "../../../../schema"
 import type {
   ExternalStreamState,
   StockSymbol,
   TradeTick,
+  TradeStreamEvent,
 } from "../../../../schema"
 import { KisWebSocketClient } from "../client"
 import type { KisWebSocketChannel, KisWebSocketSubscription } from "../channel"
 import type { KisWebSocketFrame } from "../schema"
 import { kisTradePayloadSchema } from "./schema"
 
-const TRADE_TR_ID = "H0STCNT0"
+const TRADE_TR_ID = "H0UNCNT0"
 
 @Injectable()
 export class KisTradeClient implements KisWebSocketChannel<
@@ -22,20 +21,69 @@ export class KisTradeClient implements KisWebSocketChannel<
 > {
   constructor(private readonly websocket: KisWebSocketClient) {}
 
-  subscribe(symbol: StockSymbol): Promise<Result<void, ExternalStreamFailure>> {
-    return this.websocket.subscribe(this, symbol)
-  }
+  watch(symbols: StockSymbol[]) {
+    const requested = new Set(symbols)
+    const activation = defer(() =>
+      Promise.all(
+        [...requested].map((symbol) => this.websocket.subscribe(this, symbol))
+      )
+    ).pipe(ignoreElements())
 
-  unsubscribe(symbol: StockSymbol): Result<void, ExternalStreamFailure> {
-    return this.websocket.unsubscribe(this, symbol)
-  }
+    const states = this.websocket.states().pipe(
+      scan<
+        ExternalStreamState,
+        {
+          disconnected: boolean
+          event: TradeStreamEvent | null
+        }
+      >(
+        (previous, state) => {
+          switch (state.status) {
+            case "connected":
+              return {
+                disconnected: false,
+                event: previous.disconnected ? { type: "reconnected" } : null,
+              }
+            case "disconnected":
+              return {
+                disconnected: true,
+                event: {
+                  type: "disconnected",
+                  closeCode: state.closeCode,
+                  reason: state.reason,
+                },
+              }
+            case "unavailable":
+              return {
+                disconnected: previous.disconnected,
+                event: {
+                  type: "unavailable",
+                  message: state.message,
+                  retryAfterMs: state.retryAfterMs,
+                },
+              }
+          }
+        },
+        { disconnected: false, event: null }
+      ),
+      map(({ event }) => event),
+      filter((event): event is TradeStreamEvent => event !== null)
+    )
 
-  ticks(): Observable<TradeTick> {
-    return this.websocket.events(this)
-  }
-
-  states(): Observable<ExternalStreamState> {
-    return this.websocket.states()
+    return merge(
+      states,
+      this.websocket.events(this).pipe(
+        filter((trade) => requested.has(trade.symbol)),
+        map((trade): TradeStreamEvent => ({ type: "trade", trade }))
+      ),
+      activation
+    ).pipe(
+      finalize(() => {
+        for (const symbol of requested) {
+          this.websocket.unsubscribe(this, symbol)
+        }
+      })
+    )
   }
 
   subscription(symbol: StockSymbol): KisWebSocketSubscription {

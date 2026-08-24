@@ -2577,6 +2577,22 @@
                         "properties": {
                           "event": {
                             "type": "string",
+                            "enum": ["market"]
+                          },
+                          "id": {
+                            "type": "string"
+                          },
+                          "data": {
+                            "$ref": "#/components/schemas/MarketEventDto"
+                          }
+                        },
+                        "required": ["event", "data"]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "event": {
+                            "type": "string",
                             "enum": ["heartbeat"]
                           },
                           "id": {
@@ -2625,7 +2641,7 @@
                         "properties": {
                           "event": {
                             "type": "string",
-                            "enum": ["error"]
+                            "enum": ["realtime-error"]
                           },
                           "id": {
                             "type": "string"
@@ -2634,74 +2650,7 @@
                             "type": "number"
                           },
                           "data": {
-                            "oneOf": [
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "type": {
-                                    "type": "string",
-                                    "enum": ["common.invalid_request"]
-                                  },
-                                  "status": {
-                                    "type": "number",
-                                    "enum": [400]
-                                  },
-                                  "message": {
-                                    "type": "string"
-                                  },
-                                  "data": {
-                                    "type": "object",
-                                    "properties": {
-                                      "issues": {
-                                        "type": "array",
-                                        "items": {}
-                                      }
-                                    },
-                                    "required": ["issues"]
-                                  }
-                                },
-                                "required": [
-                                  "type",
-                                  "status",
-                                  "message",
-                                  "data"
-                                ]
-                              },
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "type": {
-                                    "type": "string",
-                                    "enum": ["stock.unsupported"]
-                                  },
-                                  "status": {
-                                    "type": "number",
-                                    "enum": [404]
-                                  },
-                                  "message": {
-                                    "type": "string"
-                                  },
-                                  "data": {
-                                    "type": "object",
-                                    "properties": {
-                                      "symbol": {
-                                        "type": "string"
-                                      }
-                                    },
-                                    "required": ["symbol"]
-                                  }
-                                },
-                                "required": [
-                                  "type",
-                                  "status",
-                                  "message",
-                                  "data"
-                                ]
-                              },
-                              {
-                                "$ref": "#/components/schemas/UnavailableEventDto"
-                              }
-                            ]
+                            "$ref": "#/components/schemas/RealtimeErrorEventDto"
                           }
                         },
                         "required": ["event", "data"]
@@ -2713,7 +2662,91 @@
             }
           },
           "400": {
-            "description": "Invalid symbols query"
+            "description": "Invalid symbols query",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [false]
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": ["common.invalid_request"]
+                        },
+                        "status": {
+                          "type": "number",
+                          "enum": [400]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "issues": {
+                              "type": "array",
+                              "items": {}
+                            }
+                          },
+                          "required": ["issues"]
+                        }
+                      },
+                      "required": ["type", "status", "message", "data"]
+                    }
+                  },
+                  "required": ["success", "error"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unsupported stock symbol",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [false]
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": ["stock.unsupported"]
+                        },
+                        "status": {
+                          "type": "number",
+                          "enum": [404]
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "symbol": {
+                              "type": "string"
+                            }
+                          },
+                          "required": ["symbol"]
+                        }
+                      },
+                      "required": ["type", "status", "message", "data"]
+                    }
+                  },
+                  "required": ["success", "error"]
+                }
+              }
+            }
           }
         },
         "summary": "",
@@ -3742,6 +3775,18 @@
         "required": ["symbol", "price", "executedAt"],
         "additionalProperties": false
       },
+      "MarketEventDto": {
+        "type": "object",
+        "properties": {
+          "session": {
+            "type": "string",
+            "enum": ["PRE_MARKET", "REGULAR_MARKET", "AFTER_MARKET", "CLOSED"],
+            "example": "REGULAR_MARKET"
+          }
+        },
+        "required": ["session"],
+        "additionalProperties": false
+      },
       "HeartbeatEventDto": {
         "type": "object",
         "properties": {
@@ -3758,11 +3803,6 @@
       "DisconnectedEventDto": {
         "type": "object",
         "properties": {
-          "provider": {
-            "type": "string",
-            "enum": ["kis", "fsc", "opendart"],
-            "example": "kis"
-          },
           "closeCode": {
             "type": "integer",
             "minimum": -9007199254740991,
@@ -3774,17 +3814,12 @@
             "example": ""
           }
         },
-        "required": ["provider", "closeCode", "reason"],
+        "required": ["closeCode", "reason"],
         "additionalProperties": false
       },
       "ReconnectedEventDto": {
         "type": "object",
         "properties": {
-          "provider": {
-            "type": "string",
-            "enum": ["kis", "fsc", "opendart"],
-            "example": "kis"
-          },
           "symbols": {
             "type": "array",
             "items": {
@@ -3793,31 +3828,26 @@
             "example": ["005930", "000660"]
           }
         },
-        "required": ["provider", "symbols"],
+        "required": ["symbols"],
         "additionalProperties": false
       },
-      "UnavailableEventDto": {
+      "RealtimeErrorEventDto": {
         "type": "object",
         "properties": {
           "code": {
             "type": "string",
-            "const": "FEED_UNAVAILABLE"
-          },
-          "provider": {
-            "anyOf": [
-              {
-                "type": "string",
-                "enum": ["kis", "fsc", "opendart"],
-                "example": "kis"
-              },
-              {
-                "type": "null"
-              }
+            "enum": [
+              "FEED_UNAVAILABLE",
+              "MARKET_SESSION_UNAVAILABLE",
+              "MARKET_SESSION_AUTH_UNAVAILABLE",
+              "MARKET_SESSION_TIMEOUT",
+              "MARKET_SESSION_INVALID_RESPONSE",
+              "MARKET_SESSION_NOT_FOUND"
             ]
           },
           "message": {
             "type": "string",
-            "example": "Realtime feed is unavailable"
+            "example": "실시간 가격을 불러오지 못했어요."
           },
           "retryAfterMs": {
             "type": "integer",
@@ -3826,7 +3856,7 @@
             "example": 300000
           }
         },
-        "required": ["code", "provider", "message", "retryAfterMs"],
+        "required": ["code", "message", "retryAfterMs"],
         "additionalProperties": false
       },
       "HealthCheckDto": {

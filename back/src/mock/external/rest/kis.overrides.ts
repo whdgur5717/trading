@@ -1,9 +1,41 @@
 import {
+  getDomesticStockChkHolidayMockHandler,
+  getDomesticStockChkHolidayResponseMock,
   getDomesticStockInquireDailyItemChartPriceMockHandler,
   getDomesticStockInquireDailyItemChartPriceResponseMock,
 } from "#generated/kis/rest/api.msw"
 
 export const kisOverrides = [
+  // 고정된 장 운영일 응답을 요청 날짜 기준으로 평일은 개장일, 주말은 휴장일인 응답으로 대체한다.
+  getDomesticStockChkHolidayMockHandler(({ request }) => {
+    const query = new URL(request.url).searchParams
+    const date = query.get("BASS_DT")!
+    const response = getDomesticStockChkHolidayResponseMock()
+    const weekday = new Date(
+      Date.UTC(
+        Number(date.slice(0, 4)),
+        Number(date.slice(4, 6)) - 1,
+        Number(date.slice(6, 8))
+      )
+    ).getUTCDay()
+    const tradingDay = weekday !== 0 && weekday !== 6 ? "Y" : "N"
+
+    return {
+      ...response,
+      output: [
+        {
+          ...response.output[0],
+          bass_dt: date,
+          wday_dvsn_cd: String(weekday),
+          bzdy_yn: tradingDay,
+          tr_day_yn: tradingDay,
+          opnd_yn: tradingDay,
+          sttl_day_yn: tradingDay,
+        },
+      ],
+    }
+  }),
+  // 고정된 일봉 응답을 요청한 조회 기간의 날짜별 시세 응답으로 대체한다.
   getDomesticStockInquireDailyItemChartPriceMockHandler(({ request }) => {
     const query = new URL(request.url).searchParams
     // KIS 일봉 조회 기간. 두 값 모두 YYYYMMDD 형식이다.

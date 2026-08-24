@@ -1,4 +1,5 @@
-import { Controller, Get, Param, Query } from "@nestjs/common"
+import { Controller, Get, Param, Query, UseInterceptors } from "@nestjs/common"
+import { ApiResponseInterceptor } from "../common/api/response"
 import { SuggestionDto, SuggestionQueryDto } from "./suggestion/suggestion.dto"
 import { SuggestionService } from "./suggestion/suggestion.service"
 import {
@@ -8,6 +9,7 @@ import {
 } from "./stocks.dto"
 import { StocksService } from "./stocks.service"
 
+@UseInterceptors(ApiResponseInterceptor)
 @Controller("stocks")
 export class StocksController {
   constructor(
