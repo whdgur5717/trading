@@ -2,10 +2,12 @@
 
 import type { ReturnChartDto } from "@/queries/generated"
 import { useEventStream } from "@/queries/useEventStream"
+import { Button } from "@/components/button"
 import {
   PriceTrendChart,
   type PriceTrendData,
 } from "@/components/priceTrendChart"
+import { StatusIndicator } from "@/components/status-indicator"
 import { useMemo } from "react"
 
 import { numberFormatter } from "../../components/formatter"
@@ -16,12 +18,31 @@ type ResultViewProps = {
   result: ReturnChartDto
 }
 
+const marketSessions = {
+  PRE_MARKET: { label: "장전", variant: "active" },
+  REGULAR_MARKET: { label: "장중", variant: "active" },
+  AFTER_MARKET: { label: "장후", variant: "active" },
+  CLOSED: { label: "종료", variant: "inactive" },
+  UNKNOWN: { label: "확인 중", variant: "inactive" },
+  UNAVAILABLE: { label: "확인 불가", variant: "danger" },
+} as const
+
 function statusOf(value: number): ResultCardStatus {
   return value > 0 ? "gain" : value < 0 ? "loss" : "flat"
 }
 
 export function ResultView({ result }: ResultViewProps) {
   const stream = useEventStream(result.stock.symbol)
+  const marketSessionUnavailable =
+    stream.error !== null &&
+    "code" in stream.error &&
+    stream.error.code.startsWith("MARKET_SESSION_")
+  const marketSession =
+    marketSessions[
+      marketSessionUnavailable
+        ? "UNAVAILABLE"
+        : (stream.marketSession ?? "UNKNOWN")
+    ]
   const currentPrice = stream.data?.price ?? Number(result.current.currentPrice)
   const currentValue = currentPrice * result.buy.quantity
   const profit = currentValue - result.result.buyAmount
@@ -65,6 +86,18 @@ export function ResultView({ result }: ResultViewProps) {
   return (
     <ResultCard status={status}>
       <div className="flex flex-col items-center gap-2">
+        <div className="flex items-center gap-sm">
+          <StatusIndicator
+            label={marketSession.label}
+            size="sm"
+            variant={marketSession.variant}
+          />
+          {marketSessionUnavailable ? (
+            <Button size="sm" variant="link" onClick={stream.reconnect}>
+              다시 시도
+            </Button>
+          ) : null}
+        </div>
         <p className="text-center type-body text-muted">
           <span className="font-semibold text-ink">{buyDateLabel}</span> 종가에{" "}
           <span className="font-semibold text-primary">
