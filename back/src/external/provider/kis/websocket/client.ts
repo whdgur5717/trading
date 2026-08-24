@@ -21,13 +21,16 @@ const PROVIDER = "kis" as const
 const RETRY_DELAYS_MS = [1_000, 3_000] as const
 const CIRCUIT_OPEN_MS = 5 * 60_000
 
+type DesiredSubscription = {
+  subscription: KisWebSocketSubscription
+  consumers: number
+  activation: Promise<Result<void, ExternalStreamFailure>> | null
+}
+
 @Injectable()
 export class KisWebSocketClient implements OnModuleDestroy {
   private readonly logger = new Logger(KisWebSocketClient.name)
-  private readonly desiredSubscriptions = new Map<
-    string,
-    KisWebSocketSubscription
-  >()
+  private desiredSubscriptions = new Map<string, DesiredSubscription>()
   private readonly stateEvents = new Subject<ExternalStreamState>()
   private readonly connectionEvents = new Subscription()
   private readonly handled = handleAll.orWhenResult(isFailedResult)
@@ -98,22 +101,49 @@ export class KisWebSocketClient implements OnModuleDestroy {
   ): Promise<Result<void, ExternalStreamFailure>> {
     const subscription = channel.subscription(input)
     const key = subscriptionKey(subscription)
-    this.desiredSubscriptions.set(key, subscription)
+    const existing = this.desiredSubscriptions.get(key)
+    if (existing) {
+      existing.consumers += 1
+      return existing.activation ?? ok(undefined)
+    }
 
-    const result = await this.execute("subscribe", async () => {
-      if (!this.desiredSubscriptions.has(key)) {
+    const desired: DesiredSubscription = {
+      subscription,
+      consumers: 1,
+      activation: null,
+    }
+    this.desiredSubscriptions.set(key, desired)
+
+    const activation = this.execute("subscribe", async () => {
+      if (this.desiredSubscriptions.get(key) !== desired) {
         return ok(undefined)
       }
 
       const subscribed = await this.connection.subscribe(subscription)
-      if (subscribed.isErr() || this.desiredSubscriptions.has(key)) {
+      if (
+        subscribed.isErr() ||
+        this.desiredSubscriptions.get(key) === desired
+      ) {
         return subscribed
       }
 
       return this.connection.unsubscribe(subscription)
     })
+    desired.activation = activation
+    const result = await activation
 
-    if (result.isOk() && !this.recovery && this.desiredSubscriptions.has(key)) {
+    if (result.isErr() && this.desiredSubscriptions.get(key) === desired) {
+      this.desiredSubscriptions.delete(key)
+      if (this.desiredSubscriptions.size === 0) {
+        this.connection.close()
+      }
+    }
+
+    if (
+      result.isOk() &&
+      !this.recovery &&
+      this.desiredSubscriptions.get(key) === desired
+    ) {
       this.publishConnected()
     }
     return result
@@ -124,7 +154,18 @@ export class KisWebSocketClient implements OnModuleDestroy {
     input: Input
   ): Result<void, ExternalStreamFailure> {
     const subscription = channel.subscription(input)
-    this.desiredSubscriptions.delete(subscriptionKey(subscription))
+    const key = subscriptionKey(subscription)
+    const desired = this.desiredSubscriptions.get(key)
+    if (!desired) {
+      return ok(undefined)
+    }
+
+    if (desired.consumers > 1) {
+      desired.consumers -= 1
+      return ok(undefined)
+    }
+
+    this.desiredSubscriptions.delete(key)
     const unsubscribed = this.connection.unsubscribe(subscription)
 
     if (this.desiredSubscriptions.size === 0) {
@@ -166,14 +207,14 @@ export class KisWebSocketClient implements OnModuleDestroy {
 
   private async restoreSubscriptions(): Promise<void> {
     const restored = await this.execute("subscribe", async () => {
-      for (const [key, subscription] of this.desiredSubscriptions) {
-        const subscribed = await this.connection.subscribe(subscription)
+      for (const [key, desired] of this.desiredSubscriptions) {
+        const subscribed = await this.connection.subscribe(desired.subscription)
         if (subscribed.isErr()) {
           return subscribed
         }
 
         if (!this.desiredSubscriptions.has(key)) {
-          const unsubscribed = this.connection.unsubscribe(subscription)
+          const unsubscribed = this.connection.unsubscribe(desired.subscription)
           if (unsubscribed.isErr()) {
             return unsubscribed
           }
