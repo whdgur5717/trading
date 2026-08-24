@@ -3,8 +3,8 @@ import { z } from "zod"
 import {
   commonErrors,
   type CommonInvalidRequestError,
-} from "../../common/error/common.errors"
-import type { StockSymbol } from "../../external/schema"
+} from "../common/error/common.errors"
+import type { StockSymbol } from "../external/schema"
 
 const requestedSymbolsSchema = z
   .string()

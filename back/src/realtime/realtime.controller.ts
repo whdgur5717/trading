@@ -1,4 +1,4 @@
-import { Controller, Query, Sse, type MessageEvent } from "@nestjs/common"
+import { Controller, Query, Sse } from "@nestjs/common"
 import {
   ApiBadRequestResponse,
   ApiExtraModels,
@@ -10,26 +10,27 @@ import {
 } from "@nestjs/swagger"
 import { Result } from "neverthrow"
 import type { Observable } from "rxjs"
-import { definedErrorException } from "../../common/error/define"
-import { StocksService } from "../../stocks/stocks.service"
-import { RealtimeService } from "../realtime.service"
+import { definedErrorException } from "../common/error/define"
+import { StocksService } from "../stocks/stocks.service"
 import {
   DisconnectedEventDto,
   HeartbeatEventDto,
+  MarketEventDto,
   PriceEventDto,
+  RealtimeErrorEventDto,
   ReconnectedEventDto,
   StreamQueryDto,
   SubscribedEventDto,
-  UnavailableEventDto,
-} from "./dto"
-import { toServerSentEvents } from "./sse"
-import { parseRequestedSymbols } from "./validation"
+} from "./realtime.dto"
+import { RealtimeService } from "./realtime.service"
+import { toServerSentEvents, type RealtimeSseEvent } from "./realtime.sse"
+import { parseRequestedSymbols } from "./realtime.validation"
 
 @Controller("realtime")
 export class RealtimeController {
   constructor(
-    private readonly realtime: RealtimeService,
-    private readonly stocks: StocksService
+    private realtime: RealtimeService,
+    private stocks: StocksService
   ) {}
 
   @Sse("stream")
@@ -38,14 +39,12 @@ export class RealtimeController {
   @ApiExtraModels(
     SubscribedEventDto,
     PriceEventDto,
+    MarketEventDto,
     HeartbeatEventDto,
     DisconnectedEventDto,
     ReconnectedEventDto,
-    UnavailableEventDto
+    RealtimeErrorEventDto
   )
-  // 일반 HTTP API 응답 계약은 custom TypeScript transformer인
-  // `openapi-contract.plugin.js`가 OpenAPI에 자동 생성하지만, `@Sse()` route는
-  // transformer 대상이 아니므로 응답 계약은 현재 임시로 직접 선언한다.
   @ApiOkResponse({
     description: "Realtime stock trade events",
     content: {
@@ -58,6 +57,7 @@ export class RealtimeController {
                 [
                   ["subscribed", SubscribedEventDto],
                   ["price", PriceEventDto],
+                  ["market", MarketEventDto],
                   ["heartbeat", HeartbeatEventDto],
                   ["disconnected", DisconnectedEventDto],
                   ["reconnected", ReconnectedEventDto],
@@ -74,10 +74,10 @@ export class RealtimeController {
               {
                 type: "object",
                 properties: {
-                  event: { type: "string", enum: ["error"] },
+                  event: { type: "string", enum: ["realtime-error"] },
                   id: { type: "string" },
                   retry: { type: "number" },
-                  data: { $ref: getSchemaPath(UnavailableEventDto) },
+                  data: { $ref: getSchemaPath(RealtimeErrorEventDto) },
                 },
                 required: ["event", "data"],
               },
@@ -98,10 +98,7 @@ export class RealtimeController {
             error: {
               type: "object",
               properties: {
-                type: {
-                  type: "string",
-                  enum: ["common.invalid_request"],
-                },
+                type: { type: "string", enum: ["common.invalid_request"] },
                 status: { type: "number", enum: [400] },
                 message: { type: "string" },
                 data: {
@@ -148,7 +145,9 @@ export class RealtimeController {
       },
     },
   })
-  stream(@Query() query: StreamQueryDto): Promise<Observable<MessageEvent>> {
+  stream(
+    @Query() query: StreamQueryDto
+  ): Promise<Observable<RealtimeSseEvent>> {
     return parseRequestedSymbols(query.symbols)
       .andThen((symbols) =>
         Result.combine(

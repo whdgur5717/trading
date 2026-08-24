@@ -58,7 +58,7 @@ export function createKisWebSocketHandler(
         client.send(ack({ message: "SUBSCRIBE SUCCESS", trId, trKey }))
 
         if (
-          trId !== "H0STCNT0" ||
+          trId !== "H0UNCNT0" ||
           trKey !== "005930" ||
           subscriptions.has(subscriptionKey)
         ) {

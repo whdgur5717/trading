@@ -1,5 +1,6 @@
 import { z } from "zod"
-import { externalProviderSchema } from "../../external/schema"
+import { REALTIME_ERRORS, type RealtimeErrorCode } from "./event"
+import { MARKET_SESSIONS } from "./market-session"
 
 export const streamQuerySchema = z.strictObject({
   symbols: z
@@ -22,24 +23,31 @@ export const priceEventSchema = z.strictObject({
     .meta({ example: "2026-05-15T10:30:15+09:00" }),
 })
 
+export const marketEventSchema = z.strictObject({
+  session: z
+    .enum(MARKET_SESSIONS.map(({ session }) => session))
+    .meta({ example: "REGULAR_MARKET" }),
+})
+
 export const heartbeatEventSchema = z.strictObject({
   at: z.iso.datetime().meta({ example: "2026-05-15T01:30:15.000Z" }),
 })
 
 export const disconnectedEventSchema = z.strictObject({
-  provider: externalProviderSchema,
   closeCode: z.number().int().meta({ example: 1006 }),
   reason: z.string().meta({ example: "" }),
 })
 
 export const reconnectedEventSchema = z.strictObject({
-  provider: externalProviderSchema,
   symbols: z.array(z.string()).meta({ example: ["005930", "000660"] }),
 })
 
-export const unavailableEventSchema = z.strictObject({
-  code: z.literal("FEED_UNAVAILABLE"),
-  provider: externalProviderSchema.nullable(),
-  message: z.string().meta({ example: "Realtime feed is unavailable" }),
+export const realtimeErrorEventSchema = z.strictObject({
+  code: z.enum(
+    Object.keys(REALTIME_ERRORS) as [RealtimeErrorCode, ...RealtimeErrorCode[]]
+  ),
+  message: z
+    .string()
+    .meta({ example: REALTIME_ERRORS.FEED_UNAVAILABLE.message }),
   retryAfterMs: z.number().int().nonnegative().meta({ example: 300000 }),
 })

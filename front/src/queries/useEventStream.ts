@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react"
 import {
   STREAM_REALTIME_PRICES,
   StreamRealtimePricesEventSchema,
+  type MarketEventDto,
   type PriceEventDto,
   type StreamRealtimePricesEvent,
 } from "@/queries/generated"
@@ -18,7 +19,10 @@ export type EventStreamStatus =
   | "stale"
   | "error"
 
-type RealtimeErrorEvent = Extract<StreamRealtimePricesEvent, { event: "error" }>
+type RealtimeErrorEvent = Extract<
+  StreamRealtimePricesEvent,
+  { event: "realtime-error" }
+>
 
 export type EventStreamError = RealtimeErrorEvent["data"] | { message: string }
 
@@ -31,6 +35,7 @@ type EventStreamMeta = {
 type EventStreamState = {
   symbol: string
   status: EventStreamStatus
+  marketSession: MarketEventDto["session"] | null
   error: EventStreamError | null
   readyState: number | null
   meta: EventStreamMeta
@@ -39,10 +44,11 @@ type EventStreamState = {
 const realtimeEventNames = [
   "subscribed",
   "price",
+  "market",
   "heartbeat",
   "disconnected",
   "reconnected",
-  "error",
+  "realtime-error",
 ] as const
 
 const staleMs = 30_000
@@ -59,6 +65,7 @@ export function useEventStream(symbol: string) {
   const [stream, setStream] = useState<EventStreamState>({
     symbol,
     status: symbol ? "connecting" : "idle",
+    marketSession: null,
     error: null,
     readyState: null,
     meta: emptyMeta,
@@ -85,17 +92,14 @@ export function useEventStream(symbol: string) {
       setStream({
         symbol,
         status: "open",
+        marketSession: null,
         error: null,
         readyState: eventSource.readyState,
         meta: emptyMeta,
       })
     }
 
-    eventSource.onerror = (event) => {
-      if (event instanceof MessageEvent) {
-        return
-      }
-
+    eventSource.onerror = () => {
       if (closedIntentionally) {
         return
       }
@@ -124,10 +128,6 @@ export function useEventStream(symbol: string) {
         const now = Date.now()
 
         try {
-          if (eventName === "error" && !(event instanceof MessageEvent)) {
-            return
-          }
-
           const messageEvent = event as MessageEvent<string>
           const data = JSON.parse(messageEvent.data) as unknown
 
@@ -138,12 +138,13 @@ export function useEventStream(symbol: string) {
 
           lastEventAtRef.current = now
 
-          if (realtimeEvent.event === "error") {
+          if (realtimeEvent.event === "realtime-error") {
             closedIntentionally = true
             eventSource.close()
             setStream((current) => ({
               symbol,
               status: "error",
+              marketSession: current.marketSession,
               error: realtimeEvent.data,
               readyState: EventSource.CLOSED,
               meta: {
@@ -170,6 +171,10 @@ export function useEventStream(symbol: string) {
                 current.status === "reconnecting")
                 ? "reconnecting"
                 : "open",
+            marketSession:
+              realtimeEvent.event === "market"
+                ? realtimeEvent.data.session
+                : current.marketSession,
             error: null,
             readyState: eventSource.readyState,
             meta: {
@@ -188,6 +193,7 @@ export function useEventStream(symbol: string) {
           setStream((current) => ({
             symbol,
             status: "error",
+            marketSession: current.marketSession,
             error: {
               message:
                 eventError instanceof Error
@@ -226,6 +232,7 @@ export function useEventStream(symbol: string) {
       : {
           symbol,
           status: symbol ? "connecting" : "idle",
+          marketSession: null,
           error: null,
           readyState: null,
           meta: emptyMeta,
@@ -241,6 +248,7 @@ export function useEventStream(symbol: string) {
     isFetching,
     isIdle: snapshot.status === "idle",
     isLoading: snapshot.status === "connecting" && priceQuery.data === null,
+    marketSession: snapshot.marketSession,
     isOpen: snapshot.status === "open",
     isReconnecting: snapshot.status === "reconnecting",
     isStale: snapshot.status === "stale",
@@ -252,6 +260,7 @@ export function useEventStream(symbol: string) {
       setStream({
         symbol,
         status: symbol ? "connecting" : "idle",
+        marketSession: null,
         error: null,
         readyState: null,
         meta: emptyMeta,

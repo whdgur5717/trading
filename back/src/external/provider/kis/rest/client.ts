@@ -56,7 +56,7 @@ export class KisRestClient {
 
   async marketDay(
     date: TradingDate
-  ): Promise<Result<Omit<MarketDay, "quotationMarket">, ExternalError>> {
+  ): Promise<Result<MarketDay, ExternalError>> {
     const days = await this.requestProvider.get(
       rest.domesticStockChkHoliday,
       {

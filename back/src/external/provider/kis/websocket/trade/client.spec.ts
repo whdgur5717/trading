@@ -38,18 +38,21 @@ describe("KisTradeClient", () => {
   })
 
   it("체결 channel이 종목을 KIS 체결 구독으로 변환한다", async () => {
-    const result = await trades.subscribe("005930")
+    const watcher = trades.watch(["005930"]).subscribe()
+    await vi.waitFor(() => expect(subscribe).toHaveBeenCalledOnce())
 
-    expect(result.isOk()).toBe(true)
     expect(subscribe).toHaveBeenCalledWith({
-      trId: "H0STCNT0",
+      trId: "H0UNCNT0",
       trKey: "005930",
     })
+    watcher.unsubscribe()
   })
 
   it("체결 channel이 자신의 원시 프레임만 체결 데이터로 변환한다", () => {
     const ticks: unknown[] = []
-    trades.ticks().subscribe((tick) => ticks.push(tick))
+    const watcher = trades
+      .watch(["005930"])
+      .subscribe((tick) => ticks.push(tick))
     const values = ["005930", "103015", "78000", ...Array(30).fill("")]
     values.push("20260515")
 
@@ -61,17 +64,21 @@ describe("KisTradeClient", () => {
     })
     frames.next({
       encrypted: false,
-      trId: "H0STCNT0",
+      trId: "H0UNCNT0",
       count: 1,
       payload: values.join("^"),
     })
 
     expect(ticks).toEqual([
       {
-        symbol: "005930",
-        price: 78000,
-        executedAt: "2026-05-15T10:30:15+09:00",
+        type: "trade",
+        trade: {
+          symbol: "005930",
+          price: 78000,
+          executedAt: "2026-05-15T10:30:15+09:00",
+        },
       },
     ])
+    watcher.unsubscribe()
   })
 })

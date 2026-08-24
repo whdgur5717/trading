@@ -34,13 +34,13 @@ export const realtimeAckOutput = {
   key: "abcdefghijklnmopqrstuvwxyzabcdefghijkl",
 }
 
-export const realtimeTradeMessage = `0|H0STCNT0|001|${realtimeTradeValues.join(
+export const realtimeTradeMessage = `0|H0UNCNT0|001|${realtimeTradeValues.join(
   "^"
 )}`
 
 export const realtimeTradeMessages = [
   realtimeTradeMessage,
-  `0|H0STCNT0|001|${realtimeTradeValues2.join("^")}`,
-  `0|H0STCNT0|001|${realtimeTradeValues3.join("^")}`,
-  `0|H0STCNT0|001|${realtimeTradeValues4.join("^")}`,
+  `0|H0UNCNT0|001|${realtimeTradeValues2.join("^")}`,
+  `0|H0UNCNT0|001|${realtimeTradeValues3.join("^")}`,
+  `0|H0UNCNT0|001|${realtimeTradeValues4.join("^")}`,
 ]

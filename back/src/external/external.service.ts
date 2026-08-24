@@ -34,12 +34,7 @@ export class ExternalService {
   }
 
   async marketDay(query: MarketDayQuery) {
-    const day = await this.kisRest.marketDay(query.date)
-
-    return day.map((value) => ({
-      ...value,
-      quotationMarket: query.quotationMarket,
-    }))
+    return this.kisRest.marketDay(query.date)
   }
 
   dailyStocks(date: string) {
@@ -66,19 +61,7 @@ export class ExternalService {
     return this.opendart.financialAccounts(query)
   }
 
-  subscribeTrades(symbol: StockSymbol) {
-    return this.kisTrades.subscribe(symbol)
-  }
-
-  unsubscribeTrades(symbol: StockSymbol) {
-    return this.kisTrades.unsubscribe(symbol)
-  }
-
-  tradeTicks() {
-    return this.kisTrades.ticks()
-  }
-
-  tradeStreamState() {
-    return this.kisTrades.states()
+  tradeStream(symbols: StockSymbol[]) {
+    return this.kisTrades.watch(symbols)
   }
 }
