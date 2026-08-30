@@ -4,12 +4,14 @@ import { fileURLToPath } from "node:url"
 
 import { openapiOverlay, parseFile } from "openapi-format"
 import { defineConfig, pascal } from "orval"
-import { format, resolveConfig } from "prettier"
+import { format } from "oxfmt"
 import * as zod from "zod/mini"
+import oxfmtConfig from "../../.oxfmtrc.json" with { type: "json" }
 
 const openapiDirectory = dirname(fileURLToPath(import.meta.url))
 const generatedDirectory = resolve(openapiDirectory, "..", "generated")
-const prettierConfig = (await resolveConfig(openapiDirectory)) ?? {}
+const formatSource = async (filePath, source) =>
+  (await format(filePath, source, oxfmtConfig)).code
 const methods = [
   "get",
   "put",
@@ -201,7 +203,7 @@ for (const provider of (
       target,
       mode: "single",
       client: "zod",
-      formatter: "prettier",
+      formatter: "oxfmt",
       mock: {
         path: outputDirectory,
         generators: [
@@ -493,7 +495,8 @@ for (const provider of (
 
         await writeFile(
           scenariosTarget,
-          await format(
+          await formatSource(
+            scenariosTarget,
             [
               "// Generated from OpenAPI Overlay examples. Do not edit.",
               `import type { ${[...new Set(mockResponseImports)].join(", ")} } from "./api"`,
@@ -502,8 +505,7 @@ for (const provider of (
               ...mockResponses,
               "} as const",
               "",
-            ].join("\n"),
-            { ...prettierConfig, filepath: scenariosTarget }
+            ].join("\n")
           )
         )
 
@@ -515,7 +517,7 @@ for (const provider of (
         generatedMock = `import type { ${mockTypeImports.join(", ")} } from "./api"\n\n${generatedMock}`
         await writeFile(
           mockTarget,
-          await format(generatedMock, { filepath: mockTarget })
+          await formatSource(mockTarget, generatedMock)
         )
       },
     },

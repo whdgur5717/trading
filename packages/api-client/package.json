@@ -8,7 +8,9 @@
   },
   "scripts": {
     "build": "pnpm run type-check",
-    "lint": "eslint . --max-warnings 0",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check .",
+    "lint": "oxlint --deny-warnings",
     "type-check": "find bin generator -name '*.mjs' -print0 | xargs -0 -n 1 node --check"
   },
   "dependencies": {

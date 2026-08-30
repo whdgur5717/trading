@@ -1,6 +1,6 @@
-import fs from "node:fs"
-import path from "node:path"
-import ts from "typescript"
+import fs from "node:fs";
+import path from "node:path";
+import ts from "typescript";
 
 const httpMethods = {
   Get: "get",
@@ -10,22 +10,22 @@ const httpMethods = {
   Delete: "delete",
   Head: "head",
   Options: "options",
-}
+};
 
 export function before(_options, program) {
-  const checker = program.getTypeChecker()
-  const root = program.getCurrentDirectory()
-  const srcRoot = path.join(root, "src")
-  const emitRoot = program.getCommonSourceDirectory()
-  const dtoCandidates = []
-  const errorDefinitions = new Map()
+  const checker = program.getTypeChecker();
+  const root = program.getCurrentDirectory();
+  const srcRoot = path.join(root, "src");
+  const emitRoot = program.getCommonSourceDirectory();
+  const dtoCandidates = [];
+  const errorDefinitions = new Map();
 
   for (const sourceFile of program.getSourceFiles()) {
     if (
       sourceFile.isDeclarationFile ||
       !sourceFile.fileName.startsWith(srcRoot)
     ) {
-      continue
+      continue;
     }
 
     ts.forEachChild(sourceFile, function scan(node) {
@@ -38,9 +38,9 @@ export function before(_options, program) {
           name: node.name.text,
           module: distModule(emitRoot, sourceFile),
           type: checker.getDeclaredTypeOfSymbol(
-            checker.getSymbolAtLocation(node.name)
+            checker.getSymbolAtLocation(node.name),
           ),
-        })
+        });
       }
 
       if (ts.isVariableStatement(node) && hasExportModifier(node)) {
@@ -59,32 +59,32 @@ export function before(_options, program) {
                 ts.isPropertyAssignment(property) &&
                 ts.isObjectLiteralExpression(property.initializer)
               ) {
-                const errorType = stringProperty(property.initializer, "type")
+                const errorType = stringProperty(property.initializer, "type");
 
                 errorDefinitions.set(errorType, {
                   type: errorType,
                   module: distModule(emitRoot, sourceFile),
                   exportName: declaration.name.text,
                   key: propertyName(property.name),
-                })
+                });
               }
             }
           }
         }
       }
 
-      ts.forEachChild(node, scan)
-    })
+      ts.forEachChild(node, scan);
+    });
   }
 
-  const routes = []
+  const routes = [];
 
   for (const sourceFile of program.getSourceFiles()) {
     if (
       sourceFile.isDeclarationFile ||
       !sourceFile.fileName.startsWith(srcRoot)
     ) {
-      continue
+      continue;
     }
 
     ts.forEachChild(sourceFile, function scan(node) {
@@ -93,32 +93,32 @@ export function before(_options, program) {
         !node.name ||
         !hasDecorator(node, "Controller")
       ) {
-        ts.forEachChild(node, scan)
-        return
+        ts.forEachChild(node, scan);
+        return;
       }
 
       // ApiResponseInterceptor가 적용된 controller만 런타임에서 공통 응답 형식으로
       // 변환되므로 OpenAPI 응답 계약도 같은 controller에만 생성한다.
       const usesApiResponseInterceptor = usesInterceptor(
         node,
-        "ApiResponseInterceptor"
-      )
+        "ApiResponseInterceptor",
+      );
 
       for (const member of node.members) {
         if (!ts.isMethodDeclaration(member) || !ts.isIdentifier(member.name)) {
-          continue
+          continue;
         }
 
-        const routeDecorator = getRouteDecorator(member)
+        const routeDecorator = getRouteDecorator(member);
 
         if (!routeDecorator || !usesApiResponseInterceptor) {
-          continue
+          continue;
         }
 
-        const signature = checker.getSignatureFromDeclaration(member)
-        const returnType = checker.getReturnTypeOfSignature(signature)
-        const contract = resultContract(returnType)
-        const success = successContract(contract.successType)
+        const signature = checker.getSignatureFromDeclaration(member);
+        const returnType = checker.getReturnTypeOfSignature(signature);
+        const contract = resultContract(returnType);
+        const success = successContract(contract.successType);
 
         routes.push({
           controller: node.name.text,
@@ -129,59 +129,59 @@ export function before(_options, program) {
           path: decoratorPath(routeDecorator),
           success,
           errors: contract.errorTypes.map((type) => {
-            const definition = errorDefinitions.get(type)
+            const definition = errorDefinitions.get(type);
 
             if (!definition) {
-              throw new Error(`Missing error definition for ${type}`)
+              throw new Error(`Missing error definition for ${type}`);
             }
 
-            return definition
+            return definition;
           }),
-        })
+        });
       }
 
-      ts.forEachChild(node, scan)
-    })
+      ts.forEachChild(node, scan);
+    });
   }
 
-  fs.mkdirSync(path.join(root, "dist"), { recursive: true })
+  fs.mkdirSync(path.join(root, "dist"), { recursive: true });
   fs.writeFileSync(
     path.join(root, "dist", "openapi-contracts.json"),
-    `${JSON.stringify({ version: 1, routes }, null, 2)}\n`
-  )
+    `${JSON.stringify({ version: 1, routes }, null, 2)}\n`,
+  );
 
-  return () => (sourceFile) => sourceFile
+  return () => (sourceFile) => sourceFile;
 
   function successContract(type) {
-    const isArray = checker.isArrayType(type)
-    const successType = isArray ? checker.getTypeArguments(type)[0] : type
+    const isArray = checker.isArrayType(type);
+    const successType = isArray ? checker.getTypeArguments(type)[0] : type;
     const matches = dtoCandidates.filter(
       (candidate) =>
         checker.isTypeAssignableTo(successType, candidate.type) &&
-        checker.isTypeAssignableTo(candidate.type, successType)
-    )
+        checker.isTypeAssignableTo(candidate.type, successType),
+    );
 
     if (matches.length !== 1) {
       throw new Error(
-        `DTO match failed for ${checker.typeToString(successType)}`
-      )
+        `DTO match failed for ${checker.typeToString(successType)}`,
+      );
     }
 
     return {
       module: matches[0].module,
       exportName: matches[0].name,
       isArray,
-    }
+    };
   }
 
   function resultContract(type) {
-    const unwrappedType = unwrapPromise(type)
-    const aliasName = unwrappedType.aliasSymbol?.escapedName?.toString()
-    const symbolName = unwrappedType.symbol?.escapedName?.toString()
+    const unwrappedType = unwrapPromise(type);
+    const aliasName = unwrappedType.aliasSymbol?.escapedName?.toString();
+    const symbolName = unwrappedType.symbol?.escapedName?.toString();
     const typeArguments =
       unwrappedType.aliasTypeArguments?.length > 0
         ? unwrappedType.aliasTypeArguments
-        : checker.getTypeArguments(unwrappedType)
+        : checker.getTypeArguments(unwrappedType);
 
     if (
       (aliasName === "Result" || symbolName === "ResultAsync") &&
@@ -190,55 +190,55 @@ export function before(_options, program) {
       return {
         successType: typeArguments[0],
         errorTypes: stringLiteralTypes(typeArguments[1]),
-      }
+      };
     }
 
     if (unwrappedType.isUnion()) {
       const okType = unwrappedType.types.find(
-        (member) => member.symbol?.escapedName?.toString() === "Ok"
-      )
+        (member) => member.symbol?.escapedName?.toString() === "Ok",
+      );
       const errType = unwrappedType.types.find(
-        (member) => member.symbol?.escapedName?.toString() === "Err"
-      )
+        (member) => member.symbol?.escapedName?.toString() === "Err",
+      );
 
       if (okType && errType) {
-        const okArguments = checker.getTypeArguments(okType)
-        const errArguments = checker.getTypeArguments(errType)
+        const okArguments = checker.getTypeArguments(okType);
+        const errArguments = checker.getTypeArguments(errType);
 
         return {
           successType: okArguments[0],
           errorTypes: stringLiteralTypes(errArguments[1]),
-        }
+        };
       }
     }
 
     return {
       successType: unwrappedType,
       errorTypes: [],
-    }
+    };
   }
 
   function stringLiteralTypes(type) {
     if (type.isUnion()) {
-      return type.types.flatMap(stringLiteralTypes)
+      return type.types.flatMap(stringLiteralTypes);
     }
 
     if (type.isStringLiteral()) {
-      return [type.value]
+      return [type.value];
     }
 
-    const property = type.getProperty("type")
+    const property = type.getProperty("type");
 
     if (!property) {
-      return []
+      return [];
     }
 
     return stringLiteralTypes(
       checker.getTypeOfSymbolAtLocation(
         property,
-        property.valueDeclaration ?? property.declarations[0]
-      )
-    )
+        property.valueDeclaration ?? property.declarations[0],
+      ),
+    );
   }
 }
 
@@ -247,69 +247,69 @@ function extendsCreateZodDto(node) {
     clause.types.some(
       (type) =>
         ts.isCallExpression(type.expression) &&
-        expressionName(type.expression.expression) === "createZodDto"
-    )
-  )
+        expressionName(type.expression.expression) === "createZodDto",
+    ),
+  );
 }
 
 function hasExportModifier(node) {
   return node.modifiers?.some(
-    (modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword
-  )
+    (modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword,
+  );
 }
 
 function getRouteDecorator(node) {
   return ts
     .getDecorators(node)
-    ?.find((decorator) => httpMethods[decoratorName(decorator)])
+    ?.find((decorator) => httpMethods[decoratorName(decorator)]);
 }
 
 function getDecorator(node, name) {
   return ts
     .getDecorators(node)
-    ?.find((decorator) => decoratorName(decorator) === name)
+    ?.find((decorator) => decoratorName(decorator) === name);
 }
 
 function hasDecorator(node, name) {
-  return Boolean(getDecorator(node, name))
+  return Boolean(getDecorator(node, name));
 }
 
 function usesInterceptor(node, name) {
-  const decorator = getDecorator(node, "UseInterceptors")
+  const decorator = getDecorator(node, "UseInterceptors");
 
   return (
     decorator &&
     ts.isCallExpression(decorator.expression) &&
     decorator.expression.arguments.some(
-      (argument) => expressionName(argument) === name
+      (argument) => expressionName(argument) === name,
     )
-  )
+  );
 }
 
 function decoratorName(decorator) {
   return expressionName(
     ts.isCallExpression(decorator.expression)
       ? decorator.expression.expression
-      : decorator.expression
-  )
+      : decorator.expression,
+  );
 }
 
 function expressionName(expression) {
   if (ts.isIdentifier(expression)) {
-    return expression.text
+    return expression.text;
   }
 
   if (ts.isPropertyAccessExpression(expression)) {
-    return expression.name.text
+    return expression.name.text;
   }
 }
 
 function decoratorPath(decorator) {
   const argument = ts.isCallExpression(decorator.expression)
     ? decorator.expression.arguments[0]
-    : undefined
+    : undefined;
 
-  return argument && ts.isStringLiteral(argument) ? argument.text : ""
+  return argument && ts.isStringLiteral(argument) ? argument.text : "";
 }
 
 function stringProperty(object, name) {
@@ -317,29 +317,29 @@ function stringProperty(object, name) {
     (item) =>
       ts.isPropertyAssignment(item) &&
       propertyName(item.name) === name &&
-      ts.isStringLiteral(item.initializer)
-  )
+      ts.isStringLiteral(item.initializer),
+  );
 
-  return property.initializer.text
+  return property.initializer.text;
 }
 
 function propertyName(name) {
   if (ts.isIdentifier(name) || ts.isStringLiteral(name)) {
-    return name.text
+    return name.text;
   }
 }
 
 function unwrapPromise(type) {
   if (type.symbol?.escapedName?.toString() !== "Promise") {
-    return type
+    return type;
   }
 
-  return type.typeArguments[0]
+  return type.typeArguments[0];
 }
 
 function distModule(srcRoot, sourceFile) {
   return `./${path
     .relative(srcRoot, sourceFile.fileName)
     .replaceAll(path.sep, "/")
-    .replace(/\.ts$/, ".js")}`
+    .replace(/\.ts$/, ".js")}`;
 }

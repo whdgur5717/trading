@@ -108,14 +108,13 @@ export class RealtimeService {
     )
 
     return concat(subscribed, live).pipe(
-      catchError(
-        (): Observable<RealtimeEvent> =>
-          of({
-            type: "unavailable",
-            code: "FEED_UNAVAILABLE",
-            message: REALTIME_ERRORS.FEED_UNAVAILABLE.message,
-            retryAfterMs: 0,
-          })
+      catchError((): Observable<RealtimeEvent> =>
+        of({
+          type: "unavailable",
+          code: "FEED_UNAVAILABLE",
+          message: REALTIME_ERRORS.FEED_UNAVAILABLE.message,
+          retryAfterMs: 0,
+        })
       )
     )
   }

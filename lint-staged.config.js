@@ -1,5 +1,5 @@
 module.exports = {
-  "*": "pnpm exec prettier --write --ignore-path .prettierignore --ignore-unknown",
+  "*": "pnpm exec oxfmt --no-error-on-unmatched-pattern",
 
   "front/**/*.{js,jsx,cjs,mjs,ts,tsx}":
     "pnpm --filter front run lint:staged --",

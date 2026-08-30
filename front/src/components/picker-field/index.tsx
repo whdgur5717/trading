@@ -32,10 +32,11 @@ export interface PickerFieldRootRenderProps<TValue> {
   clear: (options?: PickerFieldSelectOptions) => void
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+// oxlint-disable typescript/no-empty-object-type -- Keep a named internal context contract.
 interface PickerFieldContextValue<
   TValue,
 > extends PickerFieldRootRenderProps<TValue> {}
+// oxlint-enable typescript/no-empty-object-type
 
 export interface PickerFieldRootProps<TValue> {
   children?: ReactNode

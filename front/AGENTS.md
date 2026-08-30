@@ -94,5 +94,5 @@ front/
 
 - `pnpm --filter front dev`: 개발 서버 실행
 - `pnpm --filter front build`: 프로덕션 빌드
-- `pnpm --filter front lint`: ESLint 실행
-- `pnpm --filter front format`: Prettier 실행
+- `pnpm --filter front lint`: Oxlint 실행
+- `pnpm --filter front format`: Oxfmt 실행

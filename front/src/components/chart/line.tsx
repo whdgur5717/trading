@@ -46,6 +46,7 @@ export function Line({ ref, data, options }: LineProps) {
     setLine(nextLine)
 
     return () => {
+      // oxlint-disable-next-line react/exhaustive-deps -- Read the latest liveness state during cleanup.
       if (context.alive.current) {
         context.chart.removeSeries(nextLine)
       }
