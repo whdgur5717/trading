@@ -39,6 +39,29 @@
       "Resource": "arn:aws:ssm:ap-northeast-2:<AWS_ACCOUNT_ID>:parameter/trading/prod/tunnel/TOKEN"
     },
     {
+      "Sid": "ReadCloudWatchAgentConfiguration",
+      "Effect": "Allow",
+      "Action": ["ssm:GetParameter"],
+      "Resource": "arn:aws:ssm:ap-northeast-2:<AWS_ACCOUNT_ID>:parameter/trading/prod/monitoring/cloudwatch-agent"
+    },
+    {
+      "Sid": "WriteBackApplicationLogs",
+      "Effect": "Allow",
+      "Action": ["logs:CreateLogStream", "logs:PutLogEvents"],
+      "Resource": "arn:aws:logs:ap-northeast-2:<AWS_ACCOUNT_ID>:log-group:/trading/prod/back:log-stream:application"
+    },
+    {
+      "Sid": "PublishHostMetrics",
+      "Effect": "Allow",
+      "Action": ["cloudwatch:PutMetricData"],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "cloudwatch:namespace": "Trading/EC2"
+        }
+      }
+    },
+    {
       "Sid": "ReadCodeDeployRevision",
       "Effect": "Allow",
       "Action": ["s3:GetObject"],

@@ -34,9 +34,6 @@ export type RegisteredErrorDefinition = {
   readonly dataSchema: z.ZodType
 }
 
-export type DefinedErrorException<Error extends DefinedError = DefinedError> =
-  Error & globalThis.Error
-
 export type ErrorFactory<
   Definition extends ErrorDefinition<string, number, z.ZodType>,
 > = {
@@ -125,22 +122,6 @@ export function isDefinedError(error: unknown): error is DefinedError {
     definedErrorBrand in error &&
     error[definedErrorBrand] === true
   )
-}
-
-export function definedErrorException<Error extends DefinedError>(
-  error: Error
-): DefinedErrorException<Error> {
-  const exception = new Error(error.message) as DefinedErrorException<Error>
-
-  Object.defineProperties(exception, {
-    [definedErrorBrand]: { value: true },
-    type: { value: error.type, enumerable: true },
-    status: { value: error.status, enumerable: true },
-    message: { value: error.message, enumerable: true },
-    data: { value: error.data, enumerable: true },
-  })
-
-  return exception
 }
 
 export function getErrorDefinition(
