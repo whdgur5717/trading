@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="650" viewBox="0 0 1200 650" role="img" aria-labelledby="title desc">
+  <title id="title">그때 샀다면 시스템 구성도</title>
+  <desc id="desc">사용자 요청이 Cloudflare Workers의 Next.js 프론트엔드에서 Access와 Tunnel을 거쳐 AWS EC2의 NestJS 백엔드로 전달되고, 백엔드는 외부 금융 데이터 API 및 WebSocket과 통신하며 CloudWatch로 관측 데이터를 보내는 구조</desc>
+
+  <defs>
+    <linearGradient id="canvas" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0e0d12"/>
+      <stop offset="1" stop-color="#17131e"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#000" flood-opacity=".28"/>
+    </filter>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0 0 8 4 0 8Z" fill="#b7e46c"/>
+    </marker>
+    <marker id="arrow-muted" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0 0 8 4 0 8Z" fill="#a69eae"/>
+    </marker>
+    <marker id="arrow-stream" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0 0 8 4 0 8Z" fill="#8c61c2"/>
+    </marker>
+    <symbol id="cloudflare" viewBox="0 0 24 24">
+      <path fill="#F38020" d="M16.5088 16.8447c.1475-.5068.0908-.9707-.1553-1.3154-.2246-.3164-.6045-.499-1.0615-.5205l-8.6592-.1123a.1559.1559 0 0 1-.1333-.0713c-.0283-.042-.0351-.0986-.021-.1553.0278-.084.1123-.1484.2036-.1562l8.7359-.1123c1.0351-.0489 2.1601-.8868 2.5537-1.9136l.499-1.3013c.0215-.0561.0293-.1128.0147-.168-.5625-2.5463-2.835-4.4453-5.5499-4.4453-2.5039 0-4.6284 1.6177-5.3876 3.8614-.4927-.3658-1.1187-.5625-1.794-.499-1.2026.119-2.1665 1.083-2.2861 2.2856-.0283.31-.0069.6128.0635.894C1.5683 13.171 0 14.7754 0 16.752c0 .1748.0142.3515.0352.5273.0141.083.0844.1475.1689.1475h15.9814c.0909 0 .1758-.0645.2032-.1553l.12-.4268zm2.7568-5.5634c-.0771 0-.1611 0-.2383.0112-.0566 0-.1054.0415-.127.0976l-.3378 1.1744c-.1475.5068-.0918.9707.1543 1.3164.2256.3164.6055.498 1.0625.5195l1.8437.1133c.0557 0 .1055.0263.1329.0703.0283.043.0351.1074.0214.1562-.0283.084-.1132.1485-.204.1553l-1.921.1123c-1.041.0488-2.1582.8867-2.5527 1.914l-.1406.3585c-.0283.0713.0215.1416.0986.1416h6.5977c.0771 0 .1474-.0489.169-.126.1122-.4082.1757-.837.1757-1.2803 0-2.6025-2.125-4.727-4.7344-4.727"/>
+    </symbol>
+    <symbol id="workers" viewBox="0 0 24 24">
+      <path fill="#F38020" d="m8.213.063 8.879 12.136-8.67 11.739h2.476l8.665-11.735-8.89-12.14Zm4.728 0 9.02 11.992-9.018 11.883h2.496L24 12.656v-1.199L15.434.063ZM7.178 2.02.01 11.398l-.01 1.2 7.203 9.644 1.238-1.676-6.396-8.556 6.361-8.313Z"/>
+    </symbol>
+    <symbol id="docker" viewBox="0 0 24 24">
+      <path fill="#2496ED" d="M13.983 11.078h2.119a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.119a.185.185 0 00-.185.185v1.888c0 .102.083.185.185.185m-2.954-5.43h2.118a.186.186 0 00.186-.186V3.574a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m0 2.716h2.118a.187.187 0 00.186-.186V6.29a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.887c0 .102.082.185.185.186m-2.93 0h2.12a.186.186 0 00.184-.186V6.29a.185.185 0 00-.185-.185H8.1a.185.185 0 00-.185.185v1.887c0 .102.083.185.185.186m-2.964 0h2.119a.186.186 0 00.185-.186V6.29a.185.185 0 00-.185-.185H5.136a.186.186 0 00-.186.185v1.887c0 .102.084.185.186.186m5.893 2.715h2.118a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m-2.93 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888c0 .102.083.185.185.185m-2.964 0h2.119a.185.185 0 00.185-.185V9.006a.185.185 0 00-.184-.186h-2.12a.186.186 0 00-.186.186v1.887c0 .102.084.185.186.185m-2.92 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888c0 .102.082.185.185.185M23.763 9.89c-.065-.051-.672-.51-1.954-.51-.338.001-.676.03-1.01.087-.248-1.7-1.653-2.53-1.716-2.566l-.344-.199-.226.327c-.284.438-.49.922-.612 1.43-.23.97-.09 1.882.403 2.661-.595.332-1.55.413-1.744.42H.751a.751.751 0 00-.75.748 11.376 11.376 0 00.692 4.062c.545 1.428 1.355 2.48 2.41 3.124 1.18.723 3.1 1.137 5.275 1.137.983.003 1.963-.086 2.93-.266a12.248 12.248 0 003.823-1.389c.98-.567 1.86-1.288 2.61-2.136 1.252-1.418 1.998-2.997 2.553-4.4h.221c1.372 0 2.215-.549 2.68-1.009.309-.293.55-.65.707-1.046l.098-.288Z"/>
+    </symbol>
+  </defs>
+
+  <rect width="1200" height="650" rx="24" fill="url(#canvas)"/>
+  <text x="48" y="58" fill="#f2eff5" font-family="Arial, sans-serif" font-size="25" font-weight="700">System Architecture</text>
+  <text x="48" y="84" fill="#a69eae" font-family="Arial, sans-serif" font-size="14">Public edge frontend, protected origin, and real-time market data flow</text>
+
+  <rect x="190" y="115" width="560" height="420" rx="18" fill="#201b27" stroke="#f38020" stroke-opacity=".42"/>
+  <use href="#cloudflare" x="215" y="137" width="28" height="28"/>
+  <text x="253" y="157" fill="#f2eff5" font-family="Arial, sans-serif" font-size="16" font-weight="700">Cloudflare Edge</text>
+
+  <rect x="760" y="115" width="250" height="420" rx="18" fill="#201b27" stroke="#ff9900" stroke-opacity=".42"/>
+  <text x="785" y="157" fill="#ffb64d" font-family="Arial, sans-serif" font-size="14" font-weight="700">AWS · Protected Origin</text>
+
+  <g filter="url(#shadow)">
+    <rect x="40" y="220" width="130" height="120" rx="14" fill="#292330"/>
+    <circle cx="105" cy="257" r="17" fill="none" stroke="#b7e46c" stroke-width="3"/>
+    <path d="M76 316c4-22 15-33 29-33s25 11 29 33" fill="none" stroke="#b7e46c" stroke-width="3" stroke-linecap="round"/>
+    <text x="105" y="331" text-anchor="middle" fill="#f2eff5" font-family="Arial, sans-serif" font-size="15" font-weight="700">User</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="210" y="220" width="225" height="120" rx="14" fill="#292330"/>
+    <use href="#workers" x="235" y="246" width="48" height="48"/>
+    <text x="300" y="265" fill="#f2eff5" font-family="Arial, sans-serif" font-size="16" font-weight="700">Next.js 16</text>
+    <text x="300" y="289" fill="#c8c1ce" font-family="Arial, sans-serif" font-size="14">Cloudflare Workers</text>
+    <text x="300" y="312" fill="#8f8798" font-family="Arial, sans-serif" font-size="12">SSR · API Proxy</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="470" y="222" width="115" height="116" rx="14" fill="#292330"/>
+    <use href="#cloudflare" x="508" y="244" width="40" height="40"/>
+    <text x="527" y="307" text-anchor="middle" fill="#f2eff5" font-family="Arial, sans-serif" font-size="14" font-weight="700">Access</text>
+    <text x="527" y="326" text-anchor="middle" fill="#8f8798" font-family="Arial, sans-serif" font-size="11">Service Token</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="610" y="222" width="115" height="116" rx="14" fill="#292330"/>
+    <use href="#cloudflare" x="648" y="244" width="40" height="40"/>
+    <text x="667" y="307" text-anchor="middle" fill="#f2eff5" font-family="Arial, sans-serif" font-size="14" font-weight="700">Tunnel</text>
+    <text x="667" y="326" text-anchor="middle" fill="#8f8798" font-family="Arial, sans-serif" font-size="11">Private Route</text>
+  </g>
+
+  <g filter="url(#shadow)" transform="translate(88 0)">
+    <rect x="692" y="205" width="216" height="153" rx="14" fill="#292330"/>
+    <image x="718" y="231" width="56" height="56" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAQKADAAQAAAABAAAAQAAAAABGUUKwAAACH0lEQVRoBe1ZvU7DMBBOECqULPy8CSsDM2ysPAIDUlkrJsQKUgcegZUNZgZW3qTAEgpdwkknnSKQz8l9dkoUVx3SOvf5+zm7cprPJ1mvX2u9Zk/kk4BVJ5gSSAmADqQWAg2Ey3ufwDpsgRNgtH9anMzyYs95h2+gKuflw/ny9V65MWICIHsiTeIJRGFPQxETYO/fLnKdgTK6e1N5A4yYgMIs4FASENBME1TENYB0f3MtqYWyjPYKeotn9Y9NrqXQdpESsPkWripHDvWbh5Px0VU+Kmx8qmW5eLr8er51lXNn6psB1EIIeyJNygnBxb7h98ZttL5qdYcUHgRCGgTKhgMloJDrbMiYALsl5iF0bcbLjENNIIj37KJA2aIYagL/Zw14FvHfc60taFlzwS88AlznWmlcnJBA2azxCMDPtW0Vih4upAcTOoJHgKu4mzXAj1VcHPh7owAdFBlt20hD3UZ/dSpiuUC19Z4nHWoC3SziJsEONQFp3CYm6fcIlG0NBNhGhYFONNKoUQC7tXFwtnV8nY+3beSqxcfn4/T75c5WzlVGAVxMc9ObE5AGqH/Ur9+nOwh1ru39Iu69AM+DrXoP4HHHQOh9AtEFUIYcYwz7CTO6gEi8BTYJECtWdOH5IaNDHR2LwSb2nmsR7Z4Won/6wembnGsRAZ7fAQS6m1pPAt2QQGZJAhD3QtSmBEK4iGCkBBD3QtSmBEK4iGD8AFyRp1CC4bwgAAAAAElFTkSuQmCC"/>
+    <text x="790" y="247" fill="#f2eff5" font-family="Arial, sans-serif" font-size="16" font-weight="700">Amazon EC2</text>
+    <text x="790" y="270" fill="#c8c1ce" font-family="Arial, sans-serif" font-size="13">ARM64 Instance</text>
+    <rect x="718" y="305" width="164" height="35" rx="8" fill="#201b27"/>
+    <use href="#docker" x="730" y="313" width="21" height="21"/>
+    <text x="760" y="328" fill="#c8c1ce" font-family="Arial, sans-serif" font-size="12">Docker · NestJS 11</text>
+  </g>
+
+  <g filter="url(#shadow)" transform="translate(88 -18)">
+    <rect x="692" y="418" width="216" height="105" rx="14" fill="#292330"/>
+    <image x="718" y="443" width="52" height="52" href="data:image/png;base64,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"/>
+    <text x="790" y="458" fill="#f2eff5" font-family="Arial, sans-serif" font-size="16" font-weight="700">CloudWatch</text>
+    <text x="790" y="481" fill="#c8c1ce" font-family="Arial, sans-serif" font-size="13">Logs · Metrics</text>
+    <text x="790" y="502" fill="#8f8798" font-family="Arial, sans-serif" font-size="12">Alarms → SNS</text>
+  </g>
+
+  <g filter="url(#shadow)" transform="translate(40 0)">
+    <rect x="1000" y="190" width="158" height="126" rx="14" fill="#292330"/>
+    <path d="M1030 264h18l13-30 16 57 14-39h37" fill="none" stroke="#b7e46c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="1079" y="216" text-anchor="middle" fill="#f2eff5" font-family="Arial, sans-serif" font-size="14" font-weight="700">External REST</text>
+    <text x="1079" y="302" text-anchor="middle" fill="#8f8798" font-family="Arial, sans-serif" font-size="11">KIS · FSC · OpenDART</text>
+  </g>
+
+  <g filter="url(#shadow)" transform="translate(40 0)">
+    <rect x="1000" y="369" width="158" height="126" rx="14" fill="#292330"/>
+    <circle cx="1079" cy="423" r="5" fill="#8c61c2"/>
+    <path d="M1062 407a23 23 0 0 0 0 32M1051 396a38 38 0 0 0 0 54M1096 407a23 23 0 0 1 0 32M1107 396a38 38 0 0 1 0 54" fill="none" stroke="#8c61c2" stroke-width="3" stroke-linecap="round"/>
+    <text x="1079" y="391" text-anchor="middle" fill="#f2eff5" font-family="Arial, sans-serif" font-size="14" font-weight="700">Live Quotes</text>
+    <text x="1079" y="481" text-anchor="middle" fill="#8f8798" font-family="Arial, sans-serif" font-size="12">KIS WebSocket</text>
+  </g>
+
+  <path d="M170 280h30" fill="none" stroke="#b7e46c" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="185" y="267" text-anchor="middle" fill="#c8c1ce" font-family="Arial, sans-serif" font-size="10">HTTPS</text>
+
+  <path d="M435 280h25" fill="none" stroke="#b7e46c" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="448" y="267" text-anchor="middle" fill="#c8c1ce" font-family="Arial, sans-serif" font-size="10">API</text>
+
+  <path d="M585 280h15" fill="none" stroke="#b7e46c" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M725 280h45" fill="none" stroke="#b7e46c" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="748" y="267" text-anchor="middle" fill="#c8c1ce" font-family="Arial, sans-serif" font-size="10">Private origin</text>
+
+  <path d="M996 248h34" fill="none" stroke="#a69eae" stroke-width="2" marker-end="url(#arrow-muted)"/>
+  <text x="1013" y="235" text-anchor="middle" fill="#8f8798" font-family="Arial, sans-serif" font-size="10">REST</text>
+
+  <path d="M1040 432h-20v-87h-14" fill="none" stroke="#a69eae" stroke-width="2" marker-end="url(#arrow-muted)"/>
+  <text x="1024" y="389" text-anchor="middle" fill="#8f8798" font-family="Arial, sans-serif" font-size="10">WebSocket</text>
+
+  <path d="M888 358v32" fill="none" stroke="#a69eae" stroke-width="2" marker-end="url(#arrow-muted)"/>
+  <text x="900" y="382" fill="#8f8798" font-family="Arial, sans-serif" font-size="10">JSON logs</text>
+
+  <path d="M780 335h-25v185H322V350" fill="none" stroke="#8c61c2" stroke-width="2" stroke-dasharray="7 6" marker-end="url(#arrow-stream)"/>
+  <text x="540" y="510" text-anchor="middle" fill="#b59bd6" font-family="Arial, sans-serif" font-size="11">SSE response</text>
+
+  <text x="48" y="622" fill="#77717e" font-family="Arial, sans-serif" font-size="11">Solid lime: request path  ·  Gray: provider / observability  ·  Dashed purple: real-time response</text>
+</svg>

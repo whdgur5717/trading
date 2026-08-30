@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="560" viewBox="0 0 1200 560" role="img" aria-labelledby="title desc">
+  <title id="title">그때 샀다면 CI/CD 배포 구성도</title>
+  <desc id="desc">main 브랜치 변경을 GitHub Actions가 검증하고 Turborepo가 영향받은 패키지를 판별해 프론트엔드는 Cloudflare Workers로, 백엔드는 Docker 이미지 빌드 후 ECR과 CodeDeploy를 통해 EC2로 배포하는 흐름</desc>
+
+  <defs>
+    <linearGradient id="canvas" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0e0d12"/>
+      <stop offset="1" stop-color="#17131e"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#000" flood-opacity=".28"/>
+    </filter>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0 0 8 4 0 8Z" fill="#b7e46c"/>
+    </marker>
+    <symbol id="actions" viewBox="0 0 24 24">
+      <path fill="#2088FF" d="M10.984 13.836a.5.5 0 0 1-.353-.146l-.745-.743a.5.5 0 1 1 .706-.708l.392.391 1.181-1.18a.5.5 0 0 1 .708.707l-1.535 1.533a.504.504 0 0 1-.354.146zm9.353-.147l1.534-1.532a.5.5 0 0 0-.707-.707l-1.181 1.18-.392-.391a.5.5 0 1 0-.706.708l.746.743a.497.497 0 0 0 .706-.001zM4.527 7.452l2.557-1.585A1 1 0 0 0 7.09 4.17L4.533 2.56A1 1 0 0 0 3 3.406v3.196a1.001 1.001 0 0 0 1.527.85zm2.03-2.436L4 6.602V3.406l2.557 1.61zM24 12.5c0 1.93-1.57 3.5-3.5 3.5a3.503 3.503 0 0 1-3.46-3h-2.08a3.503 3.503 0 0 1-3.46 3 3.502 3.502 0 0 1-3.46-3h-.558c-.972 0-1.85-.399-2.482-1.042V17c0 1.654 1.346 3 3 3h.04c.244-1.693 1.7-3 3.46-3 1.93 0 3.5 1.57 3.5 3.5S13.43 24 11.5 24a3.502 3.502 0 0 1-3.46-3H8c-2.206 0-4-1.794-4-4V9.899A5.008 5.008 0 0 1 0 5c0-2.757 2.243-5 5-5s5 2.243 5 5a5.005 5.005 0 0 1-4.952 4.998A2.482 2.482 0 0 0 7.482 12h.558c.244-1.693 1.7-3 3.46-3a3.502 3.502 0 0 1 3.46 3h2.08a3.503 3.503 0 0 1 3.46-3c1.93 0 3.5 1.57 3.5 3.5zm-15 8c0 1.378 1.122 2.5 2.5 2.5s2.5-1.122 2.5-2.5-1.122-2.5-2.5-2.5S9 19.122 9 20.5zM5 9c2.206 0 4-1.794 4-4S7.206 1 5 1 1 2.794 1 5s1.794 4 4 4zm9 3.5c0-1.378-1.122-2.5-2.5-2.5S9 11.122 9 12.5s1.122 2.5 2.5 2.5 2.5-1.122 2.5-2.5zm9 0c0-1.378-1.122-2.5-2.5-2.5S18 11.122 18 12.5s1.122 2.5 2.5 2.5 2.5-1.122 2.5-2.5zm-13 8a.5.5 0 1 0 1 0 .5.5 0 0 0-1 0zm2 0a.5.5 0 1 0 1 0 .5.5 0 0 0-1 0zm12 0c0 1.93-1.57 3.5-3.5 3.5a3.503 3.503 0 0 1-3.46-3.002c-.007.001-.013.005-.021.005l-.506.017h-.017a.5.5 0 0 1-.016-.999l.506-.017c.018-.002.035.006.052.007A3.503 3.503 0 0 1 20.5 17c1.93 0 3.5 1.57 3.5 3.5zm-1 0c0-1.378-1.122-2.5-2.5-2.5S18 19.122 18 20.5s1.122 2.5 2.5 2.5 2.5-1.122 2.5-2.5z"/>
+    </symbol>
+    <symbol id="turbo" viewBox="0 0 24 24">
+      <path fill="#FF1E56" d="M11.9906 4.1957c-4.2998 0-7.7981 3.501-7.7981 7.8043s3.4983 7.8043 7.7981 7.8043c4.2999 0 7.7982-3.501 7.7982-7.8043s-3.4983-7.8043-7.7982-7.8043m0 11.843c-2.229 0-4.0356-1.8079-4.0356-4.0387s1.8065-4.0387 4.0356-4.0387S16.0262 9.7692 16.0262 12s-1.8065 4.0388-4.0356 4.0388m.6534-13.1249V0C18.9726.3386 24 5.5822 24 12s-5.0274 11.66-11.356 12v-2.9139c4.7167-.3372 8.4516-4.2814 8.4516-9.0861s-3.735-8.749-8.4516-9.0861M5.113 17.9586c-1.2502-1.4446-2.0562-3.2845-2.2-5.3046H0c.151 2.8266 1.2808 5.3917 3.051 7.3668l2.0606-2.0622zM11.3372 24v-2.9139c-2.02-.1439-3.8584-.949-5.3019-2.2018l-2.0606 2.0623c1.975 1.773 4.538 2.9022 7.361 3.0534z"/>
+    </symbol>
+    <symbol id="workers" viewBox="0 0 24 24">
+      <path fill="#F38020" d="m8.213.063 8.879 12.136-8.67 11.739h2.476l8.665-11.735-8.89-12.14Zm4.728 0 9.02 11.992-9.018 11.883h2.496L24 12.656v-1.199L15.434.063ZM7.178 2.02.01 11.398l-.01 1.2 7.203 9.644 1.238-1.676-6.396-8.556 6.361-8.313Z"/>
+    </symbol>
+    <symbol id="docker" viewBox="0 0 24 24">
+      <path fill="#2496ED" d="M13.983 11.078h2.119a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.119a.185.185 0 00-.185.185v1.888c0 .102.083.185.185.185m-2.954-5.43h2.118a.186.186 0 00.186-.186V3.574a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m0 2.716h2.118a.187.187 0 00.186-.186V6.29a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.887c0 .102.082.185.185.186m-2.93 0h2.12a.186.186 0 00.184-.186V6.29a.185.185 0 00-.185-.185H8.1a.185.185 0 00-.185.185v1.887c0 .102.083.185.185.186m-2.964 0h2.119a.186.186 0 00.185-.186V6.29a.185.185 0 00-.185-.185H5.136a.186.186 0 00-.186.185v1.887c0 .102.084.185.186.186m5.893 2.715h2.118a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m-2.93 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888c0 .102.083.185.185.185m-2.964 0h2.119a.185.185 0 00.185-.185V9.006a.185.185 0 00-.184-.186h-2.12a.186.186 0 00-.186.186v1.887c0 .102.084.185.186.185m-2.92 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888c0 .102.082.185.185.185M23.763 9.89c-.065-.051-.672-.51-1.954-.51-.338.001-.676.03-1.01.087-.248-1.7-1.653-2.53-1.716-2.566l-.344-.199-.226.327c-.284.438-.49.922-.612 1.43-.23.97-.09 1.882.403 2.661-.595.332-1.55.413-1.744.42H.751a.751.751 0 00-.75.748 11.376 11.376 0 00.692 4.062c.545 1.428 1.355 2.48 2.41 3.124 1.18.723 3.1 1.137 5.275 1.137.983.003 1.963-.086 2.93-.266a12.248 12.248 0 003.823-1.389c.98-.567 1.86-1.288 2.61-2.136 1.252-1.418 1.998-2.997 2.553-4.4h.221c1.372 0 2.215-.549 2.68-1.009.309-.293.55-.65.707-1.046l.098-.288Z"/>
+    </symbol>
+  </defs>
+
+  <rect width="1200" height="560" rx="24" fill="url(#canvas)"/>
+  <text x="48" y="58" fill="#f2eff5" font-family="Arial, sans-serif" font-size="25" font-weight="700">CI/CD Pipeline</text>
+  <text x="48" y="84" fill="#a69eae" font-family="Arial, sans-serif" font-size="14">One verified build, package-aware deployment, two runtime targets</text>
+
+  <g filter="url(#shadow)">
+    <rect x="45" y="215" width="220" height="125" rx="14" fill="#292330"/>
+    <use href="#actions" x="73" y="246" width="52" height="52"/>
+    <text x="140" y="260" fill="#f2eff5" font-family="Arial, sans-serif" font-size="15" font-weight="700">GitHub Actions</text>
+    <text x="140" y="283" fill="#c8c1ce" font-family="Arial, sans-serif" font-size="12">main push</text>
+    <text x="140" y="304" fill="#8f8798" font-family="Arial, sans-serif" font-size="11">Lint · Build</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="285" y="215" width="185" height="125" rx="14" fill="#292330"/>
+    <use href="#turbo" x="313" y="246" width="52" height="52"/>
+    <text x="380" y="260" fill="#f2eff5" font-family="Arial, sans-serif" font-size="15" font-weight="700">Turborepo</text>
+    <text x="380" y="283" fill="#c8c1ce" font-family="Arial, sans-serif" font-size="12">Affected Query</text>
+    <text x="380" y="304" fill="#8f8798" font-family="Arial, sans-serif" font-size="11">front / back</text>
+  </g>
+
+  <text x="545" y="139" fill="#b7e46c" font-family="Arial, sans-serif" font-size="12" font-weight="700">FRONT CHANGED</text>
+  <g filter="url(#shadow)">
+    <rect x="570" y="160" width="258" height="122" rx="14" fill="#292330"/>
+    <use href="#workers" x="606" y="191" width="52" height="52"/>
+    <text x="678" y="205" fill="#f2eff5" font-family="Arial, sans-serif" font-size="15" font-weight="700">Cloudflare Workers</text>
+    <text x="678" y="229" fill="#c8c1ce" font-family="Arial, sans-serif" font-size="12">OpenNext deploy</text>
+    <text x="678" y="251" fill="#8f8798" font-family="Arial, sans-serif" font-size="11">Edge runtime</text>
+  </g>
+
+  <text x="545" y="340" fill="#b7e46c" font-family="Arial, sans-serif" font-size="12" font-weight="700">BACK CHANGED</text>
+  <g filter="url(#shadow)">
+    <rect x="530" y="365" width="142" height="118" rx="14" fill="#292330"/>
+    <use href="#docker" x="577" y="387" width="48" height="48"/>
+    <text x="601" y="456" text-anchor="middle" fill="#f2eff5" font-family="Arial, sans-serif" font-size="14" font-weight="700">Docker Build</text>
+    <text x="601" y="473" text-anchor="middle" fill="#8f8798" font-family="Arial, sans-serif" font-size="10">linux/arm64</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="715" y="365" width="142" height="118" rx="14" fill="#292330"/>
+    <image x="762" y="383" width="48" height="48" href="data:image/png;base64,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"/>
+    <text x="786" y="456" text-anchor="middle" fill="#f2eff5" font-family="Arial, sans-serif" font-size="14" font-weight="700">Amazon ECR</text>
+    <text x="786" y="473" text-anchor="middle" fill="#8f8798" font-family="Arial, sans-serif" font-size="10">Digest image</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="900" y="365" width="142" height="118" rx="14" fill="#292330"/>
+    <image x="947" y="383" width="48" height="48" href="data:image/png;base64,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"/>
+    <text x="971" y="456" text-anchor="middle" fill="#f2eff5" font-family="Arial, sans-serif" font-size="14" font-weight="700">CodeDeploy</text>
+    <text x="971" y="473" text-anchor="middle" fill="#8f8798" font-family="Arial, sans-serif" font-size="10">Managed rollout</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="1085" y="365" width="90" height="118" rx="14" fill="#292330"/>
+    <image x="1109" y="386" width="48" height="48" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAQKADAAQAAAABAAAAQAAAAABGUUKwAAACH0lEQVRoBe1ZvU7DMBBOECqULPy8CSsDM2ysPAIDUlkrJsQKUgcegZUNZgZW3qTAEgpdwkknnSKQz8l9dkoUVx3SOvf5+zm7cprPJ1mvX2u9Zk/kk4BVJ5gSSAmADqQWAg2Ey3ufwDpsgRNgtH9anMzyYs95h2+gKuflw/ny9V65MWICIHsiTeIJRGFPQxETYO/fLnKdgTK6e1N5A4yYgMIs4FASENBME1TENYB0f3MtqYWyjPYKeotn9Y9NrqXQdpESsPkWripHDvWbh5Px0VU+Kmx8qmW5eLr8er51lXNn6psB1EIIeyJNygnBxb7h98ZttL5qdYcUHgRCGgTKhgMloJDrbMiYALsl5iF0bcbLjENNIIj37KJA2aIYagL/Zw14FvHfc60taFlzwS88AlznWmlcnJBA2azxCMDPtW0Vih4upAcTOoJHgKu4mzXAj1VcHPh7owAdFBlt20hD3UZ/dSpiuUC19Z4nHWoC3SziJsEONQFp3CYm6fcIlG0NBNhGhYFONNKoUQC7tXFwtnV8nY+3beSqxcfn4/T75c5WzlVGAVxMc9ObE5AGqH/Ur9+nOwh1ru39Iu69AM+DrXoP4HHHQOh9AtEFUIYcYwz7CTO6gEi8BTYJECtWdOH5IaNDHR2LwSb2nmsR7Z4Won/6wembnGsRAZ7fAQS6m1pPAt2QQGZJAhD3QtSmBEK4iGCkBBD3QtSmBEK4iGD8AFyRp1CC4bwgAAAAAElFTkSuQmCC"/>
+    <text x="1130" y="456" text-anchor="middle" fill="#f2eff5" font-family="Arial, sans-serif" font-size="14" font-weight="700">EC2</text>
+    <text x="1130" y="473" text-anchor="middle" fill="#8f8798" font-family="Arial, sans-serif" font-size="10">Health check</text>
+  </g>
+
+  <path d="M265 278h10" fill="none" stroke="#b7e46c" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M470 278h30" fill="none" stroke="#b7e46c" stroke-width="2"/>
+  <circle cx="500" cy="278" r="4" fill="#b7e46c"/>
+  <path d="M500 278v-58h60" fill="none" stroke="#b7e46c" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M500 278v146h20" fill="none" stroke="#b7e46c" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M672 424h33" fill="none" stroke="#b7e46c" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M857 424h33" fill="none" stroke="#b7e46c" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M1042 424h33" fill="none" stroke="#b7e46c" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <rect x="48" y="510" width="1104" height="1" fill="#37303e"/>
+  <text x="600" y="536" text-anchor="middle" fill="#8f8798" font-family="Arial, sans-serif" font-size="12">Unchanged packages are skipped · Back images are deployed by immutable digest</text>
+</svg>
