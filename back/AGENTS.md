@@ -56,8 +56,10 @@ back/
 
 - 예상 가능한 도메인 실패와 외부 연동 실패는 `neverthrow`의 `Result` 또는
   `ResultAsync`로 표현한다.
-- 예상 실패를 `throw`로 흐르게 만들지 않는다. `throw`는 예상하지 못한 런타임
-  오류나 프레임워크가 직접 처리해야 하는 오류에만 둔다.
+- 서비스 내부에서는 예상 실패를 `throw`로 흐르게 만들지 않는다. HTTP 전송
+  경계에서는 `Result.err`를 Nest `HttpException`으로 변환해 전역 exception
+  filter가 공개 응답과 로그를 한 번만 처리한다.
+- 예상하지 못한 런타임 오류는 원본 exception과 stack을 유지한다.
 - 공개 API로 노출되는 예상 실패는 프로젝트 오류 코드와 실패 타입이 API 계약에
   드러나야 한다.
 

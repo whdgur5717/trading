@@ -1,4 +1,4 @@
-import { Controller, Query, Sse } from "@nestjs/common"
+import { Controller, HttpException, Query, Sse } from "@nestjs/common"
 import {
   ApiBadRequestResponse,
   ApiExtraModels,
@@ -10,7 +10,6 @@ import {
 } from "@nestjs/swagger"
 import { Result } from "neverthrow"
 import type { Observable } from "rxjs"
-import { definedErrorException } from "../common/error/define"
 import { StocksService } from "../stocks/stocks.service"
 import {
   DisconnectedEventDto,
@@ -159,7 +158,7 @@ export class RealtimeController {
       .match(
         (symbols) =>
           Promise.resolve(toServerSentEvents(this.realtime.watch(symbols))),
-        (error) => Promise.reject(definedErrorException(error))
+        (error) => Promise.reject(new HttpException(error, error.status))
       )
   }
 }

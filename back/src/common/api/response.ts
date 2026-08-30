@@ -1,44 +1,49 @@
 import {
   CallHandler,
   ExecutionContext,
+  HttpException,
   Injectable,
+  Logger,
   NestInterceptor,
 } from "@nestjs/common"
-import type { Response } from "express"
+import type { Request, Response } from "express"
 import { Observable, mergeMap } from "rxjs"
-import { commonErrors } from "../error/common.errors"
 import { isDefinedError } from "../error/define"
-import { type ApiFailure, type ApiSuccess } from "./schema"
+import type { RequestLocals } from "./request-locals"
+import type { ApiSuccess } from "./schema"
 
 @Injectable()
 export class ApiResponseInterceptor<T> implements NestInterceptor<
   T,
-  ApiSuccess | ApiFailure | T
+  ApiSuccess | T
 > {
+  private readonly logger = new Logger(ApiResponseInterceptor.name)
+
   intercept(
     context: ExecutionContext,
     next: CallHandler<T>
-  ): Observable<ApiSuccess | ApiFailure | T> {
-    const response = context.switchToHttp().getResponse<Response>()
+  ): Observable<ApiSuccess | T> {
+    const request = context.switchToHttp().getRequest<Request>()
+    const response = context
+      .switchToHttp()
+      .getResponse<Response<unknown, RequestLocals>>()
+    const { requestId, requestStartedAt } = response.locals
 
-    return next
-      .handle()
-      .pipe(
-        mergeMap(async (data) =>
-          apiResponse(await Promise.resolve(data), response)
-        )
-      )
-  }
-}
+    return next.handle().pipe(
+      mergeMap(async (data) => {
+        const body = apiResponse(await Promise.resolve(data))
 
-export function apiErrorBody(error: unknown): ApiFailure["error"] {
-  const apiError = isDefinedError(error) ? error : commonErrors.internal({})
+        this.logger.log({
+          requestId,
+          method: request.method,
+          path: request.path,
+          statusCode: response.statusCode,
+          durationMs: Date.now() - requestStartedAt,
+        })
 
-  return {
-    type: apiError.type,
-    status: apiError.status,
-    message: apiError.message,
-    data: apiError.data,
+        return body
+      })
+    )
   }
 }
 
@@ -49,10 +54,7 @@ type ResultLike = {
   readonly error?: unknown
 }
 
-function apiResponse<T>(
-  data: T,
-  response: Response
-): ApiSuccess | ApiFailure | T {
+function apiResponse<T>(data: T): ApiSuccess | T {
   if (!isResultLike(data)) {
     return {
       success: true as const,
@@ -67,13 +69,11 @@ function apiResponse<T>(
     }
   }
 
-  const body = apiErrorBody(data.error)
-  response.status(body.status)
-
-  return {
-    success: false as const,
-    error: body,
+  if (isDefinedError(data.error)) {
+    throw new HttpException(data.error, data.error.status)
   }
+
+  throw data.error
 }
 
 function isResultLike(value: unknown): value is ResultLike {

@@ -100,7 +100,8 @@ Provider 구분은 오류 타입 이름에 넣지 않는다. 예를 들어 KIS t
 module service
   -> Result/ResultAsync<Success, DefinedErrorUnion>
   -> ApiResponseInterceptor
-  -> apiErrorBody()
+  -> HttpException
+  -> ApiExceptionFilter
   -> { success: false, error: { type, status, message, data } }
 ```
 
@@ -111,10 +112,14 @@ return err(returnsErrors.buyPriceNotFound({ symbol, buyDate }))
 ```
 
 `ApiResponseInterceptor`는 컨트롤러 반환값이 `Result` 계열이면 성공과 실패를
-분리한다. 실패면 `apiErrorBody()`가 HTTP status와 body를 만든다.
+분리한다. 성공은 공개 성공 응답으로 바꾸고, 실패는 Nest `HttpException`으로
+변환한다. 전역 `ApiExceptionFilter`가 정의된 오류의 HTTP status와 body를 만들고
+로그를 한 번 기록한다.
 
-`apiErrorBody()`는 정의된 오류만 그대로 통과시킨다. 정의되지 않은 객체, 일반
-`Error`, 예상하지 못한 throw/rejection은 모두 `common.internal`로 감싼다.
+정의되지 않은 객체, 일반 `Error`, 예상하지 못한 throw/rejection은 전역 filter가
+원본 exception과 stack을 내부 로그에 남기고 공개 응답에서는
+`common.internal`로 감싼다. Nest가 생성한 다른 `HttpException`은 원래 HTTP
+status를 유지한다.
 
 검증 실패는 `nestjs-zod` validation pipe에서
 `common.invalid_request` 예외로 변환된다. 이 예외도 정의된 오류 brand를 가지므로
@@ -224,7 +229,8 @@ export type PricesControllerPriceFailure =
 
 ## 금지 사항
 
-- 예상 가능한 실패를 `throw new Error()`로 흐르게 만들지 않는다.
+- 서비스 내부의 예상 가능한 실패를 `throw new Error()`로 흐르게 만들지 않는다.
+  HTTP 전송 경계에서 Nest `HttpException`으로 변환하는 것은 허용한다.
 - `err({ type: "...", ... })`처럼 raw object를 직접 넣지 않는다.
 - `message`를 호출 지점에서 동적으로 바꾸지 않는다.
 - `data`에 원본 예외, stack, secret, 외부 응답 원문을 넣지 않는다.

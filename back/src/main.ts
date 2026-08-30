@@ -1,5 +1,6 @@
 import { resolve } from "node:path"
 import { pathToFileURL } from "node:url"
+import { ConsoleLogger } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
 import { NestFactory } from "@nestjs/core"
 import { NestExpressApplication } from "@nestjs/platform-express"
@@ -8,7 +9,11 @@ import { AppModule } from "./app.module"
 import { configureApp } from "./bootstrap/app-bootstrap"
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule)
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    logger: new ConsoleLogger({
+      json: process.env.NODE_ENV === "production",
+    }),
+  })
   const config = app.get(ConfigService)
 
   configureApp(app)
