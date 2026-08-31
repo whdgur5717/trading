@@ -19,9 +19,12 @@ type ResultViewProps = {
 }
 
 const marketSessions = {
-  PRE_MARKET: { label: "장전", variant: "active" },
-  REGULAR_MARKET: { label: "장중", variant: "active" },
-  AFTER_MARKET: { label: "장후", variant: "active" },
+  PRE_MARKET: { label: "프리마켓(장개시전 시간외시장)", variant: "active" },
+  REGULAR_MARKET: { label: "정규장(정규시장)", variant: "active" },
+  AFTER_MARKET: {
+    label: "애프터마켓(장종료후 시간외시장)",
+    variant: "active",
+  },
   CLOSED: { label: "종료", variant: "inactive" },
   UNKNOWN: { label: "확인 중", variant: "inactive" },
   UNAVAILABLE: { label: "확인 불가", variant: "danger" },
