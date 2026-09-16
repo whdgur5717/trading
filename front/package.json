@@ -8,6 +8,7 @@
     "deploy": "opennextjs-cloudflare deploy",
     "start": "next start",
     "test": "vitest run",
+    "test:e2e": "playwright test",
     "lint": "oxlint --fix --deny-warnings",
     "lint:staged": "oxlint --fix --deny-warnings",
     "type-check": "next typegen && tsc --noEmit --incremental false",
@@ -43,6 +44,7 @@
   },
   "devDependencies": {
     "@opennextjs/cloudflare": "^1.20.1",
+    "@playwright/test": "1.61.1",
     "@tailwindcss/postcss": "^4",
     "@types/culori": "^4.0.1",
     "@types/node": "^20",
