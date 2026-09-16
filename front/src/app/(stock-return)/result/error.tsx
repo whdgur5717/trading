@@ -1,9 +1,21 @@
 "use client"
 
 import { Button } from "@/components/button"
+import * as Sentry from "@sentry/nextjs"
 import Link from "next/link"
+import { useEffect } from "react"
 
-export default function ResultError({ reset }: { reset: () => void }) {
+export default function ResultError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string }
+  reset: () => void
+}) {
+  useEffect(() => {
+    Sentry.captureException(error)
+  }, [error])
+
   return (
     <div className="grid w-full max-w-form gap-6">
       <section

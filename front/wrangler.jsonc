@@ -1,7 +1,8 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "trading-front",
-  "main": ".open-next/worker.js",
+  "main": "worker.ts",
+  "keep_vars": true,
   "compatibility_date": "2026-07-02",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "assets": {

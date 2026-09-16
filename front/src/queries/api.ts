@@ -1,3 +1,4 @@
+import { captureException } from "@sentry/core"
 import ky from "ky"
 import type { ZodError } from "zod"
 
@@ -40,4 +41,26 @@ export class ApiUnexpectedStatusError extends Error {
 export const api = ky.create({
   prefix: apiBaseUrl,
   throwHttpErrors: false,
+  hooks: {
+    afterResponse: [
+      ({ request, response }) => {
+        if (response.status >= 500) {
+          const { pathname } = new URL(request.url)
+
+          captureException(
+            new Error(
+              `API request failed: ${request.method} ${pathname} returned ${response.status}`
+            ),
+            {
+              tags: {
+                apiPath: pathname,
+                method: request.method,
+                status: response.status,
+              },
+            }
+          )
+        }
+      },
+    ],
+  },
 })
