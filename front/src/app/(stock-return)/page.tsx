@@ -57,6 +57,7 @@ export default function Home() {
           />
 
           <Input
+            aria-label="수량"
             inputMode="numeric"
             min={1}
             onChange={(event) => {

@@ -5,6 +5,9 @@ initOpenNextCloudflareForDev()
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  experimental: {
+    testProxy: process.env.PLAYWRIGHT_TEST === "true",
+  },
 }
 
 export default nextConfig
