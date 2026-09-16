@@ -4,11 +4,15 @@ import { cn } from "@/utils/cn"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Context, useControllableState } from "radix-ui/internal"
 import {
+  type ComponentProps,
   type ComponentPropsWithoutRef,
   forwardRef,
+  type KeyboardEvent,
   type ReactNode,
+  type Ref,
   useCallback,
   useMemo,
+  useRef,
 } from "react"
 
 import { calendar } from "./styles"
@@ -410,9 +414,10 @@ interface DaysProps {
   showOutsideDays?: boolean
   disabled?: boolean | ((date: Date) => boolean)
   className?: string
+  ref?: Ref<HTMLButtonElement>
 }
 
-interface DayButtonProps extends ComponentPropsWithoutRef<"button"> {
+interface DayButtonProps extends ComponentProps<"button"> {
   day: number
   month: number
   year: number
@@ -443,8 +448,8 @@ const DayButton = ({
       data-year={year}
       data-hidden={isHidden}
       data-outside-month={isOutsideMonth}
+      aria-disabled={disabled || undefined}
       aria-hidden={isHidden}
-      disabled={disabled}
       {...props}
     >
       {!isHidden && day}
@@ -455,10 +460,12 @@ const DayButton = ({
 export const Days = ({
   className,
   disabled,
+  ref,
   showOutsideDays = true,
 }: DaysProps) => {
-  const { value, handleDayClick, selectedValue, minDate, maxDate } =
+  const { value, handleDayClick, selectedValue, locale, minDate, maxDate } =
     useCalendarContext(contextScopeName)
+  const dayButtons = useRef<Array<HTMLButtonElement | null>>([])
   const minDateTime = minDate ? parseDateTimestamp(minDate) : undefined
   const maxDateTime = maxDate ? parseDateTimestamp(maxDate) : undefined
   const weeks = useMemo(() => {
@@ -497,9 +504,18 @@ export const Days = ({
     value.daysInPrevMonth,
     value.nextMonthStartWeek,
   ])
-
+  const selectedDate = selectedValue.find(
+    (selectedDate) => selectedDate !== null
+  )
   return (
-    <table className={cn(styles.daysGrid(), className)}>
+    <table
+      aria-label={new Intl.DateTimeFormat(locale, {
+        month: "long",
+        year: "numeric",
+      }).format(new Date(value.year, value.month - 1))}
+      className={cn(styles.daysGrid(), className)}
+      role="grid"
+    >
       <tbody>
         {weeks.map((week, weekIndex) => (
           <tr key={weekIndex} className={styles.weekRow()}>
@@ -521,10 +537,18 @@ export const Days = ({
                 (selectedDate) =>
                   selectedDate !== null && isSameDay(selectedDate, date)
               )
+              const dayIndexInCalendar = weekIndex * 7 + dayIndex
 
               return (
-                <td key={`${weekIndex}-${dayIndex}`} className="p-0.5">
+                <td
+                  key={`${weekIndex}-${dayIndex}`}
+                  aria-selected={isSelected || undefined}
+                  className="p-0.5"
+                >
                   <DayButton
+                    aria-label={new Intl.DateTimeFormat(locale, {
+                      dateStyle: "full",
+                    }).format(date)}
                     day={day.day}
                     disabled={isDisabled}
                     month={month}
@@ -532,7 +556,40 @@ export const Days = ({
                     isHidden={isHidden}
                     isSelected={isSelected}
                     isOutsideMonth={!day.isCurrentMonth}
-                    onClick={() => handleDayClick(date)}
+                    onKeyDown={(event) =>
+                      moveFocusByArrowKey(
+                        event,
+                        dayButtons.current,
+                        dayIndexInCalendar
+                      )
+                    }
+                    onClick={() => {
+                      if (isDisabled) return
+                      handleDayClick(date)
+                    }}
+                    ref={(button) => {
+                      dayButtons.current[dayIndexInCalendar] = isHidden
+                        ? null
+                        : button
+                      if (
+                        ref &&
+                        selectedDate !== undefined &&
+                        isSameDay(selectedDate, date)
+                      ) {
+                        if (typeof ref === "function") {
+                          ref(button)
+                        } else {
+                          ref.current = button
+                        }
+                      }
+                    }}
+                    tabIndex={
+                      selectedDate !== undefined &&
+                      isSameDay(selectedDate, date) &&
+                      !isHidden
+                        ? 0
+                        : -1
+                    }
                   />
                 </td>
               )
@@ -542,6 +599,40 @@ export const Days = ({
       </tbody>
     </table>
   )
+}
+
+function moveFocusByArrowKey(
+  event: KeyboardEvent<HTMLButtonElement>,
+  dayButtons: Array<HTMLButtonElement | null>,
+  currentIndex: number
+) {
+  let nextIndex: number
+
+  switch (event.key) {
+    case "ArrowLeft":
+      nextIndex = currentIndex - 1
+      break
+    case "ArrowRight":
+      nextIndex = currentIndex + 1
+      break
+    case "ArrowUp":
+      nextIndex = currentIndex - 7
+      break
+    case "ArrowDown":
+      nextIndex = currentIndex + 7
+      break
+    default:
+      return
+  }
+
+  event.preventDefault()
+
+  const nextDay = dayButtons[nextIndex]
+  if (!nextDay) return
+
+  event.currentTarget.tabIndex = -1
+  nextDay.tabIndex = 0
+  nextDay.focus()
 }
 
 function isSameDay(firstDate: Date, secondDate: Date) {

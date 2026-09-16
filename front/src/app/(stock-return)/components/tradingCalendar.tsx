@@ -12,6 +12,7 @@ import {
   y2026,
 } from "@hyunbinseo/holidays-kr"
 import { ChevronLeft, ChevronRight } from "lucide-react"
+import type { Ref } from "react"
 
 const HOLIDAYS_BY_YEAR = {
   2020: y2020,
@@ -28,6 +29,7 @@ const months = Array.from({ length: 12 }, (_, index) => index + 1)
 
 type TradingCalendarProps = {
   selectedDate?: Calendar.CalendarRootProps["date"]
+  ref?: Ref<HTMLButtonElement>
   viewDate: NonNullable<Calendar.CalendarRootProps["viewDate"]>
   onSelectDate: (date: NonNullable<Calendar.CalendarRootProps["date"]>) => void
   onViewDateChange: NonNullable<Calendar.CalendarRootProps["onViewDateChange"]>
@@ -230,6 +232,7 @@ function TradingCalendarHeader({
 
 export function TradingCalendar({
   selectedDate,
+  ref,
   viewDate,
   onSelectDate,
   onViewDateChange,
@@ -238,7 +241,7 @@ export function TradingCalendar({
 
   return (
     <Calendar.Root
-      date={selectedDate ?? viewDate}
+      date={selectedDate}
       locale="ko-KR"
       maxDate={maxSelectableDate}
       minDate={minSelectableDate}
@@ -257,7 +260,7 @@ export function TradingCalendar({
         onViewDateChange={onViewDateChange}
       />
       <Calendar.Weekday />
-      <Calendar.Days disabled={isMarketClosedDate} />
+      <Calendar.Days disabled={isMarketClosedDate} ref={ref} />
     </Calendar.Root>
   )
 }
