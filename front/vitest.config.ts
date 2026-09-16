@@ -5,6 +5,9 @@ import { defineConfig } from "vitest/config"
 
 export default defineConfig({
   plugins: [react()],
+  optimizeDeps: {
+    entries: ["src/**/*.test.{ts,tsx}"],
+  },
   resolve: {
     alias: {
       "@": resolve(__dirname, "src"),
@@ -12,13 +15,6 @@ export default defineConfig({
   },
   test: {
     include: ["**/*.test.*"],
-    deps: {
-      optimizer: {
-        web: {
-          include: ["culori"],
-        },
-      },
-    },
     browser: {
       enabled: true,
       headless: true,

@@ -4,7 +4,7 @@ import * as Calendar from "@/components/calendar"
 import { createPickerField } from "@/components/picker-field"
 import { ChevronDown } from "lucide-react"
 import type { ComponentProps } from "react"
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { TradingCalendar } from "./tradingCalendar"
 
 export type PurchaseDateShortcut = {
@@ -43,6 +43,7 @@ export function PurchaseDatePicker({
   onChange,
 }: PurchaseDatePickerProps) {
   const [viewDate, setViewDate] = useState(() => value ?? new Date())
+  const ref = useRef<HTMLButtonElement>(null)
 
   return (
     <Picker.Root
@@ -88,7 +89,18 @@ export function PurchaseDatePicker({
           }}
         </Picker.Trigger>
 
-        <Picker.Content align="start" asChild sideOffset={8}>
+        <Picker.Content
+          align="start"
+          asChild
+          sideOffset={8}
+          onOpenAutoFocus={(event) => {
+            const selectedDate = ref.current
+            if (!selectedDate) return
+
+            event.preventDefault()
+            selectedDate.focus()
+          }}
+        >
           <div className="space-y-3">
             {shortcuts.length > 0 && (
               <div className="flex flex-wrap gap-2">
@@ -118,6 +130,7 @@ export function PurchaseDatePicker({
               <Picker.Value>
                 {(picker) => (
                   <TradingCalendar
+                    ref={ref}
                     selectedDate={picker.value}
                     viewDate={viewDate}
                     onSelectDate={picker.select}
